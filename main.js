@@ -18,7 +18,7 @@ mainScene.setLevel(new OutdoorLevel1())
 // Establish update and draw loops
 const update = (delta) => {
   mainScene.stepEntry(delta, mainScene);
-  mainScene.input?.update();
+  mainScene.input?.update(); 
 };
 
 const draw = () => {

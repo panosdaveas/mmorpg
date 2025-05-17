@@ -5,10 +5,12 @@ export class TiledCollisionHandler {
         this.mapData = mapData;
         this.collisionMap = new Map(); // Map to store collision state with layer info
         this.collisionTileIds = new Set();
+        this.actionTileIds = new Set();
         this.finalWalls = new Set(); // Final set of walls after processing z-index
-
+        this.finalActions = new Set();
         // First, identify which tile IDs have collision properties
         this.identifyCollisionTiles();
+        this.identifyActionTiles();
 
         // Extract collision data considering layer order
         this.extractCollisionDataWithZIndex();
@@ -42,6 +44,33 @@ export class TiledCollisionHandler {
         });
 
         console.log(`Found ${this.collisionTileIds.size} collision tile types`);
+    }
+
+    identifyActionTiles() {
+        // Check if tilesets are available in the map data
+        if (!this.mapData.tilesets || !this.mapData.tilesets.length) {
+            console.warn("No tilesets found in map data");
+            return;
+        }
+
+        // Go through each tileset
+        this.mapData.tilesets.forEach(tileset => {
+            // Check if the tileset has tile definitions with properties
+            if (tileset.tiles) {
+                // Go through each tile definition
+                tileset.tiles.forEach(tile => {
+                    // Check if this tile has the collide property
+                    if (tile.properties && this.hasActionProperty(tile.properties)) {
+                        // Calculate the global tile ID by adding the first gid of the tileset
+                        const globalTileId = tileset.firstgid + tile.id;
+                        this.actionTileIds.add(globalTileId);
+                        console.log(`Tile ID ${globalTileId} has action property`);
+                    }
+                });
+            }
+        });
+
+        console.log(`Found ${this.actionTileIds.size} action tile types`);
     }
 
     extractCollisionDataWithZIndex() {
@@ -126,6 +155,10 @@ export class TiledCollisionHandler {
 
     hasCollideProperty(properties) {
         return properties.some(prop => prop.name === "collide" && prop.value === true);
+    }
+
+    hasActionProperty(properties) {
+        return properties.some(prop => prop.name === "action-1" && prop.value === true);
     }
 
     // Check if a given position has a collision

@@ -31,7 +31,7 @@ export class Hero extends GameObject {
     this.lastMovementDirection = DOWN; // Track direction of last movement
     this.previousPosition = new Vector2(x, y); // Track previous position for movement detection
     this.lastMovedTime = Date.now(); // Track when we last moved
-    this.movementAnimationTimeout = 200; // Stop animation after this many ms
+    this.movementAnimationTimeout = 400; // Stop animation after this many ms
 
     const shadow = new Sprite({
       resource: resources.images.shadow,
@@ -132,7 +132,7 @@ export class Hero extends GameObject {
       // Track last time we moved (for animation timeout)
       this.lastMovedTime = Date.now();
     }
-
+    
     // Update animation based on movement
     if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
       this.updateAnimation(this.lastMovementDirection);

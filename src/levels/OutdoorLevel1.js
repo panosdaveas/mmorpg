@@ -169,7 +169,7 @@ export class OutdoorLevel1 extends Level {
     socket.on('playerMoved', data => {
       if (data.id !== this.mySocketId && this.players[data.id]) {
         // Only update remote players (not our local player)
-        console.log(`Updating remote player ${data.id} to`, data);
+        // console.log(`Updating remote player ${data.id} to`, data);
 
         // Use the new updateRemotePosition method to handle animation
         this.players[data.id].updateRemotePosition(data.x, data.y);

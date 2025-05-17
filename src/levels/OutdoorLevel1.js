@@ -10,7 +10,7 @@ import {events} from "../Events.js";
 import {CaveLevel1} from "./CaveLevel1.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json'
-import{TiledCollisionHandler} from "../helpers/collisionHandler.js"
+import{TiledPropertyHandler} from "../helpers/propertyHandler.js"
 
 
 const DEFAULT_HERO_POSITION = new Vector2(gridCells(20),gridCells(21))
@@ -40,12 +40,14 @@ export class OutdoorLevel1 extends Level {
     // const rod = new Rod(gridCells(7), gridCells(6))
     // this.addChild(rod);
 
-
     this.walls = new Set();
+    this.actions = new Set();
 
-    const handler = new TiledCollisionHandler(mapData);
+    const propertyHandler = new TiledPropertyHandler(mapData);
 
-    this.walls = handler.getWalls();
+    this.walls = propertyHandler.getWallTiles();
+    this.actions = propertyHandler.getActionTiles();
+    this.propertyHandler = propertyHandler;
 
   }
   

@@ -1,11 +1,11 @@
-import {GameObject} from "../../GameObject.js";
-import {Vector2} from "../../Vector2.js";
-import {DOWN, LEFT, RIGHT, UP} from "../../Input.js";
-import {gridCells, isSpaceFree} from "../../helpers/grid.js";
-import {Sprite} from "../../Sprite.js";
-import {resources} from "../../Resource.js";
-import {Animations} from "../../Animations.js";
-import {FrameIndexPattern} from "../../FrameIndexPattern.js";
+import { GameObject } from "../../GameObject.js";
+import { Vector2 } from "../../Vector2.js";
+import { DOWN, LEFT, RIGHT, UP } from "../../Input.js";
+import { gridCells, isSpaceFree } from "../../helpers/grid.js";
+import { Sprite } from "../../Sprite.js";
+import { resources } from "../../Resource.js";
+import { Animations } from "../../Animations.js";
+import { FrameIndexPattern } from "../../FrameIndexPattern.js";
 import {
   PICK_UP_DOWN,
   STAND_DOWN,
@@ -17,8 +17,8 @@ import {
   WALK_RIGHT,
   WALK_UP
 } from "./heroAnimations.js";
-import {moveTowards} from "../../helpers/moveTowards.js";
-import {events} from "../../Events.js";
+import { moveTowards } from "../../helpers/moveTowards.js";
+import { events } from "../../Events.js";
 
 export class Hero extends GameObject {
   constructor(x, y) {
@@ -61,6 +61,7 @@ export class Hero extends GameObject {
     this.itemPickupTime = 0;
     this.itemPickupShell = null;
     this.isLocked = false;
+    this.interactionCooldown = 0; // Cooldown for interactions
 
     // React to picking up an item
     events.on("HERO_PICKS_UP_ITEM", this, data => {
@@ -78,6 +79,10 @@ export class Hero extends GameObject {
   }
 
   step(delta, root) {
+    // Update interaction cooldown
+    if (this.interactionCooldown > 0) {
+      this.interactionCooldown -= delta;
+    }
 
     // Don't do anything when locked
     if (this.isLocked) {
@@ -90,17 +95,15 @@ export class Hero extends GameObject {
       return;
     }
 
-    // Check for input
+    // Check for action input (spacebar)
     /** @type {Input} */
     const input = root.input;
-    if (input?.getActionJustPressed("Space")) {
-      // Look for an object at the next space (according to where Hero is facing)
-      const objAtPosition = this.parent.children.find(child => {
-        return child.position.matches(this.position.toNeighbor(this.facingDirection))
-      })
-      if (objAtPosition) {
-        events.emit("HERO_REQUESTS_ACTION", objAtPosition);
-      }
+    if (input?.getActionJustPressed("Space") && this.interactionCooldown <= 0) {
+      // Start a small cooldown to prevent rapid-fire interactions
+      this.interactionCooldown = 250; // 250ms
+
+      // Try to interact with an action tile or object
+      this.tryAction(root);
     }
 
     const distance = moveTowards(this, this.destinationPosition, 1);
@@ -123,15 +126,13 @@ export class Hero extends GameObject {
   }
 
   tryMove(root) {
-    const {input} = root;
+    const { input } = root;
 
     if (!input.direction) {
-
-      if (this.facingDirection === LEFT) { this.body.animations.play("standLeft")}
-      if (this.facingDirection === RIGHT) { this.body.animations.play("standRight")}
-      if (this.facingDirection === UP) { this.body.animations.play("standUp")}
-      if (this.facingDirection === DOWN) { this.body.animations.play("standDown")}
-
+      if (this.facingDirection === LEFT) { this.body.animations.play("standLeft") }
+      if (this.facingDirection === RIGHT) { this.body.animations.play("standRight") }
+      if (this.facingDirection === UP) { this.body.animations.play("standUp") }
+      if (this.facingDirection === DOWN) { this.body.animations.play("standDown") }
       return;
     }
 
@@ -168,6 +169,131 @@ export class Hero extends GameObject {
     }
   }
 
+  tryAction(root) {
+    // Get the position the hero is facing toward
+    const facingPosition = this.getFacingPosition();
+
+    // First, check for interactive game objects at the facing position
+    const interactiveObject = this.parent.children.find(child => {
+      return child.position.matches(facingPosition) && child.isInteractive;
+    });
+
+    if (interactiveObject) {
+      // If there's an interactive object, emit an event for it
+      events.emit("HERO_REQUESTS_ACTION", interactiveObject);
+      return true;
+    }
+
+    // If no interactive object, check for action tiles from the property handler
+    if (root.level?.propertyHandler) {
+      const actionTile = root.level.propertyHandler.getActionsAt(facingPosition.x, facingPosition.y);
+
+      if (actionTile) {
+        console.log("Found action tile:", actionTile.properties);
+
+        // Handle different types of actions based on properties
+        this.handleActionTile(actionTile, root);
+        return true;
+      }
+    }
+
+    // Check if the hero is standing on an action tile
+    if (root.level?.propertyHandler) {
+      const actionUnderHero = root.level.propertyHandler.getActionsAt(this.position.x, this.position.y);
+
+      if (actionUnderHero && actionUnderHero.properties["ground-action"]) {
+        console.log("Found ground action:", actionUnderHero);
+
+        // Handle ground-based action
+        this.handleActionTile(actionUnderHero, root);
+        return true;
+      }
+    }
+
+    // No action was performed
+    return false;
+  }
+
+  getFacingPosition() {
+    // Calculate the position in front of the hero based on facing direction
+    const facingPosition = this.position.duplicate();
+    const gridSize = 16;
+
+    if (this.facingDirection === DOWN) {
+      facingPosition.y += gridSize;
+    } else if (this.facingDirection === UP) {
+      facingPosition.y -= gridSize;
+    } else if (this.facingDirection === LEFT) {
+      facingPosition.x -= gridSize;
+    } else if (this.facingDirection === RIGHT) {
+      facingPosition.x += gridSize;
+    }
+
+    return facingPosition;
+  }
+
+  handleActionTile(actionTile, root) {
+    // Handle different types of actions based on properties
+    const properties = actionTile.properties;
+
+    // Handle NPC dialogue
+    if (properties.npc) {
+      events.emit("SHOW_TEXT", {
+        text: properties.npc,
+        speaker: "NPC"
+      });
+    }
+
+    // Handle interactable objects
+    if (properties.interactable) {
+      events.emit("INTERACT_WITH_OBJECT", {
+        objectId: properties.interactable,
+        position: new Vector2(actionTile.x * 16, actionTile.y * 16)
+      });
+    }
+
+    // Handle action-1 (custom action type 1)
+    if (properties["action-1"]) {
+      console.log("action-1!")
+      events.emit("TRIGGER_ACTION", {
+        type: "action-1",
+        value: properties["action-1"],
+        position: new Vector2(actionTile.x * 16, actionTile.y * 16)
+      });
+    }
+
+    // Handle action-2 (custom action type 2)
+    if (properties["action-2"]) {
+      events.emit("TRIGGER_ACTION", {
+        type: "action-2",
+        value: properties["action-2"],
+        position: new Vector2(actionTile.x * 16, actionTile.y * 16)
+      });
+    }
+
+    // Handle teleport action
+    if (properties.teleport) {
+      const [destX, destY] = properties.teleport.split(',').map(coord => parseInt(coord.trim()));
+      if (!isNaN(destX) && !isNaN(destY)) {
+        // Lock character briefly during teleport
+        this.isLocked = true;
+
+        // Optional: Add teleport effect here
+
+        // Teleport after a short delay
+        setTimeout(() => {
+          this.position.x = destX * 16;
+          this.position.y = destY * 16;
+          this.destinationPosition = this.position.duplicate();
+          this.isLocked = false;
+
+          // Force position update
+          this.tryEmitPosition();
+        }, 200);
+      }
+    }
+  }
+
   onPickUpItem({ image, position }) {
     // Make sure we land right on the item
     this.destinationPosition = position.duplicate();
@@ -191,8 +317,5 @@ export class Hero extends GameObject {
     if (this.itemPickupTime <= 0) {
       this.itemPickupShell.destroy();
     }
-
   }
-
-
 }

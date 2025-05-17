@@ -9,3 +9,10 @@ export const isSpaceFree = (walls, x, y) => {
   const isWallPresent = walls.has(str);
   return !isWallPresent;
 }
+
+export const isAction = (actions, x, y) => {
+  const str = `${x},${y}`;
+  const isActionPresent = actions.has(str);
+  console.log("HERE!");
+  return isActionPresent;
+}

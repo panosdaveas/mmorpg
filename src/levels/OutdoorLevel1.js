@@ -140,7 +140,7 @@ export class OutdoorLevel1 extends Level {
         } else if (!this.players[id]) {
           // This is another player - create a remote player
           console.log(`Creating remote player for ${id} at`, pos);
-          const remote = new Hero(pos.x, pos.y, 'blue');
+          const remote = new Hero(pos.x, pos.y);
           remote.isRemote = true; // Mark as remote player
           this.players[id] = remote;
           this.addChild(remote);
@@ -156,7 +156,7 @@ export class OutdoorLevel1 extends Level {
 
       if (data.id !== this.mySocketId && !this.players[data.id]) {
         console.log(`Creating new remote player for ${data.id}`);
-        const remote = new Hero(data.x, data.y, 'blue');
+        const remote = new Hero(data.x, data.y);
         remote.isRemote = true; // Mark as remote player
         this.players[data.id] = remote;
         this.addChild(remote);
@@ -167,13 +167,12 @@ export class OutdoorLevel1 extends Level {
     });
 
     socket.on('playerMoved', data => {
-      console.log('Player moved:', data);
-
       if (data.id !== this.mySocketId && this.players[data.id]) {
         // Only update remote players (not our local player)
         console.log(`Updating remote player ${data.id} to`, data);
-        this.players[data.id].position.x = data.x;
-        this.players[data.id].position.y = data.y;
+
+        // Use the new updateRemotePosition method to handle animation
+        this.players[data.id].updateRemotePosition(data.x, data.y);
 
         this.debugInfo.lastReceivedUpdate = `Player ${data.id.substring(0, 6)} moved`;
         this.updateDebugText();
@@ -198,7 +197,14 @@ export class OutdoorLevel1 extends Level {
     if (!this.localPlayer) return;
 
     // Update local player
-    this.localPlayer.update?.(delta); // only if Hero supports update()
+    this.localPlayer.update(delta);
+
+    // Update remote players
+    for (const id in this.players) {
+      if (id !== this.mySocketId && this.players[id]) {
+        this.players[id].update(delta);
+      }
+    }
 
     // Send position to server if it changed
     const { x, y } = this.localPlayer.position;
@@ -206,9 +212,10 @@ export class OutdoorLevel1 extends Level {
 
     // Only send if position changed by at least 1 pixel
     if (!last || Math.abs(last.x - x) > 1 || Math.abs(last.y - y) > 1) {
-      console.log("Sending position update:", { x, y });
       this.socket.emit('move', { x, y });
       this.lastSentPosition = { x, y };
+
+      // Update debug on position change
       this.updateDebugText();
     }
   }

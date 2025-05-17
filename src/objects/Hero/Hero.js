@@ -21,12 +21,17 @@ import { moveTowards } from "../../helpers/moveTowards.js";
 import { events } from "../../Events.js";
 
 export class Hero extends GameObject {
-  constructor(x, y) {
+  constructor(x, y, color = 'blue') {
     super({
       position: new Vector2(x, y)
     });
 
-    this.isRemotePlayer = !this.isLocalPlayer;
+    // Track if this is a remote player
+    this.isRemote = false;
+    this.lastMovementDirection = DOWN; // Track direction of last movement
+    this.previousPosition = new Vector2(x, y); // Track previous position for movement detection
+    this.lastMovedTime = Date.now(); // Track when we last moved
+    this.movementAnimationTimeout = 200; // Stop animation after this many ms
 
     const shadow = new Sprite({
       resource: resources.images.shadow,
@@ -40,7 +45,6 @@ export class Hero extends GameObject {
       frameSize: new Vector2(32, 32),
       hFrames: 3,
       vFrames: 8,
-      // vFrames: 4,
       frame: 1,
       scale: 1,
       position: new Vector2(-8, -20),
@@ -71,6 +75,72 @@ export class Hero extends GameObject {
     })
   }
 
+  // Set appropriate animation based on movement direction
+  updateAnimation(movingDirection) {
+    if (!movingDirection) {
+      // Standing still
+      if (this.facingDirection === LEFT) {
+        this.body.animations.play("standLeft");
+      } else if (this.facingDirection === RIGHT) {
+        this.body.animations.play("standRight");
+      } else if (this.facingDirection === UP) {
+        this.body.animations.play("standUp");
+      } else {
+        this.body.animations.play("standDown");
+      }
+    } else {
+      // Moving
+      if (movingDirection === LEFT) {
+        this.body.animations.play("walkLeft");
+      } else if (movingDirection === RIGHT) {
+        this.body.animations.play("walkRight");
+      } else if (movingDirection === UP) {
+        this.body.animations.play("walkUp");
+      } else {
+        this.body.animations.play("walkDown");
+      }
+      this.facingDirection = movingDirection;
+    }
+  }
+
+  // New method to handle position updates for remote players
+  updateRemotePosition(x, y) {
+    // Store previous position before update
+    this.previousPosition.x = this.position.x;
+    this.previousPosition.y = this.position.y;
+
+    // Update position
+    this.position.x = x;
+    this.position.y = y;
+    this.destinationPosition.x = x;
+    this.destinationPosition.y = y;
+
+    // Determine movement direction
+    let direction = null;
+    const dx = x - this.previousPosition.x;
+    const dy = y - this.previousPosition.y;
+
+    // Set movement direction based on largest component
+    if (Math.abs(dx) > Math.abs(dy)) {
+      direction = dx > 0 ? RIGHT : LEFT;
+    } else if (dy !== 0) {
+      direction = dy > 0 ? DOWN : UP;
+    }
+
+    if (direction) {
+      this.lastMovementDirection = direction;
+      // Track last time we moved (for animation timeout)
+      this.lastMovedTime = Date.now();
+    }
+
+    // Update animation based on movement
+    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+      this.updateAnimation(this.lastMovementDirection);
+    } else {
+      this.updateAnimation(null); // Standing still
+    }
+  }
+
   ready() {
     events.on("START_TEXT_BOX", this, () => {
       this.isLocked = true;
@@ -80,7 +150,26 @@ export class Hero extends GameObject {
     })
   }
 
+  update(delta) {
+    // For remote players, we just want to check if we need to stop animation
+    if (this.isRemote) {
+      // Check if we should stop the walking animation for remote players
+      if (Date.now() - this.lastMovedTime > this.movementAnimationTimeout) {
+        this.updateAnimation(null); // Switch to standing animation
+      }
+      return;
+    }
+
+    // Local player update logic follows...
+    this.step(delta);
+  }
+
   step(delta, root) {
+    // Don't handle input for remote players
+    if (this.isRemote) {
+      return;
+    }
+
     // Update interaction cooldown
     if (this.interactionCooldown > 0) {
       this.interactionCooldown -= delta;
@@ -99,26 +188,30 @@ export class Hero extends GameObject {
 
     // Check for action input (spacebar)
     /** @type {Input} */
-    const input = root.input;
+    const input = this.parent?.parent?.input;
     if (input?.getActionJustPressed("Space") && this.interactionCooldown <= 0) {
       // Start a small cooldown to prevent rapid-fire interactions
       this.interactionCooldown = 250; // 250ms
 
       // Try to interact with an action tile or object
-      this.tryAction(root);
+      this.tryAction(this.parent?.parent);
     }
 
     const distance = moveTowards(this, this.destinationPosition, 1);
     const hasArrived = distance <= 1;
     // Attempt to move again if the hero is at his position
     if (hasArrived) {
-      this.tryMove(root)
+      this.tryMove(this.parent?.parent)
     }
 
     this.tryEmitPosition()
   }
 
   tryEmitPosition() {
+    if (this.isRemote) {
+      return; // Don't emit for remote players
+    }
+
     if (this.lastX === this.position.x && this.lastY === this.position.y) {
       return;
     }
@@ -128,13 +221,12 @@ export class Hero extends GameObject {
   }
 
   tryMove(root) {
+    if (!root || !root.input) return;
+
     const { input } = root;
 
     if (!input.direction) {
-      if (this.facingDirection === LEFT) { this.body.animations.play("standLeft") }
-      if (this.facingDirection === RIGHT) { this.body.animations.play("standRight") }
-      if (this.facingDirection === UP) { this.body.animations.play("standUp") }
-      if (this.facingDirection === DOWN) { this.body.animations.play("standDown") }
+      this.updateAnimation(null);
       return;
     }
 
@@ -144,21 +236,19 @@ export class Hero extends GameObject {
 
     if (input.direction === DOWN) {
       nextY += gridSize;
-      this.body.animations.play("walkDown");
     }
     if (input.direction === UP) {
       nextY -= gridSize;
-      this.body.animations.play("walkUp");
     }
     if (input.direction === LEFT) {
       nextX -= gridSize;
-      this.body.animations.play("walkLeft");
     }
     if (input.direction === RIGHT) {
       nextX += gridSize;
-      this.body.animations.play("walkRight");
     }
-    this.facingDirection = input.direction ?? this.facingDirection;
+
+    // Update animation regardless of whether we can move
+    this.updateAnimation(input.direction);
 
     // Validating that the next destination is free
     const spaceIsFree = isSpaceFree(root.level?.walls, nextX, nextY);

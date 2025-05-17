@@ -1,95 +1,64 @@
+import { Server } from 'socket.io';
 import express from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 
 const app = express();
 const httpServer = createServer(app);
 
+// Allow Vite dev server to connect
 const io = new Server(httpServer, {
     cors: {
-        origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Support multiple origins
+        origin: 'http://localhost:5173',
         methods: ['GET', 'POST']
     }
 });
 
-// Store players with their positions
 const players = {};
 
-// Debug helper
-function logPlayers() {
-    console.log('Current players:', Object.keys(players).map(id => ({
-        id: id.substring(0, 6) + '...',
-        position: players[id]
-    })));
-}
-
 io.on('connection', socket => {
-    console.log(`🟢 Player connected: ${socket.id}`);
+    console.log(`Player connected: ${socket.id}`);
 
-    // When player sends their initial position
+    // Set default player position or use provided position
+    players[socket.id] = { x: 320, y: 262 };
+
+    // Handle player join with initial position
     socket.on('playerJoin', initialPosition => {
-        console.log(`Player ${socket.id} joined at position:`, initialPosition);
+        // Update the player's position with the provided values
+        if (initialPosition && initialPosition.x !== undefined && initialPosition.y !== undefined) {
+            players[socket.id] = initialPosition;
+        }
 
-        // Save player's position
-        players[socket.id] = initialPosition;
-
-        // Send all current players to the newly connected player
+        // Send current players list to the newly connected player
         socket.emit('currentPlayers', players);
-        console.log(`Sent currentPlayers to ${socket.id} with ${Object.keys(players).length} players`);
 
-        // Tell everyone else about the new player
+        // Notify other players about the new player
         socket.broadcast.emit('newPlayer', {
             id: socket.id,
-            ...initialPosition
+            ...players[socket.id]
         });
-        console.log(`Broadcast newPlayer event for ${socket.id}`);
-
-        logPlayers();
     });
 
-    // When player moves
     socket.on('move', data => {
-        // Update the player's position in our server record
-        console.log(data);
-        players[socket.id] = data;
+        // Update player position in our server state
+        if (data && data.x !== undefined && data.y !== undefined) {
+            players[socket.id] = data;
 
-        // Debug log
-        console.log(`Player ${socket.id} moved to:`, data);
-
-        // Broadcast to all OTHER players that this player moved
-        socket.broadcast.emit('playerMoved', {
-            id: socket.id,
-            ...data
-        });
-
-        // Debug broadcast
-        console.log(`Broadcast playerMoved for ${socket.id} to ${io.engine.clientsCount - 1} other clients`);
+            // Broadcast updated position to all other players
+            socket.broadcast.emit('playerMoved', {
+                id: socket.id,
+                ...data
+            });
+        }
     });
 
-    // When player disconnects
     socket.on('disconnect', () => {
-        console.log(`🔴 Player disconnected: ${socket.id}`);
+        console.log(`Player disconnected: ${socket.id}`);
 
-        // Remove from our players list
+        // Remove player from server state
         delete players[socket.id];
 
-        // Tell all remaining clients to remove this player
+        // Notify all clients that a player has left
         io.emit('removePlayer', socket.id);
-        console.log(`Broadcast removePlayer for ${socket.id}`);
-
-        logPlayers();
-    });
-});
-
-// Serve static files (if you want to)
-app.use(express.static('public'));
-
-// Add a route for checking server status
-app.get('/status', (req, res) => {
-    res.json({
-        status: 'ok',
-        players: Object.keys(players).length,
-        uptime: process.uptime()
     });
 });
 

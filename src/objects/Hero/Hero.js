@@ -26,6 +26,8 @@ export class Hero extends GameObject {
       position: new Vector2(x, y)
     });
 
+    this.isRemotePlayer = !this.isLocalPlayer;
+
     const shadow = new Sprite({
       resource: resources.images.shadow,
       frameSize: new Vector2(32, 32),

@@ -8,7 +8,7 @@ import {Hero} from "../objects/Hero/Hero.js";
 import {Rod} from "../objects/Rod/Rod.js";
 import {events} from "../Events.js";
 import {CaveLevel1} from "./CaveLevel1.js";
-import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from "../constants/worldConstants.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json'
 import{TiledCollisionHandler} from "../helpers/collisionHandler.js"
 
@@ -26,7 +26,7 @@ export class OutdoorLevel1 extends Level {
 
     const groundSprite = new Sprite({
       resource: resources.images.map,
-      frameSize: new Vector2(1120, 640),
+      frameSize: new Vector2(MAP_WIDTH, MAP_HEIGHT),
     })
     this.addChild(groundSprite);
 

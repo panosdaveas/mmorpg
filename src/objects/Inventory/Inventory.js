@@ -7,7 +7,7 @@ import {events} from "../../Events.js";
 export class Inventory extends GameObject {
   constructor() {
     super({
-      position: new Vector2(0, 1)
+      position: new Vector2(8, 8)
     });
 
     this.drawLayer = "HUD";

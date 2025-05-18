@@ -24,6 +24,7 @@ export function createMultiplayerSocket({
     onRemovePlayer,
     onConnectError,
     onDisconnect,
+    onPlayerDataUpdated,
     ...socketOptions
 }) {
     const socket = createSocket(serverUrl, socketOptions);
@@ -35,6 +36,8 @@ export function createMultiplayerSocket({
     socket.on('removePlayer', onRemovePlayer);
     socket.on('connect_error', onConnectError);
     socket.on('disconnect', onDisconnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('playerDataUpdated', onPlayerDataUpdated);
 
     return socket;
 }

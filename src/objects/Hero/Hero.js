@@ -19,6 +19,7 @@ import {
 } from "./heroAnimations.js";
 import { moveTowards } from "../../helpers/moveTowards.js";
 import { events } from "../../Events.js";
+import { Attribute } from "../../Attributes.js";
 
 export class Hero extends GameObject {
   constructor(x, y, color = 'blue') {
@@ -69,10 +70,46 @@ export class Hero extends GameObject {
     this.isLocked = false;
     this.interactionCooldown = 0; // Cooldown for interactions
 
+    this.attributes = new Map();
+
     // React to picking up an item
     events.on("HERO_PICKS_UP_ITEM", this, data => {
       this.onPickUpItem(data)
     })
+  }
+
+  addAttribute(name, value) {
+    this.attributes.set(name, new Attribute(name, value));
+  }
+
+  getAttribute(name) {
+    return this.attributes.has(name) ? this.attributes.get(name).get() : undefined;
+  }
+
+  getAttributeAsObject(name) {
+    return this.attributes.has(name) ? this.attributes.get(name).toJSON() : undefined;
+  }
+
+  setAttribute(name, value) {
+    if (this.attributes.has(name)) {
+      this.attributes.get(name).set(value);
+    } else {
+      this.addAttribute(name, value);
+    }
+  }
+
+  getAttributesAsObject() {
+    const obj = {};
+    for (const [key, attr] of this.attributes.entries()) {
+      obj[key] = attr.get();
+    }
+    return obj;
+  }
+
+  loadAttributesFromObject(attrObj) {
+    for (const key in attrObj) {
+      this.setAttribute(key, attrObj[key]);
+    }
   }
 
   // Set appropriate animation based on movement direction
@@ -352,6 +389,7 @@ export class Hero extends GameObject {
         value: properties["action-1"],
         position: new Vector2(actionTile.x * 16, actionTile.y * 16)
       });
+      this.setAttribute("hp", 50);
     }
 
     // Handle action-2 (custom action type 2)

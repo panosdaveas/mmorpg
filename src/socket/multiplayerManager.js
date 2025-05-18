@@ -134,8 +134,20 @@ export class MultiplayerManager {
                 this.players[data.id].updateRemotePosition(data.x, data.y);
                 this.debugInfo.lastReceivedUpdate = `Player ${data.id.substring(0, 6)} moved`;
 
-                this.emit('onPlayerMove', { playerId: data.id, position: { x: data.x, y: data.y } });
+                this.emit('onPlayerMoved', { playerId: data.id, position: { x: data.x, y: data.y } });
             }
+        });
+
+        socket.on('playerDataUpdated', data => {
+            const { id, x, y, attributes } = data;
+            const player = this.players[id];
+            if (!player) return;
+
+            if (attributes) {
+                player.loadAttributesFromObject(attributes);
+            }
+
+            this.emit('onPlayerDataUpdated', { id, data });
         });
 
         socket.on('removePlayer', id => {
@@ -191,12 +203,17 @@ export class MultiplayerManager {
     }
 
     // Create a remote player
-    createRemotePlayer(id, position) {
+    createRemotePlayer(id, data) {
         if (!this.currentLevel) return;
 
-        console.log(`Creating remote player for ${id} at`, position);
-        const remote = new Hero(position.x, position.y);
+        console.log(`Creating remote player for ${id} at {${data.x}, ${data.y}}`);
+        const remote = new Hero(data.x, data.y);
         remote.isRemote = true;
+
+        if (data.attributes) {
+            remote.loadAttributesFromObject(data.attributes);
+        }
+        
         this.players[id] = remote;
         this.currentLevel.addChild(remote);
     }
@@ -213,6 +230,17 @@ export class MultiplayerManager {
         console.log("Sending initial position:", initialPos);
         this.socket.emit('playerJoin', initialPos);
     }
+
+    sendAttributesUpdate(data) {
+        if (!this.socket || !this.isConnected) return;
+
+        const attr = {
+            attributes: data.attributes
+        };
+        console.log("Attributes:", attr);
+
+        this.socket.emit('dataUpdated', attr); // or a dedicated event if preferred
+      }
 
     // Send position update to server
     sendPositionUpdate(position) {

@@ -37,6 +37,7 @@ export class MainMap extends Level {
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
+    this.localPlayer.setAttribute("hp", 100);
     // Add the local player to the scene
     this.addChild(this.localPlayer);
 
@@ -115,6 +116,7 @@ export class MainMap extends Level {
 
     const debugInfo = this.multiplayerManager.getDebugInfo();
     const remoteCount = Object.keys(this.multiplayerManager.getRemotePlayers()).length;
+    const hp = this.localPlayer.getAttributeAsObject("hp");
 
     this.debugText.innerHTML = `
       <div>Socket ID: ${debugInfo.socketId}</div>
@@ -122,6 +124,7 @@ export class MainMap extends Level {
       <div>Remote Players: ${remoteCount}</div>
       <div>Local Position: x:${Math.round(this.localPlayer.position.x)}, y:${Math.round(this.localPlayer.position.y)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
+      <div>${hp.name}: ${hp.value || 'None'}</div>
     `;
   }
 

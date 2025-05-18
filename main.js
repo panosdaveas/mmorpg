@@ -1,28 +1,43 @@
 import './style.css'
-import {Vector2} from "./src/Vector2.js";
-import {GameLoop} from "./src/GameLoop.js";
-import {Main} from "./src/objects/Main/Main.js";
+import { Vector2 } from "./src/Vector2.js";
+import { GameLoop } from "./src/GameLoop.js";
+import { Main } from "./src/objects/Main/Main.js";
 import { MainMap } from './src/levels/map.js';
+import { MultiplayerManager } from './src/socket/multiplayerManager.js';
 
 // Grabbing the canvas to draw to
 const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
 
+// Create multiplayer manager instance
+const multiplayerManager = new MultiplayerManager();
+
+// Connect to multiplayer server
+multiplayerManager.connect('http://localhost:3000');
+
 // Establish the root scene
 const mainScene = new Main({
-  position: new Vector2(0,0)
+  position: new Vector2(0, 0)
 })
-//mainScene.setLevel(new OutdoorLevel1())
-mainScene.setLevel(new MainMap())
+
+// Set up the level with multiplayer support
+const mainMap = new MainMap({ multiplayerManager });
+mainScene.setLevel(mainMap);
+
+// Set the current level in multiplayer manager
+multiplayerManager.setLevel(mainMap);
 
 // Establish update and draw loops
 const update = (delta) => {
   mainScene.stepEntry(delta, mainScene);
-  mainScene.input?.update(); 
+  mainScene.input?.update();
   const level = mainScene.level;
   if (level?.update) {
     level.update(delta);
   }
+
+  // Update remote players through multiplayer manager
+  multiplayerManager.updateRemotePlayers(delta);
 };
 
 const draw = () => {
@@ -51,6 +66,11 @@ const draw = () => {
   mainScene.drawForeground(ctx);
 
 }
+
+// Handle cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  multiplayerManager.disconnect();
+});
 
 // Start the game!
 const gameLoop = new GameLoop(update, draw);

@@ -82,16 +82,20 @@ export class Level extends GameObject {
 
   // Update method that handles both local and multiplayer updates
   update(delta) {
-    // Update local player
+    // Update local player first
     if (this.localPlayer) {
       this.localPlayer.update(delta);
     }
 
-    // Send position updates through multiplayer manager
+    // Send updates through multiplayer manager after player update
     if (this.multiplayerManager && this.multiplayerManager.isSocketConnected() && this.localPlayer) {
       this.multiplayerManager.sendPositionUpdate(this.localPlayer.position);
+
+      // Send attributes update after the player has been updated
       if (this.localPlayer.attributesChanged) {
-        this.multiplayerManager.sendAttributesUpdate(this.localPlayer.attributes);
+        // Get fresh attributes after update
+        const currentAttributes = this.localPlayer.getAttributesAsObject();
+        this.multiplayerManager.sendAttributesUpdate(currentAttributes);
         this.localPlayer.attributesChanged = false;
       }
     }

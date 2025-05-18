@@ -3,7 +3,7 @@ import { Vector2 } from "./src/Vector2.js";
 import { GameLoop } from "./src/GameLoop.js";
 import { Main } from "./src/objects/Main/Main.js";
 import { MainMap } from './src/levels/map.js';
-import { MultiplayerManager } from './src/socket/multiplayerManager.js';
+import { MultiplayerManager } from './src/client/multiplayerManager.js';
 
 // Grabbing the canvas to draw to
 const canvas = document.querySelector("#game-canvas");

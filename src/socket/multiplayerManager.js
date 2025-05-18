@@ -133,21 +133,20 @@ export class MultiplayerManager {
             if (data.id !== this.mySocketId && this.players[data.id]) {
                 this.players[data.id].updateRemotePosition(data.x, data.y);
                 this.debugInfo.lastReceivedUpdate = `Player ${data.id.substring(0, 6)} moved`;
-
                 this.emit('onPlayerMoved', { playerId: data.id, position: { x: data.x, y: data.y } });
             }
         });
 
         socket.on('playerDataUpdated', data => {
-            const { id, x, y, attributes } = data;
+            const { id, attributes } = data;
             const player = this.players[id];
             if (!player) return;
 
             if (attributes) {
                 player.loadAttributesFromObject(attributes);
             }
-
-            this.emit('onPlayerDataUpdated', { id, data });
+            console.log("DATA", id, attributes);
+            this.emit('onPlayerDataUpdated', { playerId: id, attributes: attributes });
         });
 
         socket.on('removePlayer', id => {
@@ -234,12 +233,10 @@ export class MultiplayerManager {
     sendAttributesUpdate(data) {
         if (!this.socket || !this.isConnected) return;
 
-        const attr = {
-            attributes: data.attributes
-        };
-        console.log("Attributes:", attr);
-
-        this.socket.emit('dataUpdated', attr); // or a dedicated event if preferred
+        const { attributes } = data;
+        
+        console.log("Attributes:", attributes);
+        this.socket.emit('dataUpdated', attributes); // or a dedicated event if preferred
       }
 
     // Send position update to server

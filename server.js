@@ -61,7 +61,7 @@ io.on('connection', socket => {
 
         socket.broadcast.emit('playerDataUpdated', {
             id: socket.id,
-            ...players[socket.id]
+            ...data
         });
       });
 

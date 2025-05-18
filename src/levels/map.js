@@ -15,7 +15,7 @@ import { io } from "socket.io-client";
 
 const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 
-export class OutdoorLevel1 extends Level {
+export class MainMap extends Level {
   constructor(params = {}) {
     super({});
 

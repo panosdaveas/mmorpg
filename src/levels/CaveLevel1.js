@@ -7,7 +7,7 @@ import {Exit } from "../objects/Exit/Exit.js";
 import {Hero} from "../objects/Hero/Hero.js";
 import {Rod} from "../objects/Rod/Rod.js";
 import {events} from "../Events.js";
-import {OutdoorLevel1} from "./OutdoorLevel1.js";
+import {MainMap} from "./map.js";
 import {Npc} from "../objects/Npc/Npc.js";
 import {TALKED_TO_A, TALKED_TO_B} from "../StoryFlags.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
@@ -80,7 +80,7 @@ export class CaveLevel1 extends Level {
 
   ready() {
     events.on("HERO_EXITS", this, () => {
-      events.emit("CHANGE_LEVEL", new OutdoorLevel1({
+      events.emit("CHANGE_LEVEL", new MainMAa({
         heroPosition: new Vector2(gridCells(16), gridCells(4))
       }))
     })

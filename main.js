@@ -2,7 +2,7 @@ import './style.css'
 import {Vector2} from "./src/Vector2.js";
 import {GameLoop} from "./src/GameLoop.js";
 import {Main} from "./src/objects/Main/Main.js";
-import { OutdoorLevel1 } from './src/levels/OutdoorLevel1.js';
+import { MainMap } from './src/levels/map.js';
 
 // Grabbing the canvas to draw to
 const canvas = document.querySelector("#game-canvas");
@@ -13,7 +13,7 @@ const mainScene = new Main({
   position: new Vector2(0,0)
 })
 //mainScene.setLevel(new OutdoorLevel1())
-mainScene.setLevel(new OutdoorLevel1())
+mainScene.setLevel(new MainMap())
 
 // Establish update and draw loops
 const update = (delta) => {

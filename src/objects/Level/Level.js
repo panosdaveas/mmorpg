@@ -64,6 +64,7 @@ export class Level extends GameObject {
     // Send initial position if we have a local player
     if (this.localPlayer && this.multiplayerManager.isSocketConnected()) {
       this.multiplayerManager.sendInitialPosition(this.localPlayer.position);
+      this.multiplayerManager.sendInitialData(this.localPlayer.attributes);
     }
   }
 
@@ -89,6 +90,10 @@ export class Level extends GameObject {
     // Send position updates through multiplayer manager
     if (this.multiplayerManager && this.multiplayerManager.isSocketConnected() && this.localPlayer) {
       this.multiplayerManager.sendPositionUpdate(this.localPlayer.position);
+      if (this.localPlayer.attributesChanged) {
+        this.multiplayerManager.sendAttributesUpdate(this.localPlayer.attributes);
+        this.localPlayer.attributesChanged = false;
+      }
     }
 
     // Child classes should call super.update(delta) and then their own logic
@@ -105,6 +110,7 @@ export class Level extends GameObject {
       // Send initial position if connected
       if (this.multiplayerManager.isSocketConnected() && this.localPlayer) {
         this.multiplayerManager.sendInitialPosition(this.localPlayer.position);
+        this.multiplayerManager.sendInitialData(this.localPlayer.attributes);
       }
     }
 

@@ -23,7 +23,8 @@ export class MultiplayerManager {
             onDisconnect: [],
             onPlayerJoin: [],
             onPlayerLeave: [],
-            onPlayerMove: [],
+            onPlayerMoved: [],
+            onPlayerDataUpdated: [],
             onError: []
         };
     }
@@ -63,6 +64,7 @@ export class MultiplayerManager {
         // If we're connected and have a hero, send initial position
         if (this.isConnected && level && level.localPlayer) {
             this.sendInitialPosition(level.localPlayer.position);
+            this.sendInitialData(level.localPlayer.attributes);
         }
     }
 
@@ -125,8 +127,8 @@ export class MultiplayerManager {
         });
 
         socket.on('newPlayer', data => {
-            console.log('New player joined:', data);
             this.handleNewPlayer(data);
+            console.log('New player joined:', data.id);
         });
 
         socket.on('playerMoved', data => {
@@ -138,15 +140,15 @@ export class MultiplayerManager {
         });
 
         socket.on('playerDataUpdated', data => {
+            console.log(data);
             const { id, attributes } = data;
             const player = this.players[id];
             if (!player) return;
+            player.loadAttributesFromObject(attributes);
+            // player.attributes = { ...player.attributes, ...attributes };
 
-            if (attributes) {
-                player.loadAttributesFromObject(attributes);
-            }
-            console.log("DATA", id, attributes);
-            this.emit('onPlayerDataUpdated', { playerId: id, attributes: attributes });
+            console.log("Player data:", id, player);
+            this.emit('onPlayerDataUpdated', player);
         });
 
         socket.on('removePlayer', id => {
@@ -184,6 +186,7 @@ export class MultiplayerManager {
 
     // Handle new player joining
     handleNewPlayer(data) {
+        console.log("HERE", data);
         if (data.id !== this.mySocketId && !this.players[data.id]) {
             this.createRemotePlayer(data.id, data);
             this.debugInfo.lastReceivedUpdate = `New player: ${data.id}`;
@@ -208,7 +211,6 @@ export class MultiplayerManager {
         console.log(`Creating remote player for ${id} at {${data.x}, ${data.y}}`);
         const remote = new Hero(data.x, data.y);
         remote.isRemote = true;
-
         if (data.attributes) {
             remote.loadAttributesFromObject(data.attributes);
         }
@@ -230,13 +232,23 @@ export class MultiplayerManager {
         this.socket.emit('playerJoin', initialPos);
     }
 
-    sendAttributesUpdate(data) {
+    sendInitialData(attributes) {
         if (!this.socket || !this.isConnected) return;
 
-        const { attributes } = data;
+        const data = { attributes }
+
+        console.log("Sending initial attributes:", data);
+        this.socket.emit('playerJoin', data);
+      }
+
+    sendAttributesUpdate(attributes) {
+        if (!this.socket || !this.isConnected) return;
+
+        const data = { attributes }
         
-        console.log("Attributes:", attributes);
-        this.socket.emit('dataUpdated', attributes); // or a dedicated event if preferred
+        console.log("Attributes updated:", data);
+        this.socket.emit('playerDataUpdated', data); // or a dedicated event if preferred
+        return true
       }
 
     // Send position update to server

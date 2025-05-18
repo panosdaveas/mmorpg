@@ -71,6 +71,7 @@ export class Hero extends GameObject {
     this.interactionCooldown = 0; // Cooldown for interactions
 
     this.attributes = new Map();
+    this.attributesChanged = false;
 
     // React to picking up an item
     events.on("HERO_PICKS_UP_ITEM", this, data => {
@@ -96,6 +97,7 @@ export class Hero extends GameObject {
     } else {
       this.addAttribute(name, value);
     }
+    this.attributesChanged = true
   }
 
   getAttributesAsObject() {
@@ -106,9 +108,10 @@ export class Hero extends GameObject {
     return obj;
   }
 
-  loadAttributesFromObject(attrObj) {
-    for (const key in attrObj) {
-      this.setAttribute(key, attrObj[key]);
+  loadAttributesFromObject(attributes) {
+    for (const key in attributes) {
+      // this.attributes = { ...this.attributes, ...attributes };
+      this.setAttribute(key, attributes[key]);
     }
   }
 

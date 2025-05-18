@@ -124,7 +124,7 @@ export class MainMap extends Level {
       <div>Remote Players: ${remoteCount}</div>
       <div>Local Position: x:${Math.round(this.localPlayer.position.x)}, y:${Math.round(this.localPlayer.position.y)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
-      <div>${hp.name}: ${hp.value || 'None'}</div>
+      <div>${hp?.name}: ${hp?.value || 'None'}</div>
     `;
   }
 

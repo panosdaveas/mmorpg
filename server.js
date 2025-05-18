@@ -18,20 +18,23 @@ const players = {};
 io.on('connection', socket => {
     console.log(`Player connected: ${socket.id}`);
 
-    // Set default player position or use provided position
-    const defaultPlayerData = { 
-        x: 320,
-        y: 262,
-        attributes: {}
-    };
+    // // Set default player position or use provided position
+    // const defaultPlayerData = { 
+    //     x: 320,
+    //     y: 262,
+    //     attributes: {}
+    // };
 
-    players[socket.id] = { ...defaultPlayerData }; 
+    // players[socket.id] = { ...defaultPlayerData }; 
     // Handle player join with initial position
     socket.on('playerJoin', data => {
         // Update the player's position with the provided values
-        if (data && data.x !== undefined && data.y !== undefined) {
-            players[socket.id] = data;
-        }
+        const defaultPos = { x: 320, y: 262 };
+        players[socket.id] = {
+            x: data?.x ?? defaultPos.x,
+            y: data?.y ?? defaultPos.y,
+            attributes: data?.attributes ?? {}
+        };
 
         // Send current players list to the newly connected player
         socket.emit('currentPlayers', players);
@@ -56,8 +59,8 @@ io.on('connection', socket => {
         }
     });
 
-    socket.on('dataUpdated', data => {
-        players[socket.id] = { ...players[socket.id], ...data };
+    socket.on('playerDataUpdated', data => {
+        players[socket.id] = data;
 
         socket.broadcast.emit('playerDataUpdated', {
             id: socket.id,

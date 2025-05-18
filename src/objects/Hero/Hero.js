@@ -81,6 +81,7 @@ export class Hero extends GameObject {
 
   addAttribute(name, value) {
     this.attributes.set(name, new Attribute(name, value));
+    this.attributesChanged = true;
   }
 
   getAttribute(name) {
@@ -113,6 +114,10 @@ export class Hero extends GameObject {
       // this.attributes = { ...this.attributes, ...attributes };
       this.setAttribute(key, attributes[key]);
     }
+    // For remote players, don't mark as needing sync since these are incoming changes
+    if (this.isRemote) {
+      this.attributesChanged = false;
+      }
   }
 
   // Set appropriate animation based on movement direction
@@ -299,6 +304,29 @@ export class Hero extends GameObject {
       this.destinationPosition.x = nextX;
       this.destinationPosition.y = nextY;
     }
+  }
+
+  // Try to emit attributes update if changes are pending
+  tryEmitAttributesUpdate() {
+    // Don't emit for remote players
+    if (this.isRemote) {
+      return false;
+    }
+
+    // Only emit if we have changes and enough time has passed since last sync
+    if (this.attributesChanged) {
+      const attributes = this.getAttributesAsObject();
+
+      events.emit("HERO_ATTRIBUTES_UPDATE", {
+        hero: this,
+        attributes: attributes
+      });
+
+      this.attributesChanged = false;
+      return true;
+    }
+
+    return false;
   }
 
   tryAction(root) {

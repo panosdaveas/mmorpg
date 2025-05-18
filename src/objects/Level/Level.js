@@ -63,8 +63,8 @@ export class Level extends GameObject {
   onMultiplayerConnect(data) {
     // Send initial position if we have a local player
     if (this.localPlayer && this.multiplayerManager.isSocketConnected()) {
-      this.multiplayerManager.sendInitialPosition(this.localPlayer.position);
-      this.multiplayerManager.sendInitialData(this.localPlayer.attributes);
+      // this.multiplayerManager.sendInitialPosition(this.localPlayer.position);
+      this.multiplayerManager.sendInitialPlayerData(this.localPlayer);
     }
   }
 
@@ -109,8 +109,8 @@ export class Level extends GameObject {
 
       // Send initial position if connected
       if (this.multiplayerManager.isSocketConnected() && this.localPlayer) {
-        this.multiplayerManager.sendInitialPosition(this.localPlayer.position);
-        this.multiplayerManager.sendInitialData(this.localPlayer.attributes);
+        // this.multiplayerManager.sendInitialPosition(this.localPlayer.position);
+        this.multiplayerManager.sendInitialPlayerData(this.localPlayer);
       }
     }
 

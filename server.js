@@ -18,23 +18,22 @@ const players = {};
 io.on('connection', socket => {
     console.log(`Player connected: ${socket.id}`);
 
-    // // Set default player position or use provided position
-    // const defaultPlayerData = { 
-    //     x: 320,
-    //     y: 262,
-    //     attributes: {}
-    // };
-
-    // players[socket.id] = { ...defaultPlayerData }; 
-    // Handle player join with initial position
+    // Handle player join with initial position and attributes
     socket.on('playerJoin', data => {
-        // Update the player's position with the provided values
+        console.log(`Player ${socket.id} joining with data:`, data);
+
+        // Set default values if not provided
         const defaultPos = { x: 320, y: 262 };
+        const defaultAttributes = {};
+
+        // Initialize or update player data
         players[socket.id] = {
             x: data?.x ?? defaultPos.x,
             y: data?.y ?? defaultPos.y,
-            attributes: data?.attributes ?? {}
+            attributes: data?.attributes ?? defaultAttributes
         };
+
+        console.log(`Player ${socket.id} state:`, players[socket.id]);
 
         // Send current players list to the newly connected player
         socket.emit('currentPlayers', players);
@@ -47,26 +46,64 @@ io.on('connection', socket => {
     });
 
     socket.on('move', data => {
-        // Update player position in our server state
+        // console.log(`Player ${socket.id} moved:`, data);
+
+        // Update player position in our server state (preserve existing attributes)
         if (data && data.x !== undefined && data.y !== undefined) {
-            players[socket.id] = data;
+            // Merge position update with existing player data
+            if (players[socket.id]) {
+                players[socket.id] = {
+                    ...players[socket.id], // Preserve existing data (including attributes)
+                    x: data.x,
+                    y: data.y
+                };
+            } else {
+                // Fallback if player not found in state
+                players[socket.id] = {
+                    x: data.x,
+                    y: data.y,
+                    attributes: {}
+                };
+            }
+
             // Broadcast updated position to all other players
             socket.broadcast.emit('playerMoved', {
                 id: socket.id,
-                ...data
+                x: data.x,
+                y: data.y
             });
-            
         }
     });
 
     socket.on('playerDataUpdated', data => {
-        players[socket.id] = data;
+        console.log(`Player ${socket.id} data updated:`, data);
 
+        // Update player attributes while preserving position
+        if (players[socket.id]) {
+            players[socket.id] = {
+                ...players[socket.id], // Preserve existing data (including position)
+                attributes: {
+                    ...players[socket.id].attributes, // Preserve existing attributes
+                    ...data.attributes // Merge in new attributes
+                }
+            };
+        } else {
+            // Fallback if player not found in state
+            players[socket.id] = {
+                x: 320,
+                y: 262,
+                attributes: data.attributes || {}
+            };
+        }
+
+        console.log(`Player ${socket.id} updated state:`, players[socket.id]);
+
+        // Broadcast updated data to all other players
         socket.broadcast.emit('playerDataUpdated', {
             id: socket.id,
-            ...data
+            attributes: players[socket.id].attributes
         });
-      });
+    });
 
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);

@@ -103,6 +103,7 @@ export class MainMap extends Level {
       // Player movement is already handled in MultiplayerManager
       this.updateDebugText();
     });
+
   }
 
   updateDebugText() {
@@ -148,6 +149,20 @@ export class MainMap extends Level {
         heroPosition: new Vector2(gridCells(3), gridCells(6)),
         multiplayerManager: this.multiplayerManager // Pass multiplayer manager to new level
       }));
+    });
+
+    // Listen for hero position changes
+    events.on("HERO_POSITION", this, position => {
+      if (this.multiplayerManager) {
+        this.multiplayerManager.sendPositionUpdate(position);
+      }
+    });
+
+    // Listen for hero attribute changes
+    events.on("HERO_ATTRIBUTES_CHANGED", this, attributes => {
+      if (this.multiplayerManager) {
+        this.multiplayerManager.sendAttributesUpdate(attributes);
+      }
     });
 
     // Update debug text initially

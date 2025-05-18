@@ -61,10 +61,9 @@ export class MultiplayerManager {
     setLevel(level) {
         this.currentLevel = level;
 
-        // If we're connected and have a hero, send initial position
+        // If we're connected and have a hero, send initial data
         if (this.isConnected && level && level.localPlayer) {
-            this.sendInitialPosition(level.localPlayer.position);
-            this.sendInitialData(level.localPlayer.attributes);
+            this.sendInitialPlayerData(level.localPlayer);
         }
     }
 
@@ -103,6 +102,11 @@ export class MultiplayerManager {
             this.debugInfo.socketConnectionStatus = "Connected";
 
             this.emit('onConnect', { socketId: socket.id });
+
+            // Send initial data if we have a level and player ready
+            if (this.currentLevel && this.currentLevel.localPlayer) {
+                this.sendInitialPlayerData(this.currentLevel.localPlayer);
+            }
         });
 
         socket.on('connect_error', (err) => {
@@ -140,15 +144,20 @@ export class MultiplayerManager {
         });
 
         socket.on('playerDataUpdated', data => {
-            console.log(data);
+            console.log('Received player data update:', data);
             const { id, attributes } = data;
             const player = this.players[id];
-            if (!player) return;
-            player.loadAttributesFromObject(attributes);
-            // player.attributes = { ...player.attributes, ...attributes };
+            if (!player) {
+                console.warn(`Received data update for unknown player: ${id}`);
+                return;
+            }
 
-            console.log("Player data:", id, player);
-            this.emit('onPlayerDataUpdated', player);
+            // Update the player's attributes
+            if (attributes) {
+                player.loadAttributesFromObject(attributes);
+                console.log("Updated player data:", id, player.getAttributesAsObject());
+                this.emit('onPlayerDataUpdated', { playerId: id, player });
+            }
         });
 
         socket.on('removePlayer', id => {
@@ -170,13 +179,13 @@ export class MultiplayerManager {
         }
 
         // Add all players from server
-        for (const [id, pos] of Object.entries(players)) {
+        for (const [id, playerData] of Object.entries(players)) {
             if (id === this.mySocketId) {
                 continue; // Skip ourselves
             }
 
             if (!this.players[id]) {
-                this.createRemotePlayer(id, pos);
+                this.createRemotePlayer(id, playerData);
             }
         }
 
@@ -186,7 +195,6 @@ export class MultiplayerManager {
 
     // Handle new player joining
     handleNewPlayer(data) {
-        console.log("HERE", data);
         if (data.id !== this.mySocketId && !this.players[data.id]) {
             this.createRemotePlayer(data.id, data);
             this.debugInfo.lastReceivedUpdate = `New player: ${data.id}`;
@@ -208,48 +216,49 @@ export class MultiplayerManager {
     createRemotePlayer(id, data) {
         if (!this.currentLevel) return;
 
-        console.log(`Creating remote player for ${id} at {${data.x}, ${data.y}}`);
-        const remote = new Hero(data.x, data.y);
+        console.log(`Creating remote player for ${id} with data:`, data);
+
+        // Default position if not provided
+        const x = data.x || 320;
+        const y = data.y || 262;
+
+        const remote = new Hero(x, y);
         remote.isRemote = true;
-        if (data.attributes) {
+
+        // Load attributes if provided
+        if (data.attributes && typeof data.attributes === 'object') {
+            console.log(`Loading attributes for player ${id}:`, data.attributes);
             remote.loadAttributesFromObject(data.attributes);
         }
-        
+
         this.players[id] = remote;
         this.currentLevel.addChild(remote);
     }
 
-    // Send initial position to server
-    sendInitialPosition(position) {
-        if (!this.socket || !this.isConnected) return;
+    // Send initial player data (position + attributes) together
+    sendInitialPlayerData(localPlayer) {
+        if (!this.socket || !this.isConnected || !localPlayer) return;
 
-        const initialPos = {
-            x: position.x,
-            y: position.y
+        const initialData = {
+            x: localPlayer.position.x,
+            y: localPlayer.position.y,
+            attributes: localPlayer.getAttributesAsObject()
         };
 
-        console.log("Sending initial position:", initialPos);
-        this.socket.emit('playerJoin', initialPos);
+        console.log("Sending initial player data:", initialData);
+        this.socket.emit('playerJoin', initialData);
     }
 
-    sendInitialData(attributes) {
-        if (!this.socket || !this.isConnected) return;
-
-        const data = { attributes }
-
-        console.log("Sending initial attributes:", data);
-        this.socket.emit('playerJoin', data);
-      }
-
+    // Send attribute updates
     sendAttributesUpdate(attributes) {
         if (!this.socket || !this.isConnected) return;
 
-        const data = { attributes }
-        
-        console.log("Attributes updated:", data);
-        this.socket.emit('playerDataUpdated', data); // or a dedicated event if preferred
-        return true
-      }
+        const data = { attributes };
+
+        console.log("Sending attributes update:", data);
+        this.socket.emit('playerDataUpdated', data);
+        return true;
+    }
 
     // Send position update to server
     sendPositionUpdate(position) {

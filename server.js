@@ -42,12 +42,12 @@ io.on('connection', socket => {
         // Update player position in our server state
         if (data && data.x !== undefined && data.y !== undefined) {
             players[socket.id] = data;
-
             // Broadcast updated position to all other players
             socket.broadcast.emit('playerMoved', {
                 id: socket.id,
                 ...data
             });
+            
         }
     });
 

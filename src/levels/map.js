@@ -129,6 +129,7 @@ export class MainMap extends Level {
   update(delta) {
     // Call parent update first (handles basic multiplayer updates)
     super.update(delta);
+    this.updateDebugText();
 
     // MainMap-specific update logic here
     // (The parent class already handles basic local player updates and position sending)

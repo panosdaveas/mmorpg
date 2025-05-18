@@ -224,6 +224,10 @@ export class MultiplayerManager {
 
         const remote = new Hero(x, y);
         remote.isRemote = true;
+        // Make remote players act as solid objects
+        remote.isSolid = true;
+        // make remote players interactive
+        remote.isInteractive = true;
 
         // Load attributes if provided
         if (data.attributes && typeof data.attributes === 'object') {

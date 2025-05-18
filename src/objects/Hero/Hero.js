@@ -22,7 +22,7 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 
 export class Hero extends GameObject {
-  constructor(x, y, color = 'blue') {
+  constructor(x, y) {
     super({
       position: new Vector2(x, y)
     });
@@ -33,6 +33,9 @@ export class Hero extends GameObject {
     this.previousPosition = new Vector2(x, y); // Track previous position for movement detection
     this.lastMovedTime = Date.now(); // Track when we last moved
     this.movementAnimationTimeout = 400; // Stop animation after this many ms
+    this.isInteractive = false;
+    // this.textContent = textConfig.content;
+    // this.textPortraitFrame = textConfig.portraitFrame;
 
     const shadow = new Sprite({
       resource: resources.images.shadow,
@@ -341,6 +344,10 @@ export class Hero extends GameObject {
     if (interactiveObject) {
       // If there's an interactive object, emit an event for it
       events.emit("HERO_REQUESTS_ACTION", interactiveObject);
+      if (interactiveObject.isRemote) {
+        // this.handleRemotePlayerInteraction(interactiveObject);
+        console.log("INTERACTIVE PLAYER");
+      }
       return true;
     }
 

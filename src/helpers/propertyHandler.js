@@ -40,14 +40,28 @@ export class TiledPropertyHandler {
     }
 
     async loadTilesetImages(tilesets, basePath = "") {
-        const images = new Map();
+        this.toLoad = {};      // Track image paths by a key
+        this.images = {};      // Store loaded images and status
+        const loaders = [];
 
-        const loaders = tilesets.map(tileset => {
-            return new Promise((resolve, reject) => {
-                const imagePath = basePath + tileset.image.replace(/\\/g, "/");
-                const img = new Image();
+        tilesets.forEach(tileset => {
+            const cleanPath = tileset.image.replace(/\\/g, "/");
+            const imagePath = basePath + cleanPath;
+            const key = cleanPath; // Use relative path as unique key
+
+            this.toLoad[key] = imagePath;
+
+            const img = new Image();
+            this.images[key] = {
+                image: img,
+                isLoaded: false,
+                tileset,
+                firstgid: tileset.firstgid
+            };
+
+            const loader = new Promise((resolve, reject) => {
                 img.onload = () => {
-                    images.set(tileset.firstgid, { image: img, tileset });
+                    this.images[key].isLoaded = true;
                     resolve();
                 };
                 img.onerror = () => {
@@ -56,11 +70,23 @@ export class TiledPropertyHandler {
                 };
                 img.src = imagePath;
             });
+
+            loaders.push(loader);
         });
 
         await Promise.all(loaders);
-        return images; // Map of firstgid -> { image, tileset }
-    }
+
+        // Build map of firstgid -> { image, tileset }
+        const tilesetMap = new Map();
+        Object.values(this.images).forEach(entry => {
+            tilesetMap.set(entry.firstgid, {
+                image: entry.image,
+                tileset: entry.tileset
+            });
+        });
+
+        return tilesetMap;
+      }
 
     findTilesetForTile(tileId, tilesetMap) {
         let match = null;

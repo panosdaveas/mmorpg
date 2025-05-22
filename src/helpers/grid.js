@@ -13,6 +13,5 @@ export const isSpaceFree = (walls, x, y) => {
 export const isAction = (actions, x, y) => {
   const str = `${x},${y}`;
   const isActionPresent = actions.has(str);
-  console.log("HERE!");
   return isActionPresent;
 }

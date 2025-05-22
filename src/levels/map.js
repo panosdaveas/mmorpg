@@ -22,17 +22,10 @@ export class MainMap extends Level {
     });
 
     // Sky background
-    this.background = new Sprite({
-      resource: resources.images.sky,
-      frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT)
-    });
-
-    // Ground
-    const groundSprite = new Sprite({
-      resource: resources.images.map,
-      frameSize: new Vector2(MAP_WIDTH, MAP_HEIGHT)
-    });
-    this.addChild(groundSprite);
+    // this.background = new Sprite({
+    //   resource: resources.images.sky,
+    //   frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT)
+    // });
 
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
@@ -46,8 +39,11 @@ export class MainMap extends Level {
 
     // Walls and interactions
     const propertyHandler = new TiledPropertyHandler(mapData);
-    this.walls = propertyHandler.getWallTiles();
+    this.walls = new Set();
+    // this.walls = propertyHandler.getWallTiles();
     this.actions = propertyHandler.getActionTiles();
+    this.animatedTiles =propertyHandler.parseAnimatedTiles(mapData.tilesets);
+    this.tilesetImages = new Map(); // Will be loaded in ready()
     this.propertyHandler = propertyHandler;
 
     // Add debug text display
@@ -129,20 +125,100 @@ export class MainMap extends Level {
     `;
   }
 
+  updateAnimatedTiles(delta) {
+    for (const [tileId, anim] of this.animatedTiles.entries()) {
+      anim.elapsedTime += delta;
+      let currentFrame = anim.frames[anim.currentFrameIndex];
+
+      while (anim.elapsedTime > currentFrame.duration) {
+        anim.elapsedTime -= currentFrame.duration;
+        anim.currentFrameIndex = (anim.currentFrameIndex + 1) % anim.frames.length;
+        currentFrame = anim.frames[anim.currentFrameIndex];
+      }
+    }
+  }
+
+  getAnimatedTileId(originalTileId) {
+    const anim = this.animatedTiles.get(originalTileId);
+    return anim ? anim.frames[anim.currentFrameIndex].tileid : originalTileId;
+  }
+
   // Called on each game tick from main.js
   update(delta) {
     // Call parent update first (handles basic multiplayer updates)
     super.update(delta);
     this.updateDebugText();
 
-    // MainMap-specific update logic here
-    // (The parent class already handles basic local player updates and position sending)
+    this.updateAnimatedTiles(delta);
+
   }
 
-  ready() {
+  drawBackground(ctx) {
+    if (this.background?.drawImage) {
+      this.background.drawImage(ctx, 0, 0);
+    }
+
+    mapData.layers.forEach(layer => {
+      if (layer.type !== "tilelayer") return;
+
+      const width = layer.width;
+
+      layer.data.forEach((tileId, index) => {
+        const rawTileId = tileId & 0x1FFFFFFF;
+        if (rawTileId === 0) return;
+
+        const x = index % width;
+        const y = Math.floor(index / width);
+        const posKey = `${x * TILE_SIZE},${y * TILE_SIZE}`;
+
+        const animatedTileId = this.getAnimatedTileId(rawTileId);
+
+        const tilesetEntry = [...this.tilesetImages.entries()]
+          .reverse()
+          .find(([firstgid]) => animatedTileId >= firstgid);
+
+        if (!tilesetEntry) return;
+
+        const [firstgid, { image, tileset }] = tilesetEntry;
+        const localId = animatedTileId - firstgid;
+        const columns = tileset.columns;
+
+        const sx = (localId % columns) * TILE_SIZE;
+        const sy = Math.floor(localId / columns) * TILE_SIZE;
+        const dx = x * TILE_SIZE;
+        const dy = y * TILE_SIZE;
+
+        ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
+
+        // ✅ Add this here to collect collision info
+        const tileProps = this.propertyHandler.tilePropertiesMap.get(rawTileId);
+        if (tileProps?.collide) {
+          this.walls.add(posKey);
+        }
+
+        // ✅ And optionally also gather action tiles
+        const actionProps = Object.entries(tileProps || {}).filter(([key]) =>
+          key.startsWith("action") || key === "interactable" || key === "npc"
+        );
+
+        if (actionProps.length > 0) {
+          this.actions.push({
+            id: posKey,
+            x,
+            y,
+            tileId: rawTileId,
+            properties: Object.fromEntries(actionProps)
+          });
+        }
+      });
+    });
+  }
+
+  async ready() {
     // Call parent ready first
     super.ready();
 
+    this.tilesetImages = await this.propertyHandler.loadTilesetImages(mapData.tilesets, "../assets/maps/");
     // MainMap-specific ready logic
     events.on("HERO_EXITS", this, () => {
       events.emit("CHANGE_LEVEL", new CaveLevel1({

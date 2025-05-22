@@ -70,7 +70,9 @@ export class Main extends GameObject {
   }
 
   drawBackground(ctx) {
-    this.level?.background.drawImage(ctx,0,0);
+    if (this.level?.drawBackground) {
+      this.level.drawBackground(ctx); // ✅ Properly delegate
+    }
   }
 
   drawObjects(ctx) {

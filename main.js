@@ -41,30 +41,24 @@ const update = (delta) => {
 };
 
 const draw = () => {
-
-  // Clear anything stale
+  // 1. Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw the sky
-  mainScene.drawBackground(ctx);
+  // 2. Draw sky and animated tilemap (covers the whole canvas)
 
-  // Save the current state (for camera offset)
+  // 3. Apply camera movement
   ctx.save();
-
-  //Offset by camera position
   if (mainScene.camera) {
     ctx.translate(mainScene.camera.position.x, mainScene.camera.position.y);
   }
 
-  // Draw objects in the mounted scene
+  // 4. Draw objects (hero, NPCs, etc.)
+  mainScene.drawBackground(ctx);
   mainScene.drawObjects(ctx);
-
-  // Restore to original state
   ctx.restore();
 
-  // Draw anything above the game world
+  // 5. Draw HUD/UI
   mainScene.drawForeground(ctx);
-
 }
 
 // Handle cleanup on page unload

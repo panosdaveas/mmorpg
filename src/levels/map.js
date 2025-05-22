@@ -154,6 +154,7 @@ export class MainMap extends Level {
   }
 
   drawBackground(ctx) {
+    
     if (this.background?.drawImage) {
       this.background.drawImage(ctx, 0, 0);
     }
@@ -183,10 +184,10 @@ export class MainMap extends Level {
         const localId = animatedTileId - firstgid;
         const columns = tileset.columns;
 
-        const sx = (localId % columns) * TILE_SIZE;
+        const sx = Math.floor((localId % columns) * TILE_SIZE);
         const sy = Math.floor(localId / columns) * TILE_SIZE;
-        const dx = x * TILE_SIZE;
-        const dy = y * TILE_SIZE;
+        const dx = Math.floor(x * TILE_SIZE);
+        const dy = Math.floor(y * TILE_SIZE);
 
         ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
 

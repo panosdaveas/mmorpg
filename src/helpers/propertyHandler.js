@@ -84,21 +84,14 @@ export class TiledPropertyHandler {
                 if (!tile.properties) return;
 
                 const globalTileId = tileset.firstgid + tile.id;
-
                 const tileProperties = {};
-                let hasTrackedProperty = false;
 
                 tile.properties.forEach(prop => {
-                    if (this.trackedProperties.includes(prop.name)) {
-                        tileProperties[prop.name] = prop.value;
-                        hasTrackedProperty = true;
-                    }
+                    tileProperties[prop.name] = prop.value;
                 });
 
-                if (hasTrackedProperty) {
-                    this.tilePropertiesMap.set(globalTileId, tileProperties);
-                }
-            });
+                this.tilePropertiesMap.set(globalTileId, tileProperties);
+              });
         });
       }
 

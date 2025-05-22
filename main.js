@@ -41,6 +41,7 @@ const update = (delta) => {
 };
 
 const draw = () => {
+ 
   // 1. Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 

@@ -17,6 +17,8 @@ export class Camera extends GameObject {
     // Store the target position and the last position we centered on
     this.targetPosition = null;
     this.lastCenteredPosition = null;
+    this.mapPixelWidth = null;
+    this.mapPixelHeight = null;
     
     events.on("HERO_POSITION", this, heroPosition => {
       this.updateCameraPosition(heroPosition);
@@ -28,6 +30,11 @@ export class Camera extends GameObject {
       this.lastCenteredPosition = null; // Reset last position
       this.targetPosition = newMap.heroStartPosition;
       this.centerPositionOnTarget(this.targetPosition);
+    });
+
+    events.on("SET_CAMERA_MAP_BOUNDS", this, bounds => {
+      this.mapPixelWidth = bounds.width;
+      this.mapPixelHeight = bounds.height;
     });
   }
 
@@ -96,6 +103,7 @@ export class Camera extends GameObject {
       -pos.x + halfWidth,
       -pos.y + halfHeight,
     );
+    
   }
 
   // Method to enable/disable or adjust the dead zone

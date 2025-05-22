@@ -221,6 +221,11 @@ export class MainMap extends Level {
 
     this.tilesetImages = await this.propertyHandler.loadTilesetImages(mapData.tilesets, "../assets/maps/");
     // MainMap-specific ready logic
+    events.emit("SET_CAMERA_MAP_BOUNDS", {
+      width: mapData.width * TILE_SIZE,
+      height: mapData.height * TILE_SIZE
+    });
+
     events.on("HERO_EXITS", this, () => {
       events.emit("CHANGE_LEVEL", new CaveLevel1({
         heroPosition: new Vector2(gridCells(3), gridCells(6)),

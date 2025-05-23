@@ -222,8 +222,8 @@ export class MultiplayerManager {
         const x = data.x || 320;
         const y = data.y || 262;
 
-        const remote = new Hero(x, y);
-        remote.isRemote = true;
+        const remote = new Hero(x, y, {isRemote: true});
+        // remote.isRemote = true;
         // Make remote players act as solid objects
         remote.isSolid = true;
         // make remote players interactive

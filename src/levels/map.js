@@ -41,8 +41,10 @@ export class MainMap extends Level {
     // Walls and interactions
     const propertyHandler = new TiledPropertyHandler(mapData);
     this.walls = new Set();
+    // this.actions = [];
+    this.actions = new Map();
     // this.walls = propertyHandler.getWallTiles();
-    this.actions = propertyHandler.getActionTiles();
+    // this.actions = propertyHandler.getActionTiles();
     this.animatedTiles =propertyHandler.parseAnimatedTiles(mapData.tilesets);
     this.tilesetImages = new Map(); // Will be loaded in ready()
     this.propertyHandler = propertyHandler;
@@ -204,14 +206,23 @@ export class MainMap extends Level {
         );
 
         if (actionProps.length > 0) {
-          this.actions.push({
-            id: posKey,
+          this.actions.set(posKey, {
             x,
             y,
             tileId: rawTileId,
             properties: Object.fromEntries(actionProps)
           });
         }
+
+        // if (tileProps && Object.keys(tileProps).length > 0) {
+        //   this.actions.set(posKey, {
+        //     x,
+        //     y,
+        //     tileId: rawTileId,
+        //     properties: tileProps
+        //   });
+        // }
+        // console.log("Actions loaded at:", this.actions.map(a => a.id));
       });
     });
   }
@@ -250,6 +261,14 @@ export class MainMap extends Level {
 
     // Update debug text initially
     this.updateDebugText();
+  }
+
+  // Get actions at a specific position
+  getActionsAt(x, y) {
+    const tileX = Math.floor(x / TILE_SIZE) * TILE_SIZE;
+    const tileY = Math.floor(y / TILE_SIZE) * TILE_SIZE;
+    const key = `${tileX},${tileY}`;
+    return this.actions.get(key);
   }
 
   cleanup() {

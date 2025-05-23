@@ -20,15 +20,16 @@ import {
 import { moveTowards } from "../../helpers/moveTowards.js";
 import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
+import { TILE_SIZE } from "../../constants/worldConstants.js";
 
 export class Hero extends GameObject {
-  constructor(x, y) {
+  constructor(x, y, options = {}) {
     super({
       position: new Vector2(x, y)
     });
 
     // Track if this is a remote player
-    this.isRemote = false;
+    this.isRemote = options.isRemote ?? false;
     this.lastMovementDirection = DOWN; // Track direction of last movement
     this.previousPosition = new Vector2(x, y); // Track previous position for movement detection
     this.lastMovedTime = Date.now(); // Track when we last moved
@@ -46,6 +47,7 @@ export class Hero extends GameObject {
 
     this.body = new Sprite({
       resource: resources.images.hero,
+      // resource: !this.isRemote ? resources.images.hero : resources.images.remoteHero,
       frameSize: new Vector2(32, 32),
       hFrames: 3,
       vFrames: 8,
@@ -352,8 +354,14 @@ export class Hero extends GameObject {
     }
 
     // If no interactive object, check for action tiles from the property handler
-    if (root.level?.propertyHandler) {
-      const actionTile = root.level.propertyHandler.getActionsAt(facingPosition.x, facingPosition.y);
+    // if (root.level?.propertyHandler) {
+    if (root.level?.actions) {
+      // const actionTile = root.level.propertyHandler.getActionsAt(facingPosition.x, facingPosition.y);
+      // const px = facingPosition.x * TILE_SIZE;
+      // const py = facingPosition.y * TILE_SIZE;
+      // const actionTile = root.level?.getActionsAt(px, py);
+      const actionTile = root.level?.getActionsAt(facingPosition.x, facingPosition.y);
+      console.log(actionTile);
 
       if (actionTile) {
         console.log("Found action tile:", actionTile.properties);
@@ -384,7 +392,7 @@ export class Hero extends GameObject {
   getFacingPosition() {
     // Calculate the position in front of the hero based on facing direction
     const facingPosition = this.position.duplicate();
-    const gridSize = 16;
+    const gridSize = TILE_SIZE;
 
     if (this.facingDirection === DOWN) {
       facingPosition.y += gridSize;

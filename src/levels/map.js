@@ -12,7 +12,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from ".
 import mapData from './json/map.json';
 import { TiledPropertyHandler } from "../helpers/propertyHandler.js";
 
-const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
+// const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
+const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
 export class MainMap extends Level {
   constructor(params = {}) {

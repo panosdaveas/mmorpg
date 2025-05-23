@@ -93,17 +93,27 @@ export class Camera extends GameObject {
   }
 
   centerPositionOnTarget(pos) {
-    // Create a new position based on the incoming position
     const personHalf = 8;
     const canvasWidth = CANVAS_WIDTH;
     const canvasHeight = CANVAS_HEIGHT;
+
     const halfWidth = -personHalf + canvasWidth / 2;
     const halfHeight = -personHalf + canvasHeight / 2;
-    this.position = new Vector2(
-      -pos.x + halfWidth,
-      -pos.y + halfHeight,
-    );
-    
+
+    // Initial camera position centered on hero
+    let x = -pos.x + halfWidth;
+    let y = -pos.y + halfHeight;
+
+    // Clamp the camera position so it stays inside map bounds
+    if (this.mapPixelWidth && this.mapPixelHeight) {
+      const minX = canvasWidth - this.mapPixelWidth;
+      const minY = canvasHeight - this.mapPixelHeight;
+
+      x = Math.max(minX, Math.min(x, 0));
+      y = Math.max(minY, Math.min(y, 0));
+    }
+
+    this.position = new Vector2(x, y);
   }
 
   // Method to enable/disable or adjust the dead zone

@@ -429,9 +429,9 @@ export class Hero extends GameObject {
     // Handle action-1 (custom action type 1)
     if (properties?.action === "action-1") {
       
-      console.log("action-1!")
+      console.log("action!")
       events.emit("TRIGGER_ACTION", {
-        type: "action-1",
+        type: "action",
         value: properties.action,
         position: new Vector2(actionTile.x * 16, actionTile.y * 16)
       });

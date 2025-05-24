@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BrowserProvider } from "ethers";
 
 export async function connectWithMetaMask() {
     if (typeof window.ethereum === "undefined") {
@@ -10,11 +10,11 @@ export async function connectWithMetaMask() {
         // Request account access
         await window.ethereum.request({ method: "eth_requestAccounts" });
 
-        // Create an ethers provider
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        // Create a provider using the browser's injected ethereum provider
+        const provider = new BrowserProvider(window.ethereum);
 
         // Get the signer (the user)
-        const signer = provider.getSigner();
+        const signer = await provider.getSigner();
 
         // Get user's address
         const address = await signer.getAddress();
@@ -24,4 +24,4 @@ export async function connectWithMetaMask() {
     } catch (error) {
         console.error("Error connecting to MetaMask:", error);
     }
-}
+  }

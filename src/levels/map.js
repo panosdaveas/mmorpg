@@ -23,12 +23,16 @@ export class MainMap extends Level {
       levelName: "Main Map"
     });
 
+    const rod = new Rod(gridCells(33), gridCells(13))
+    this.addChild(rod)
+
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
     connectWithMetaMask().then(({ address }) => {
       if (address) {
         console.log("Wallet connected:", address);
+        this.localPlayer.setAttribute("address", address);
       }
     });
     this.localPlayer.setAttribute("hp", 100);
@@ -114,6 +118,7 @@ export class MainMap extends Level {
     const debugInfo = this.multiplayerManager.getDebugInfo();
     const remoteCount = Object.keys(this.multiplayerManager.getRemotePlayers()).length;
     const hp = this.localPlayer.getAttributeAsObject("hp");
+    const address = this.localPlayer.getAttributeAsObject("address");
 
     this.debugText.innerHTML = `
       <div>Socket ID: ${debugInfo.socketId}</div>
@@ -122,6 +127,7 @@ export class MainMap extends Level {
       <div>Local Position: x:${Math.round(this.localPlayer.position.x)}, y:${Math.round(this.localPlayer.position.y)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
       <div>${hp?.name}: ${hp?.value || 'None'}</div>
+      <div>${address?.name}: ${address?.value.slice(0,6) + "..." + address?.value.slice(36, address.value.length) || 'Not connected'}</div>
     `;
   }
 

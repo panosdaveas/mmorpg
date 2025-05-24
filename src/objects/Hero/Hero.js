@@ -21,6 +21,7 @@ import { moveTowards } from "../../helpers/moveTowards.js";
 import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
+import { WalletConnector } from "../../web3/connectWallet.js";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -198,6 +199,8 @@ export class Hero extends GameObject {
     events.on("END_TEXT_BOX", this, () => {
       this.isLocked = false;
     })
+    const wallet = new WalletConnector(this);
+    wallet.connect();
   }
 
   update(delta) {

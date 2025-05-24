@@ -1,27 +1,61 @@
+// wallet.js
 import { BrowserProvider } from "ethers";
 
-export async function connectWithMetaMask() {
-    if (typeof window.ethereum === "undefined") {
-        alert("MetaMask is not installed!");
-        return;
+export class WalletConnector {
+    constructor(localPlayer) {
+        this.localPlayer = localPlayer;
+        this.provider = null;
+        this.signer = null;
+
+        // Bind methods to ensure `this` refers to the class instance
+        this.handleAccountsChanged = this.handleAccountsChanged.bind(this);
+        this.handleChainChanged = this.handleChainChanged.bind(this);
     }
 
-    try {
-        // Request account access
-        await window.ethereum.request({ method: "eth_requestAccounts" });
+    async connect() {
+        if (!window.ethereum) {
+            alert("MetaMask not installed");
+            return;
+        }
 
-        // Create a provider using the browser's injected ethereum provider
-        const provider = new BrowserProvider(window.ethereum);
+        try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            this.provider = new BrowserProvider(window.ethereum);
+            this.signer = await this.provider.getSigner();
+            const address = await this.signer.getAddress();
 
-        // Get the signer (the user)
-        const signer = await provider.getSigner();
+            console.log("Connected:", address);
+            this.localPlayer.setAttribute("address", address);
 
-        // Get user's address
-        const address = await signer.getAddress();
-
-        console.log("Connected wallet address:", address);
-        return { provider, signer, address };
-    } catch (error) {
-        console.error("Error connecting to MetaMask:", error);
+            this.addListeners();
+            return address;
+        } catch (err) {
+            console.error("MetaMask connection error:", err);
+        }
     }
-  }
+
+    addListeners() {
+        window.ethereum.on("accountsChanged", this.handleAccountsChanged);
+        window.ethereum.on("chainChanged", this.handleChainChanged);
+    }
+
+    removeListeners() {
+        window.ethereum.removeListener("accountsChanged", this.handleAccountsChanged);
+        window.ethereum.removeListener("chainChanged", this.handleChainChanged);
+    }
+
+    handleAccountsChanged(accounts) {
+        if (accounts.length === 0) {
+            console.log("Disconnected or locked");
+            this.localPlayer.removeAttribute("address");
+        } else {
+            console.log("Account changed:", accounts[0]);
+            this.localPlayer.setAttribute("address", accounts[0]);
+        }
+    }
+
+    handleChainChanged(chainId) {
+        console.log("Network changed:", chainId);
+        window.location.reload(); // optional
+    }
+}

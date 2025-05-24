@@ -11,6 +11,7 @@ import { CaveLevel1 } from "./CaveLevel1.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
 import { TiledPropertyHandler } from "../helpers/propertyHandler.js";
+import { connectWithMetaMask } from "../web3/connectWallet.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -25,6 +26,11 @@ export class MainMap extends Level {
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
+    connectWithMetaMask().then(({ address }) => {
+      if (address) {
+        console.log("Wallet connected:", address);
+      }
+    });
     this.localPlayer.setAttribute("hp", 100);
     // Add the local player to the scene
     this.addChild(this.localPlayer);

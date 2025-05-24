@@ -361,7 +361,6 @@ export class Hero extends GameObject {
       // const py = facingPosition.y * TILE_SIZE;
       // const actionTile = root.level?.getActionsAt(px, py);
       const actionTile = root.level?.getActionsAt(facingPosition.x, facingPosition.y);
-      console.log(actionTile);
 
       if (actionTile) {
         console.log("Found action tile:", actionTile.properties);
@@ -409,7 +408,7 @@ export class Hero extends GameObject {
 
   handleActionTile(actionTile, root) {
     // Handle different types of actions based on properties
-    const properties = actionTile.properties;
+    const properties = actionTile?.properties;
 
     // Handle NPC dialogue
     if (properties.npc) {
@@ -428,11 +427,12 @@ export class Hero extends GameObject {
     }
 
     // Handle action-1 (custom action type 1)
-    if (properties["action-1"]) {
+    if (properties?.action === "action-1") {
+      
       console.log("action-1!")
       events.emit("TRIGGER_ACTION", {
         type: "action-1",
-        value: properties["action-1"],
+        value: properties.action,
         position: new Vector2(actionTile.x * 16, actionTile.y * 16)
       });
       this.setAttribute("hp", 50);

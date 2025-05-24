@@ -424,6 +424,11 @@
                       "name": "collide",
                       "type": "bool",
                       "value": true
+                    },
+                    {
+                     "name": "action",
+                     "type": "string",
+                     "value": "action-1"
                     }
                   ]
                 }],

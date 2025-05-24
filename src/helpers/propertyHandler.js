@@ -5,11 +5,11 @@ export class TiledPropertyHandler {
         this.mapData = mapData;
         this.tilePropertiesMap = new Map(); // Map of tileId -> properties
         this.layerTileData = new Map(); // Position -> array of tile data with layer info
-        this.finalWalls = new Set(); // Final set of collision walls
-        this.finalActions = []; // Final array of action tiles with their properties
+        // this.finalWalls = new Set(); // Final set of collision walls
+        // this.finalActions = []; // Final array of action tiles with their properties
 
         // Properties we want to track
-        this.trackedProperties = ["collide", "action-1", "action-2", "interactable", "npc"];
+        this.trackedProperties = ["collide", "action", "interactable", "npc"];
 
         // Extract properties from tilesets
         this.extractTileProperties();
@@ -129,26 +129,26 @@ export class TiledPropertyHandler {
     }
 
     // Get all walls for collision detection
-    getWallTiles() {
-        return this.finalWalls;
-    }
+    // getWallTiles() {
+    //     return this.finalWalls;
+    // }
 
-    // Get all action tiles with their properties
-    getActionTiles() {
-        return this.finalActions;
-    }
+    // // Get all action tiles with their properties
+    // getActionTiles() {
+    //     return this.finalActions;
+    // }
 
     // Check if a given position has a collision
-    hasCollision(x, y) {
-        const key = `${Math.floor(x)},${Math.floor(y)}`;
-        return this.finalWalls.has(key);
-    }
+    // hasCollision(x, y) {
+    //     const key = `${Math.floor(x)},${Math.floor(y)}`;
+    //     return this.finalWalls.has(key);
+    // }
 
     // Get actions at a specific position
-    getActionsAt(x, y) {
-        const key = `${Math.floor(x)},${Math.floor(y)}`;
-        return this.finalActions.find(action => action.id === key);
-    }
+    // getActionsAt(x, y) {
+    //     const key = `${Math.floor(x)},${Math.floor(y)}`;
+    //     return this.finalActions.find(action => action.id === key);
+    // }
 
     getPropertiesForTile(tileId) {
         return this.tilePropertiesMap.get(this.clearTileFlags(tileId)) || {};

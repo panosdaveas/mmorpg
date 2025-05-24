@@ -155,12 +155,9 @@ export class MainMap extends Level {
     this.updateAnimatedTiles(delta);
 
   }
-
   drawBackground(ctx) {
-    
-    if (this.background?.drawImage) {
-      this.background.drawImage(ctx, 0, 0);
-    }
+    this.walls = new Set();
+    this.actions = new Map();
 
     mapData.layers.forEach(layer => {
       if (layer.type !== "tilelayer") return;
@@ -175,54 +172,51 @@ export class MainMap extends Level {
         const y = Math.floor(index / width);
         const posKey = `${x * TILE_SIZE},${y * TILE_SIZE}`;
 
-        const animatedTileId = this.getAnimatedTileId(rawTileId);
+        // 1. Get drawTileId for rendering
+        const drawTileId = this.getAnimatedTileId(rawTileId);
 
+        // 2. Find tileset and image for drawTileId
         const tilesetEntry = [...this.tilesetImages.entries()]
           .reverse()
-          .find(([firstgid]) => animatedTileId >= firstgid);
+          .find(([firstgid]) => drawTileId >= firstgid);
 
         if (!tilesetEntry) return;
 
         const [firstgid, { image, tileset }] = tilesetEntry;
-        const localId = animatedTileId - firstgid;
+        const localId = drawTileId - firstgid;
         const columns = tileset.columns;
 
         const sx = Math.floor((localId % columns) * TILE_SIZE);
-        const sy = Math.floor(localId / columns) * TILE_SIZE;
-        const dx = Math.floor(x * TILE_SIZE);
-        const dy = Math.floor(y * TILE_SIZE);
+        const sy = Math.floor(Math.floor(localId / columns) * TILE_SIZE);
+        const dx = x * TILE_SIZE;
+        const dy = y * TILE_SIZE;
 
         ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
 
-        // ✅ Add this here to collect collision info
-        const tileProps = this.propertyHandler.tilePropertiesMap.get(rawTileId);
+        // 3. Get tileProps from raw ID or animation base ID
+        let tileProps = this.propertyHandler.tilePropertiesMap.get(rawTileId);
+        if (!tileProps) {
+          const anim = this.animatedTiles.get(rawTileId);
+          if (anim?.frames?.length > 0) {
+            const baseTileId = anim.frames[0].tileid;
+            tileProps = this.propertyHandler.tilePropertiesMap.get(baseTileId);
+          }
+        }
+
+        // 4. Handle collision
         if (tileProps?.collide) {
           this.walls.add(posKey);
         }
 
-        // ✅ And optionally also gather action tiles
-        const actionProps = Object.entries(tileProps || {}).filter(([key]) =>
-          key.startsWith("action") || key === "interactable" || key === "npc"
-        );
-
-        if (actionProps.length > 0) {
+        // 5. Handle action tiles
+        if (tileProps && Object.keys(tileProps).length > 0) {
           this.actions.set(posKey, {
             x,
             y,
             tileId: rawTileId,
-            properties: Object.fromEntries(actionProps)
+            properties: tileProps
           });
         }
-
-        // if (tileProps && Object.keys(tileProps).length > 0) {
-        //   this.actions.set(posKey, {
-        //     x,
-        //     y,
-        //     tileId: rawTileId,
-        //     properties: tileProps
-        //   });
-        // }
-        // console.log("Actions loaded at:", this.actions.map(a => a.id));
       });
     });
   }

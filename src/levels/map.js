@@ -22,12 +22,6 @@ export class MainMap extends Level {
       levelName: "Main Map"
     });
 
-    // Sky background
-    // this.background = new Sprite({
-    //   resource: resources.images.sky,
-    //   frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT)
-    // });
-
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
@@ -41,10 +35,7 @@ export class MainMap extends Level {
     // Walls and interactions
     const propertyHandler = new TiledPropertyHandler(mapData);
     this.walls = new Set();
-    // this.actions = [];
     this.actions = new Map();
-    // this.walls = propertyHandler.getWallTiles();
-    // this.actions = propertyHandler.getActionTiles();
     this.animatedTiles =propertyHandler.parseAnimatedTiles(mapData.tilesets);
     this.tilesetImages = new Map(); // Will be loaded in ready()
     this.propertyHandler = propertyHandler;
@@ -156,9 +147,6 @@ export class MainMap extends Level {
 
   }
   drawBackground(ctx) {
-    this.walls = new Set();
-    this.actions = new Map();
-
     mapData.layers.forEach(layer => {
       if (layer.type !== "tilelayer") return;
 
@@ -168,14 +156,8 @@ export class MainMap extends Level {
         const rawTileId = tileId & 0x1FFFFFFF;
         if (rawTileId === 0) return;
 
-        const x = index % width;
-        const y = Math.floor(index / width);
-        const posKey = `${x * TILE_SIZE},${y * TILE_SIZE}`;
-
-        // 1. Get drawTileId for rendering
         const drawTileId = this.getAnimatedTileId(rawTileId);
 
-        // 2. Find tileset and image for drawTileId
         const tilesetEntry = [...this.tilesetImages.entries()]
           .reverse()
           .find(([firstgid]) => drawTileId >= firstgid);
@@ -188,35 +170,14 @@ export class MainMap extends Level {
 
         const sx = Math.floor((localId % columns) * TILE_SIZE);
         const sy = Math.floor(Math.floor(localId / columns) * TILE_SIZE);
-        const dx = x * TILE_SIZE;
-        const dy = y * TILE_SIZE;
+        const dx = (index % width) * TILE_SIZE;
+        const dy = Math.floor(index / width) * TILE_SIZE;
 
-        ctx.drawImage(image, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, TILE_SIZE, TILE_SIZE);
-
-        // 3. Get tileProps from raw ID or animation base ID
-        let tileProps = this.propertyHandler.tilePropertiesMap.get(rawTileId);
-        if (!tileProps) {
-          const anim = this.animatedTiles.get(rawTileId);
-          if (anim?.frames?.length > 0) {
-            const baseTileId = anim.frames[0].tileid;
-            tileProps = this.propertyHandler.tilePropertiesMap.get(baseTileId);
-          }
-        }
-
-        // 4. Handle collision
-        if (tileProps?.collide) {
-          this.walls.add(posKey);
-        }
-
-        // 5. Handle action tiles
-        if (tileProps && Object.keys(tileProps).length > 0) {
-          this.actions.set(posKey, {
-            x,
-            y,
-            tileId: rawTileId,
-            properties: tileProps
-          });
-        }
+        ctx.drawImage(
+          image,
+          sx, sy, TILE_SIZE, TILE_SIZE,
+          dx, dy, TILE_SIZE, TILE_SIZE
+        );
       });
     });
   }
@@ -226,6 +187,9 @@ export class MainMap extends Level {
     super.ready();
 
     this.tilesetImages = await this.propertyHandler.loadTilesetImages(mapData.tilesets, "../assets/maps/");
+    const { walls, actions } = this.propertyHandler.parseLayerTiles(this.tilesetImages, this.animatedTiles);
+    this.walls = walls;
+    this.actions = actions;
     // MainMap-specific ready logic
     events.emit("SET_CAMERA_MAP_BOUNDS", {
       width: mapData.width * TILE_SIZE,

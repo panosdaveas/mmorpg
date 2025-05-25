@@ -60,7 +60,11 @@ export class TiledPropertyHandler {
                     walls.add(posKey);
                 }
 
-                if (tileProps && Object.keys(tileProps).length > 0) {
+                if (
+                    tileProps 
+                    && Object.keys(tileProps).length > 0 
+                    // && Object.keys(tileProps).includes('action')
+                ) {
                     actions.set(posKey, {
                         x,
                         y,

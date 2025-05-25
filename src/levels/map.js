@@ -11,7 +11,6 @@ import { CaveLevel1 } from "./CaveLevel1.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
 import { TiledPropertyHandler } from "../helpers/propertyHandler.js";
-import { WalletConnector } from "../web3/connectWallet.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -111,7 +110,7 @@ export class MainMap extends Level {
 
     const debugInfo = this.multiplayerManager.getDebugInfo();
     const remoteCount = Object.keys(this.multiplayerManager.getRemotePlayers()).length;
-    const hp = this.localPlayer.getAttributeAsObject("hp");
+    // const hp = this.localPlayer.getAttributeAsObject("hp");
     const address = this.localPlayer.getAttributeAsObject("address");
 
     this.debugText.innerHTML = `
@@ -120,7 +119,7 @@ export class MainMap extends Level {
       <div>Remote Players: ${remoteCount}</div>
       <div>Local Position: x:${Math.round(this.localPlayer.position.x)}, y:${Math.round(this.localPlayer.position.y)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
-      <div>${hp?.name}: ${hp?.value || 'None'}</div>
+      
       <div>${address?.name}: ${address?.value.slice(0,6) + "..." + address?.value.slice(36, address.value.length) || 'Not connected'}</div>
     `;
   }

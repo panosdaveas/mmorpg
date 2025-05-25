@@ -21,7 +21,7 @@ import { moveTowards } from "../../helpers/moveTowards.js";
 import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
-import { WalletConnector } from "../../web3/connectWallet.js";
+import { WalletConnector } from "../../web3/Wallet.js";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -376,7 +376,7 @@ export class Hero extends GameObject {
 
     // Check if the hero is standing on an action tile
     if (root.level?.propertyHandler) {
-      const actionUnderHero = root.level.propertyHandler.getActionsAt(this.position.x, this.position.y);
+      const actionUnderHero = root.level?.getActionsAt(this.position.x, this.position.y);
 
       if (actionUnderHero && actionUnderHero.properties["ground-action"]) {
         console.log("Found ground action:", actionUnderHero);

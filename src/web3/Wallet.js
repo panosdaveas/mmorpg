@@ -24,7 +24,7 @@ export class WalletConnector {
             this.signer = await this.provider.getSigner();
             const address = await this.signer.getAddress();
 
-            console.log("Connected:", address);
+            console.log("Connected address:", address);
             this.localPlayer.setAttribute("address", address);
 
             this.addListeners();
@@ -55,7 +55,7 @@ export class WalletConnector {
     }
 
     handleChainChanged(chainId) {
-        console.log("Network changed:", chainId);
-        window.location.reload(); // optional
+        const decimalChainId = parseInt(chainId, 16); // Convert hex to number
+        console.log("Network changed to:", decimalChainId);
     }
 }

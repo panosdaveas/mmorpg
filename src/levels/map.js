@@ -132,11 +132,17 @@ export class MainMap extends Level {
     await super.ready();
 
     events.on("HERO_EXITS", this, () => {
+      this.cleanup(); // Cleanup current level
       events.emit("CHANGE_LEVEL", new Room1({
         heroPosition: new Vector2(gridCells(36), gridCells(21)),
-        multiplayerManager: this.multiplayerManager // Pass multiplayer manager to new level
+        multiplayerManager: this.multiplayerManager, // Pass multiplayer manager to new level
+        position: null, // Reset position for new level
       }));
-      this.cleanup(); // Cleanup current level
+    });
+
+    events.emit("SET_CAMERA_MAP_BOUNDS", {
+      width: CANVAS_WIDTH * TILE_SIZE,
+      height: CANVAS_HEIGHT * TILE_SIZE,
     });
 
     // Update debug text initially

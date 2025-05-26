@@ -32,6 +32,8 @@ export class Room1 extends Level {
     this.hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
     this.addChild(this.hero);
 
+    this.cameraEnabled = false; // Disable camera movement for this level
+
     const rod = new Rod(gridCells(9), gridCells(6))
     // this.addChild(rod)
 
@@ -87,11 +89,22 @@ export class Room1 extends Level {
     await super.ready();
 
     events.on("HERO_EXITS", this, () => {
+      this.cleanup();
       events.emit("CHANGE_LEVEL", new MainMap({
         heroPosition: new Vector2(gridCells(23), gridCells(17)),
-        multiplayerManager: this.multiplayerManager // Pass multiplayer manager to new level
+        multiplayerManager: this.multiplayerManager, // Pass multiplayer manager to new level
       }))
-      this.cleanup();
+    })
+
+    events.emit("SET_CAMERA_MAP_BOUNDS", {
+      width: this.mapData.width * TILE_SIZE,
+      height: this.mapData.height * TILE_SIZE,
+    });
+
+    events.emit("SET_CAMERA_OPTIONS", {
+      zoom: this.scale, // Set zoom level for this level
+      enabled: this.cameraEnabled, // Disable camera movement for this level
+      // position: DEFAULT_HERO_POSITION,
     })
   }
 

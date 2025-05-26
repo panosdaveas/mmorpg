@@ -30,7 +30,8 @@ io.on('connection', socket => {
         players[socket.id] = {
             x: data?.x ?? defaultPos.x,
             y: data?.y ?? defaultPos.y,
-            attributes: data?.attributes ?? defaultAttributes
+            attributes: data?.attributes ?? defaultAttributes,
+            currentLevelName: data.levelName,
         };
 
         console.log(`Player ${socket.id} state:`, players[socket.id]);

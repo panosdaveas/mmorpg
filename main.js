@@ -3,6 +3,7 @@ import { Vector2 } from "./src/Vector2.js";
 import { GameLoop } from "./src/GameLoop.js";
 import { Main } from "./src/objects/Main/Main.js";
 import { MainMap } from './src/levels/map.js';
+import { Room1 } from './src/levels/room1.js';
 import { MultiplayerManager } from './src/client/multiplayerManager.js';
 
 // Grabbing the canvas to draw to
@@ -21,7 +22,7 @@ const mainScene = new Main({
 })
 
 // Set up the level with multiplayer support
-const mainMap = new MainMap({ multiplayerManager });
+const mainMap = new Room1({ multiplayerManager });
 mainScene.setLevel(mainMap);
 
 // Set the current level in multiplayer manager
@@ -62,7 +63,6 @@ const draw = () => {
   ctx.save();
   ctx.imageSmoothingEnabled = false; // 👈 Keep pixel-perfect
   ctx.scale(zoom, zoom);
-  mainScene.camera.centerPositionOnTarget(mainScene.camera.targetPosition, zoom);
   if (mainScene.camera) {
     ctx.translate(mainScene.camera.position.x, mainScene.camera.position.y);
   }

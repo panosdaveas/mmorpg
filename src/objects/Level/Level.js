@@ -15,6 +15,8 @@ export class Level extends GameObject {
     this.mapData = params.mapData || null;
     this.tilesetImages = new Map(); // Will be loaded in ready()
     this.animatedTiles = null;
+    this.cameraEnabled = null;
+    // this.cameraEnabled = params.cameraEnabled !== undefined ? params.cameraEnabled : true;
 
     this.propertyHandler = new TiledPropertyHandler(this.mapData);
     this.animatedTiles = this.propertyHandler.parseAnimatedTiles(this.mapData.tilesets);
@@ -129,11 +131,6 @@ export class Level extends GameObject {
         this.multiplayerManager.sendInitialPlayerData(this.localPlayer);
       }
     }
-
-    events.emit("SET_CAMERA_MAP_BOUNDS", {
-      width: this.mapData.width * TILE_SIZE,
-      height: this.mapData.height * TILE_SIZE,
-    });
 
     // Listen for hero position changes
     events.on("HERO_POSITION", this, position => {

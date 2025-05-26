@@ -7,7 +7,7 @@ import { gridCells } from "../helpers/grid.js";
 import { Hero } from "../objects/Hero/Hero.js";
 import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
-import { CaveLevel1 } from "./CaveLevel1.js";
+import { CaveLevel1 } from "./room1.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
 import { TiledPropertyHandler } from "../helpers/propertyHandler.js";
@@ -34,6 +34,9 @@ export class MainMap extends Level {
 
     // Set the local player in the base class
     this.setLocalPlayer(this.localPlayer);
+
+    const exit = new Exit(gridCells(23), gridCells(16))
+    this.addChild(exit);
 
     // Walls and interactions
     const propertyHandler = new TiledPropertyHandler(mapData);
@@ -110,6 +113,8 @@ export class MainMap extends Level {
 
     const debugInfo = this.multiplayerManager.getDebugInfo();
     const remoteCount = Object.keys(this.multiplayerManager.getRemotePlayers()).length;
+    const tileX = Math.floor(this.localPlayer.position.x / TILE_SIZE);
+    const tileY = Math.floor(this.localPlayer.position.y / TILE_SIZE);
     // const hp = this.localPlayer.getAttributeAsObject("hp");
     const address = this.localPlayer.getAttributeAsObject("address");
 
@@ -117,7 +122,7 @@ export class MainMap extends Level {
       <div>Socket ID: ${debugInfo.socketId}</div>
       <div>Status: ${debugInfo.socketConnectionStatus}</div>
       <div>Remote Players: ${remoteCount}</div>
-      <div>Local Position: x:${Math.round(this.localPlayer.position.x)}, y:${Math.round(this.localPlayer.position.y)}</div>
+      <div>Local Position: x:${Math.round(tileX)}, y:${Math.round(tileY)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
       
       <div>${address?.name}: ${address?.value.slice(0,6) + "..." + address?.value.slice(36, address.value.length) || 'Not connected'}</div>
@@ -188,8 +193,7 @@ export class MainMap extends Level {
   }
 
   async ready() {
-    // Call parent ready first
-    super.ready();
+    // super.ready();
 
     this.tilesetImages = await this.propertyHandler.loadTilesetImages(mapData.tilesets, "../assets/maps/");
     const { walls, actions } = this.propertyHandler.parseLayerTiles(this.tilesetImages, this.animatedTiles);
@@ -203,9 +207,10 @@ export class MainMap extends Level {
 
     events.on("HERO_EXITS", this, () => {
       events.emit("CHANGE_LEVEL", new CaveLevel1({
-        heroPosition: new Vector2(gridCells(3), gridCells(6)),
+        heroPosition: new Vector2(gridCells(23), gridCells(16)),
         multiplayerManager: this.multiplayerManager // Pass multiplayer manager to new level
       }));
+
     });
 
     // Listen for hero position changes
@@ -224,6 +229,8 @@ export class MainMap extends Level {
 
     // Update debug text initially
     this.updateDebugText();
+
+    await super.ready();
   }
 
   // Get actions at a specific position

@@ -12,7 +12,7 @@ import {Npc} from "../objects/Npc/Npc.js";
 import {TALKED_TO_A, TALKED_TO_B} from "../StoryFlags.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
 
-const DEFAULT_HERO_POSITION = new Vector2(gridCells(6), gridCells(5))
+const DEFAULT_HERO_POSITION = new Vector2(gridCells(36), gridCells(21))
 
 export class CaveLevel1 extends Level {
   constructor(params={}) {
@@ -80,8 +80,8 @@ export class CaveLevel1 extends Level {
 
   ready() {
     events.on("HERO_EXITS", this, () => {
-      events.emit("CHANGE_LEVEL", new MainMAa({
-        heroPosition: new Vector2(gridCells(16), gridCells(4))
+      events.emit("CHANGE_LEVEL", new MainMap({
+        heroPosition: new Vector2(gridCells(36), gridCells(21))
       }))
     })
   }

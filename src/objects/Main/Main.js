@@ -58,7 +58,8 @@ export class Main extends GameObject {
       }
 
     })
-
+    
+    // Wait for the level to fully initialize
   }
 
   setLevel(newLevelInstance) {

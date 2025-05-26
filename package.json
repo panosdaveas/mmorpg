@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node src/server/server.js"
+    "start": "node src/server/server.js",
+    "dev:all": "concurrently -n server,game -c green,cyan \"npm run start\" \"npm run dev\""
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "vite": "^4.4.5"
   },
   "dependencies": {

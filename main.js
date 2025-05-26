@@ -42,6 +42,17 @@ const update = (delta) => {
 
 const draw = () => {
  
+  if (!mainScene.level?.isReady) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "20px monospace";
+    ctx.fillText("Loading map...", 20, 40);
+    return;
+    return; // or draw a loading screen
+  }
+
   // 1. Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -68,5 +79,13 @@ window.addEventListener('beforeunload', () => {
 });
 
 // Start the game!
-const gameLoop = new GameLoop(update, draw);
-gameLoop.start();
+// const gameLoop = new GameLoop(update, draw);
+// gameLoop.start();
+
+// ✅ Wait for the map to fully load before starting game loop
+(async () => {
+  await mainMap.ready();              // Wait for map tiles & tilesets to load
+
+  const gameLoop = new GameLoop(update, draw);
+  gameLoop.start();                  // Start game only when safe
+})();

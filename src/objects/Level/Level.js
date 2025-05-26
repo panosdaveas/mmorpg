@@ -105,7 +105,6 @@ export class Level extends GameObject {
 
   // Called when level becomes active
   ready() {
-    this.isReady = true;
 
     // Setup multiplayer if available
     if (this.multiplayerManager) {
@@ -118,6 +117,7 @@ export class Level extends GameObject {
       }
     }
 
+    this.isReady = true;
     // Child classes should call super.ready() and then their own logic
   }
 

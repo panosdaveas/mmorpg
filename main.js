@@ -22,7 +22,7 @@ const mainScene = new Main({
 })
 
 // Set up the level with multiplayer support
-const mainMap = new Room1({ multiplayerManager });
+const mainMap = new MainMap({ multiplayerManager });
 mainScene.setLevel(mainMap);
 
 // Set the current level in multiplayer manager

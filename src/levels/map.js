@@ -7,7 +7,7 @@ import { Hero } from "../objects/Hero/Hero.js";
 import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
 import { Room1 } from "./room1.js";
-import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
+import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
@@ -141,8 +141,8 @@ export class MainMap extends Level {
     });
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
-      width: CANVAS_WIDTH * TILE_SIZE,
-      height: CANVAS_HEIGHT * TILE_SIZE,
+      width: mapData.width * TILE_SIZE,
+      height: mapData.height * TILE_SIZE,
     });
 
     // Update debug text initially

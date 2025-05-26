@@ -49,7 +49,6 @@ const draw = () => {
     ctx.fillStyle = "#fff";
     ctx.font = "20px monospace";
     ctx.fillText("Loading map...", 20, 40);
-    return;
     return; // or draw a loading screen
   }
 
@@ -59,7 +58,11 @@ const draw = () => {
   // 2. Draw sky and animated tilemap (covers the whole canvas)
 
   // 3. Apply camera movement
+  const zoom = mainScene.level?.scale ?? 1;
   ctx.save();
+  ctx.imageSmoothingEnabled = false; // 👈 Keep pixel-perfect
+  ctx.scale(zoom, zoom);
+  mainScene.camera.centerPositionOnTarget(mainScene.camera.targetPosition, zoom);
   if (mainScene.camera) {
     ctx.translate(mainScene.camera.position.x, mainScene.camera.position.y);
   }

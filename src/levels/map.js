@@ -1,16 +1,14 @@
 import { Level } from "../objects/Level/Level.js";
 import { Sprite } from "../Sprite.js";
-import { resources } from "../Resource.js";
 import { Vector2 } from "../Vector2.js";
 import { Exit } from "../objects/Exit/Exit.js";
 import { gridCells } from "../helpers/grid.js";
 import { Hero } from "../objects/Hero/Hero.js";
 import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
-import { CaveLevel1 } from "./room1.js";
-import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
+import { Room1 } from "./room1.js";
+import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
-import { TiledPropertyHandler } from "../helpers/propertyHandler.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -19,7 +17,8 @@ export class MainMap extends Level {
   constructor(params = {}) {
     super({
       ...params,
-      levelName: "Main Map"
+      levelName: "Main Map",
+      mapData: mapData,
     });
 
     const rod = new Rod(gridCells(33), gridCells(13))
@@ -37,14 +36,6 @@ export class MainMap extends Level {
 
     const exit = new Exit(gridCells(23), gridCells(16))
     this.addChild(exit);
-
-    // Walls and interactions
-    const propertyHandler = new TiledPropertyHandler(mapData);
-    this.walls = new Set();
-    this.actions = new Map();
-    this.animatedTiles =propertyHandler.parseAnimatedTiles(mapData.tilesets);
-    this.tilesetImages = new Map(); // Will be loaded in ready()
-    this.propertyHandler = propertyHandler;
 
     // Add debug text display
     this.debugText = document.createElement('div');
@@ -125,26 +116,8 @@ export class MainMap extends Level {
       <div>Local Position: x:${Math.round(tileX)}, y:${Math.round(tileY)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
       
-      <div>${address?.name}: ${address?.value.slice(0,6) + "..." + address?.value.slice(36, address.value.length) || 'Not connected'}</div>
+      <div>${address?.name}: ${address?.value.slice(0, 6) + "..." + address?.value.slice(36, address.value.length) || 'Not connected'}</div>
     `;
-  }
-
-  updateAnimatedTiles(delta) {
-    for (const [tileId, anim] of this.animatedTiles.entries()) {
-      anim.elapsedTime += delta;
-      let currentFrame = anim.frames[anim.currentFrameIndex];
-
-      while (anim.elapsedTime > currentFrame.duration) {
-        anim.elapsedTime -= currentFrame.duration;
-        anim.currentFrameIndex = (anim.currentFrameIndex + 1) % anim.frames.length;
-        currentFrame = anim.frames[anim.currentFrameIndex];
-      }
-    }
-  }
-
-  getAnimatedTileId(originalTileId) {
-    const anim = this.animatedTiles.get(originalTileId);
-    return anim ? anim.frames[anim.currentFrameIndex].tileid : originalTileId;
   }
 
   // Called on each game tick from main.js
@@ -153,92 +126,22 @@ export class MainMap extends Level {
     super.update(delta);
     this.updateDebugText();
 
-    this.updateAnimatedTiles(delta);
-
-  }
-  drawBackground(ctx) {
-    mapData.layers.forEach(layer => {
-      if (layer.type !== "tilelayer") return;
-
-      const width = layer.width;
-
-      layer.data.forEach((tileId, index) => {
-        const rawTileId = tileId & 0x1FFFFFFF;
-        if (rawTileId === 0) return;
-
-        const drawTileId = this.getAnimatedTileId(rawTileId);
-
-        const tilesetEntry = [...this.tilesetImages.entries()]
-          .reverse()
-          .find(([firstgid]) => drawTileId >= firstgid);
-
-        if (!tilesetEntry) return;
-
-        const [firstgid, { image, tileset }] = tilesetEntry;
-        const localId = drawTileId - firstgid;
-        const columns = tileset.columns;
-
-        const sx = Math.floor((localId % columns) * TILE_SIZE);
-        const sy = Math.floor(Math.floor(localId / columns) * TILE_SIZE);
-        const dx = (index % width) * TILE_SIZE;
-        const dy = Math.floor(index / width) * TILE_SIZE;
-
-        ctx.drawImage(
-          image,
-          sx, sy, TILE_SIZE, TILE_SIZE,
-          dx, dy, TILE_SIZE, TILE_SIZE
-        );
-      });
-    });
   }
 
   async ready() {
-    // super.ready();
-
-    this.tilesetImages = await this.propertyHandler.loadTilesetImages(mapData.tilesets, "../assets/maps/");
-    const { walls, actions } = this.propertyHandler.parseLayerTiles(this.tilesetImages, this.animatedTiles);
-    this.walls = walls;
-    this.actions = actions;
-    // MainMap-specific ready logic
-    events.emit("SET_CAMERA_MAP_BOUNDS", {
-      width: mapData.width * TILE_SIZE,
-      height: mapData.height * TILE_SIZE
-    });
+    await super.ready();
 
     events.on("HERO_EXITS", this, () => {
-      events.emit("CHANGE_LEVEL", new CaveLevel1({
-        heroPosition: new Vector2(gridCells(23), gridCells(16)),
+      events.emit("CHANGE_LEVEL", new Room1({
+        heroPosition: new Vector2(gridCells(36), gridCells(21)),
         multiplayerManager: this.multiplayerManager // Pass multiplayer manager to new level
       }));
-
-    });
-
-    // Listen for hero position changes
-    events.on("HERO_POSITION", this, position => {
-      if (this.multiplayerManager) {
-        this.multiplayerManager.sendPositionUpdate(position);
-      }
-    });
-
-    // Listen for hero attribute changes
-    events.on("HERO_ATTRIBUTES_CHANGED", this, attributes => {
-      if (this.multiplayerManager) {
-        this.multiplayerManager.sendAttributesUpdate(attributes);
-      }
+      this.cleanup(); // Cleanup current level
     });
 
     // Update debug text initially
     this.updateDebugText();
 
-    await super.ready();
-  }
-
-  // Get actions at a specific position
-  getActionsAt(x, y) {
-    const tileX = Math.floor(x / TILE_SIZE) * TILE_SIZE;
-    const tileY = Math.floor(y / TILE_SIZE) * TILE_SIZE;
-    const key = `${tileX},${tileY}`;
-    return this.actions.get(key);
   }
 
   cleanup() {

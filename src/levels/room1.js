@@ -1,45 +1,39 @@
-import {Sprite} from "../Sprite.js";
-import {Vector2} from "../Vector2.js";
-import {resources} from "../Resource.js";
-import {Level} from "../objects/Level/Level.js";
-import {gridCells} from "../helpers/grid.js";
-import {Exit } from "../objects/Exit/Exit.js";
-import {Hero} from "../objects/Hero/Hero.js";
-import {Rod} from "../objects/Rod/Rod.js";
-import {events} from "../Events.js";
-import {MainMap} from "./map.js";
-import {Npc} from "../objects/Npc/Npc.js";
-import {TALKED_TO_A, TALKED_TO_B} from "../StoryFlags.js";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
+import { Sprite } from "../Sprite.js";
+import { Vector2 } from "../Vector2.js";
+import { resources } from "../Resource.js";
+import { Level } from "../objects/Level/Level.js";
+import { gridCells } from "../helpers/grid.js";
+import { Exit } from "../objects/Exit/Exit.js";
+import { Hero } from "../objects/Hero/Hero.js";
+import { Rod } from "../objects/Rod/Rod.js";
+import { events } from "../Events.js";
+import { MainMap } from "./map.js";
+import { Npc } from "../objects/Npc/Npc.js";
+import { TALKED_TO_A, TALKED_TO_B } from "../StoryFlags.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } from "../constants/worldConstants.js";
+import mapData from './json/room1.json';
 
-const DEFAULT_HERO_POSITION = new Vector2(gridCells(36), gridCells(21))
+// const DEFAULT_HERO_POSITION = new Vector2(gridCells(36), gridCells(21))
+const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
-export class CaveLevel1 extends Level {
-  constructor(params={}) {
-    super({});
+export class Room1 extends Level {
+  constructor(params = {}) {
+    super({
+      ...params,
+      levelName: "Room 1",
+      mapData: mapData,
+      scale: 2,
+    });
 
-    this.background = new Sprite({
-      resource: resources.images.cave,
-      frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT)
-    })
-
-    const ground = new Sprite({
-      resource: resources.images.caveGround,
-      frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT)
-    })
-    this.addChild(ground)
-
-    const exit = new Exit(gridCells(3), gridCells(5))
+    const exit = new Exit(gridCells(36), gridCells(22))
     this.addChild(exit);
 
-
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
-    const hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
-    this.addChild(hero);
+    this.hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
+    this.addChild(this.hero);
 
     const rod = new Rod(gridCells(9), gridCells(6))
-    this.addChild(rod)
-
+    // this.addChild(rod)
 
     const npc1 = new Npc(gridCells(5), gridCells(5), {
       //content: "I am the first NPC!",
@@ -61,7 +55,7 @@ export class CaveLevel1 extends Level {
       ],
       portraitFrame: 1
     })
-    this.addChild(npc1);
+    // this.addChild(npc1);
 
     const npc2 = new Npc(gridCells(8), gridCells(5), {
       content: [
@@ -73,17 +67,60 @@ export class CaveLevel1 extends Level {
       ],
       portraitFrame: 0
     })
-    this.addChild(npc2);
+    // this.addChild(npc2);
 
-    this.walls = new Set();
+    // this.walls = new Set();
+    // Add debug text display
+    this.debugText = document.createElement('div');
+    this.debugText.style.position = 'absolute';
+    this.debugText.style.top = '10px';
+    this.debugText.style.left = '10px';
+    this.debugText.style.background = 'rgba(0,0,0,0.5)';
+    this.debugText.style.color = 'white';
+    this.debugText.style.padding = '10px';
+    this.debugText.style.fontFamily = 'monospace';
+    this.debugText.style.zIndex = '1000';
+    document.body.appendChild(this.debugText);
   }
 
-  ready() {
+  async ready() {
+    await super.ready();
+
     events.on("HERO_EXITS", this, () => {
       events.emit("CHANGE_LEVEL", new MainMap({
-        heroPosition: new Vector2(gridCells(36), gridCells(21))
+        heroPosition: new Vector2(gridCells(23), gridCells(17)),
+        multiplayerManager: this.multiplayerManager // Pass multiplayer manager to new level
       }))
+      this.cleanup();
     })
+  }
+
+  updateDebugText() {
+
+    const tileX = Math.floor(this.hero.position.x / TILE_SIZE);
+    const tileY = Math.floor(this.hero.position.y / TILE_SIZE);
+
+    this.debugText.innerHTML = `
+      <div>Local Position: x:${Math.round(tileX)}, y:${Math.round(tileY)}</div>
+    `;
+  }
+
+  // Called on each game tick from main.js
+  update(delta) {
+    // Call parent update first (handles basic multiplayer updates)
+    super.update(delta);
+    this.updateDebugText();
+  }
+
+  cleanup() {
+    // Call parent cleanup
+      // Remove debug display
+      if (this.debugText && this.debugText.parentNode) {
+        this.debugText.parentNode.removeChild(this.debugText);
+      }
+
+      // Call parent cleanup
+    super.cleanup();
   }
 
 }

@@ -92,10 +92,10 @@ export class Camera extends GameObject {
     this.centerPositionOnTarget(this.lastCenteredPosition);
   }
 
-  centerPositionOnTarget(pos) {
+  centerPositionOnTarget(pos, zoom = 1) {
     const personHalf = 8;
-    const canvasWidth = CANVAS_WIDTH;
-    const canvasHeight = CANVAS_HEIGHT;
+    const canvasWidth = CANVAS_WIDTH / zoom;
+    const canvasHeight = CANVAS_HEIGHT / zoom;
 
     const halfWidth = -personHalf + canvasWidth / 2;
     const halfHeight = -personHalf + canvasHeight / 2;

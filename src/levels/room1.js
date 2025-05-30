@@ -32,6 +32,7 @@ export class Room1 extends Level {
     this.hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
     this.addChild(this.hero);
 
+    // toggle if the level is multiplayer or not
     this.setLocalPlayer(this.hero);
 
     this.cameraEnabled = false; // Disable camera movement for this level

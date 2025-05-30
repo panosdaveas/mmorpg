@@ -31,7 +31,7 @@ io.on('connection', socket => {
             x: data?.x ?? defaultPos.x,
             y: data?.y ?? defaultPos.y,
             attributes: data?.attributes ?? defaultAttributes,
-            currentLevelName: data.levelName,
+            levelName: data.levelName ?? 'Main Map',
         };
 
         console.log(`Player ${socket.id} state:`, players[socket.id]);
@@ -115,6 +115,18 @@ io.on('connection', socket => {
         // Notify all clients that a player has left
         io.emit('removePlayer', socket.id);
     });
+
+    socket.on("changeLevel", ({ levelName }) => {
+        if (!players[socket.id]) return;
+
+        players[socket.id].levelName = levelName;
+
+        // Notify others
+        socket.broadcast.emit("playerLevelChanged", {
+            id: socket.id,
+            levelName
+        });
+      });
 });
 
 httpServer.listen(3000, () => {

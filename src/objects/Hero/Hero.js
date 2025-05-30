@@ -36,6 +36,7 @@ export class Hero extends GameObject {
     this.lastMovedTime = Date.now(); // Track when we last moved
     this.movementAnimationTimeout = 400; // Stop animation after this many ms
     this.isInteractive = false;
+    this.currentLevelName = options.levelName ?? null;
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 

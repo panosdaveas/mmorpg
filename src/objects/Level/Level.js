@@ -36,6 +36,7 @@ export class Level extends GameObject {
   // Set the local player for this level
   setLocalPlayer(player) {
     this.localPlayer = player;
+    this.localPlayer.currentLevelName === this.levelName;
 
     // If multiplayer is enabled, notify the manager about the level change
     if (this.multiplayerManager) {
@@ -67,6 +68,8 @@ export class Level extends GameObject {
       console.log(`${this.levelName}: Player left`);
       this.onPlayerLeave(data);
     });
+
+  
   }
 
   // Multiplayer event handlers (override in child classes)
@@ -143,6 +146,12 @@ export class Level extends GameObject {
     events.on("HERO_ATTRIBUTES_CHANGED", this, attributes => {
       if (this.multiplayerManager) {
         this.multiplayerManager.sendAttributesUpdate(attributes);
+      }
+    });
+
+    events.on("CHANGE_LEVEL", this, (newLevel) => {
+      if (this.multiplayerManager?.sendLevelChangedUpdate) {
+        this.multiplayerManager.sendLevelChangedUpdate(newLevel.levelName);
       }
     });
 

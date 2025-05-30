@@ -32,6 +32,8 @@ export class Room1 extends Level {
     this.hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
     this.addChild(this.hero);
 
+    this.setLocalPlayer(this.hero);
+
     this.cameraEnabled = false; // Disable camera movement for this level
 
     const rod = new Rod(gridCells(9), gridCells(6))
@@ -83,6 +85,17 @@ export class Room1 extends Level {
     this.debugText.style.fontFamily = 'monospace';
     this.debugText.style.zIndex = '1000';
     document.body.appendChild(this.debugText);
+  }
+
+  // Set the local player for this level
+  setLocalPlayer(player) {
+    this.localPlayer = player;
+    this.localPlayer.currentLevelName === this.levelName;
+
+    // If multiplayer is enabled, notify the manager about the level change
+    if (this.multiplayerManager) {
+      this.multiplayerManager.setLevel(this);
+    }
   }
 
   async ready() {

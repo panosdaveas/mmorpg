@@ -44,6 +44,14 @@ io.on('connection', socket => {
             id: socket.id,
             ...players[socket.id]
         });
+
+        // ✅ Rebroadcast all current players' level info to the new player
+        // Object.entries(players).forEach(([id, p]) => {
+        //     socket.emit("playerLevelChanged", {
+        //         id,
+        //         levelName: p.levelName
+        //     });
+        // });
     });
 
     socket.on('move', data => {

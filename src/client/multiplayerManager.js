@@ -69,7 +69,7 @@ export class MultiplayerManager {
         if (this.isConnected && level?.localPlayer) {
             this.sendInitialPlayerData(level.localPlayer);
         }
-      }
+    }
 
     // Subscribe to multiplayer events
     on(event, callback) {
@@ -173,9 +173,16 @@ export class MultiplayerManager {
             const player = this.players[id];
             if (player) {
                 player.currentLevelName = levelName;
+                // ✅ Remove from current level
+                this.currentLevel?.removeChild?.(player);
+
+                // ✅ If they now belong in this level, add them back
+                if (this.currentLevel?.levelName === levelName) {
+                    this.currentLevel.addChild(player);
+                }
                 console.log(`[Client] Updated remote player ${id} to level ${levelName}`);
             }
-          });
+        });
     }
 
     // Handle receiving current players list
@@ -185,7 +192,7 @@ export class MultiplayerManager {
         // Clear existing remote players
         for (const id in this.players) {
             if (id !== this.mySocketId && this.currentLevel) {
-                
+
                 this.currentLevel.removeChild(this.players[id]);
                 delete this.players[id];
             }
@@ -198,7 +205,7 @@ export class MultiplayerManager {
             }
 
             if (!this.players[id]) {
-                console.log(`[Client] Creating player ${id} in level ${playerData.levelName}`); 
+                console.log(`[Client] Creating player ${id} in level ${playerData.levelName}`);
                 this.createRemotePlayer(id, playerData);
             }
         }
@@ -252,7 +259,11 @@ export class MultiplayerManager {
         }
 
         this.players[id] = remote;
-        this.currentLevel.addChild(remote);
+        // ✅ Only add to the current level if levelName matches
+        if (this.currentLevel?.levelName === remote.currentLevelName) {
+            this.currentLevel.addChild(remote);
+        }
+        // this.currentLevel.addChild(remote);
     }
 
     // Send initial player data (position + attributes) together
@@ -263,13 +274,13 @@ export class MultiplayerManager {
             x: localPlayer.position.x,
             y: localPlayer.position.y,
             attributes: localPlayer.getAttributesAsObject(),
-            levelName: this.currentLevel?.levelName // ✅ add this
-            // currentLevelName: localPlayer.currentLevelName
+            levelName: this.currentLevel?.levelName
+            // levelName: localPlayer.currentLevelName
         };
 
         console.log("Sending initial player data:", initialData);
         this.socket.emit('playerJoin', initialData);
-      }
+    }
 
     // Send attribute updates
     sendAttributesUpdate(attributes) {
@@ -303,7 +314,7 @@ export class MultiplayerManager {
 
         console.log(`[Client] Sending level change to server: ${levelName}`);
         this.socket.emit("changeLevel", { levelName });
-      }
+    }
 
     // Update all remote players
     updateRemotePlayers(delta) {
@@ -321,7 +332,7 @@ export class MultiplayerManager {
 
             player.update(delta);
         }
-      }
+    }
 
     // Get debug information
     getDebugInfo() {

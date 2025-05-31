@@ -63,7 +63,7 @@ export class TiledPropertyHandler {
                 if (
                     tileProps 
                     && Object.keys(tileProps).length > 0 
-                    // && Object.keys(tileProps).includes('action')
+                    && Object.keys(tileProps).includes('action')
                 ) {
                     actions.set(posKey, {
                         x,

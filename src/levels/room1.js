@@ -33,14 +33,14 @@ export class Room1 extends Level {
     this.addChild(this.hero);
 
     // toggle if the level is multiplayer or not
-    this.setLocalPlayer(this.hero);
+    // this.setLocalPlayer(this.hero);
 
     this.cameraEnabled = false; // Disable camera movement for this level
 
     const rod = new Rod(gridCells(9), gridCells(6))
     // this.addChild(rod)
 
-    const npc1 = new Npc(gridCells(5), gridCells(5), {
+    const npc1 = new Npc(gridCells(32), gridCells(20), {
       //content: "I am the first NPC!",
       content: [
         {

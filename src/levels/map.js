@@ -136,7 +136,7 @@ export class MainMap extends Level {
       events.emit("CHANGE_LEVEL", new Room1({
         heroPosition: new Vector2(gridCells(36), gridCells(21)),
         multiplayerManager: this.multiplayerManager, // Pass multiplayer manager to new level
-        position: null, // Reset position for new level
+        // position: null, // Reset position for new level
       }));
     });
 

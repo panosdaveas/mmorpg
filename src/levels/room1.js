@@ -33,7 +33,7 @@ export class Room1 extends Level {
     this.addChild(this.hero);
 
     // toggle if the level is multiplayer or not
-    // this.setLocalPlayer(this.hero);
+    this.setLocalPlayer(this.hero);
 
     this.cameraEnabled = false; // Disable camera movement for this level
 
@@ -107,6 +107,7 @@ export class Room1 extends Level {
       events.emit("CHANGE_LEVEL", new MainMap({
         heroPosition: new Vector2(gridCells(23), gridCells(17)),
         multiplayerManager: this.multiplayerManager, // Pass multiplayer manager to new level
+        // position: null, // Reset position for new level
       }))
     })
 

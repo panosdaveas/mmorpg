@@ -76,23 +76,37 @@ export class Main extends GameObject {
     }
   }
 
+  // drawObjects(ctx) {
+  //   const currentLevelName = this.level?.levelName;
+
+  //   this.children.forEach(group => {
+  //     if (group.drawLayer !== "HUD" && group.children?.length > 0) {
+  //       group.children.forEach(child => {
+  //         if (child.isRemote && child.currentLevelName !== currentLevelName) {
+  //           // console.log(child.currentLevelName);
+  //           return; // ⛔ Don't draw remote players not in same level
+  //         }
+
+  //         if (typeof child.draw === "function") {
+  //           child.draw(ctx, 0, 0);
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
+
   drawObjects(ctx) {
     const currentLevelName = this.level?.levelName;
 
-    this.children.forEach(group => {
-      if (group.drawLayer !== "HUD" && group.children?.length > 0) {
-        group.children.forEach(child => {
+    this.children.forEach(child => {
+      if (child.drawLayer !== "HUD") {
           if (child.isRemote && child.currentLevelName !== currentLevelName) {
             // console.log(child.currentLevelName);
             return; // ⛔ Don't draw remote players not in same level
           }
-
-          if (typeof child.draw === "function") {
-            child.draw(ctx, 0, 0);
-          }
-        });
+        child.draw(ctx, 0, 0);
       }
-    });
+    })
   }
 
   drawForeground(ctx) {

@@ -4,11 +4,12 @@ import {Vector2} from "../../Vector2.js";
 import {Sprite} from "../../Sprite.js";
 import {getCharacterFrame, getCharacterWidth} from "./spriteFontMap.js";
 import {events} from "../../Events.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from "../../constants/worldConstants.js";
 
 export class SpriteTextString extends GameObject {
   constructor(config={}) {
     super({
-      position: new Vector2(32, 108)
+      position: new Vector2(CANVAS_WIDTH/2 - 160, CANVAS_HEIGHT - 96)
     });
 
 
@@ -32,7 +33,7 @@ export class SpriteTextString extends GameObject {
         return {
           width: charWidth,
           sprite: new Sprite({
-            resource: resources.images.fontWhite,
+            resource: resources.images.fontBlack,
             hFrames: 13,
             vFrames: 6,
             frame: getCharacterFrame(char)
@@ -49,8 +50,8 @@ export class SpriteTextString extends GameObject {
 
     // Create background for text
     this.backdrop = new Sprite({
-      resource: resources.images.textBox,
-      frameSize: new Vector2(256, 64)
+      resource: resources.images.dialogBox,
+      frameSize: new Vector2(320, 80)
     })
 
     // Create a portrait
@@ -100,11 +101,12 @@ export class SpriteTextString extends GameObject {
     this.backdrop.drawImage(ctx, drawPosX, drawPosY)
 
     // Draw the portrait
-    this.portrait.drawImage(ctx, drawPosX+6, drawPosY+6);
+    this.portrait.drawImage(ctx, drawPosX+16, drawPosY+16);
 
     // Configuration options
-    const PADDING_LEFT = 27;
-    const PADDING_TOP = 9;
+    const PADDING_LEFT = 68;
+    const PADDING_RIGHT = 16;
+    const PADDING_TOP = 18;
     const LINE_WIDTH_MAX = 240;
     const LINE_VERTICAL_HEIGHT = 14;
 
@@ -116,9 +118,9 @@ export class SpriteTextString extends GameObject {
     this.words.forEach(word => {
 
       // Decide if we can fit this next word on this next line
-      const spaceRemaining = drawPosX + LINE_WIDTH_MAX - cursorX;
+      const spaceRemaining = drawPosX + LINE_WIDTH_MAX - cursorX + PADDING_LEFT - PADDING_RIGHT;
       if (spaceRemaining < word.wordWidth) {
-        cursorX = drawPosX + PADDING_LEFT
+        cursorX = drawPosX + PADDING_LEFT;
         cursorY += LINE_VERTICAL_HEIGHT;
       }
 

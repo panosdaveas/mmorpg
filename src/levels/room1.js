@@ -31,6 +31,8 @@ export class Room1 extends Level {
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
 
+    this.addChild(this.hero);
+
     // toggle if the level is multiplayer or not
     // this.setLocalPlayer(this.hero);
 
@@ -39,7 +41,7 @@ export class Room1 extends Level {
     const rod = new Rod(gridCells(9), gridCells(6))
     // this.addChild(rod)
 
-    const npc1 = new Npc(gridCells(32), gridCells(20), {
+    const npc1 = new Npc(gridCells(33), gridCells(20), {
       //content: "I am the first NPC!",
       content: [
         {
@@ -73,7 +75,6 @@ export class Room1 extends Level {
     })
     this.addChild(npc2);
 
-    this.addChild(this.hero);
 
     // this.walls = new Set();
     // Add debug text display

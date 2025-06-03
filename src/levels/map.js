@@ -9,6 +9,7 @@ import { events } from "../Events.js";
 import { Room1 } from "./room1.js";
 import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
+import { Npc } from "../objects/Npc/Npc.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -24,6 +25,8 @@ export class MainMap extends Level {
     const rod = new Rod(gridCells(33), gridCells(13))
     this.addChild(rod)
 
+  
+
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
@@ -36,6 +39,8 @@ export class MainMap extends Level {
 
     const exit = new Exit(gridCells(23), gridCells(16))
     this.addChild(exit);
+
+    
 
     // Add debug text display
     this.debugText = document.createElement('div');
@@ -53,6 +58,18 @@ export class MainMap extends Level {
     if (this.multiplayerManager) {
       this.setupMultiplayerEvents();
     }
+
+    const npc2 = new Npc(gridCells(31), gridCells(20), {
+      content: [
+        {
+          string: "What a wonderful day at work in the block! I'm very pleased to meet you!",
+          // string: "WHAT A WONDERFUL DAY AT WORK IN THE CAVE!",
+          requires: [],
+        }
+      ],
+      portraitFrame: 0
+    })
+    this.addChild(npc2);
   }
 
   setupMultiplayerEvents() {

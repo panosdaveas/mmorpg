@@ -87,7 +87,9 @@ window.addEventListener('beforeunload', () => {
 
 // ✅ Wait for the map to fully load before starting game loop
 (async () => {
-  await mainMap.ready();              // Wait for map tiles & tilesets to load
+  const level = mainScene.level;
+  await level.ready();
+  // await mainMap.ready();              // Wait for map tiles & tilesets to load
 
   const gameLoop = new GameLoop(update, draw);
   gameLoop.start();                  // Start game only when safe

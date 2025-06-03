@@ -1,4 +1,4 @@
-// --- Refactored propertyHandler.js ---
+// --- Fixed propertyHandler.js with Layer Priority ---
 
 import { TILE_SIZE } from "../constants/worldConstants.js";
 
@@ -33,19 +33,29 @@ export class TiledPropertyHandler {
     parseLayerTiles(tilesetImages, animatedTiles) {
         const walls = new Set();
         const actions = new Map();
+        const processedPositions = new Set(); // Track positions that have been processed
 
-        this.mapData.layers.forEach(layer => {
+        // Process layers in REVERSE order (top layer first, bottom layer last)
+        // This ensures higher layers override lower layers
+        const reversedLayers = [...this.mapData.layers].reverse();
+
+        reversedLayers.forEach(layer => {
             if (layer.type !== "tilelayer") return;
 
             const width = layer.width;
 
             layer.data.forEach((tileId, index) => {
                 const rawTileId = tileId & 0x1FFFFFFF;
-                if (rawTileId === 0) return;
+                if (rawTileId === 0) return; // Empty tile
 
                 const x = index % width;
                 const y = Math.floor(index / width);
                 const posKey = `${x * TILE_SIZE},${y * TILE_SIZE}`;
+
+                // Skip if this position has already been processed by a higher layer
+                if (processedPositions.has(posKey)) {
+                    return;
+                }
 
                 let tileProps = this.tilePropertiesMap.get(rawTileId);
                 if (!tileProps) {
@@ -56,13 +66,18 @@ export class TiledPropertyHandler {
                     }
                 }
 
+                // Mark this position as processed
+                processedPositions.add(posKey);
+
+                // Add collision if this tile has collide property
                 if (tileProps?.collide) {
                     walls.add(posKey);
                 }
 
+                // Add actions if this tile has action properties
                 if (
-                    tileProps 
-                    && Object.keys(tileProps).length > 0 
+                    tileProps
+                    && Object.keys(tileProps).length > 0
                     && Object.keys(tileProps).includes('action')
                 ) {
                     actions.set(posKey, {
@@ -77,7 +92,6 @@ export class TiledPropertyHandler {
 
         return { walls, actions };
     }
-
 
     parseAnimatedTiles(tilesets) {
         const animatedTiles = new Map();

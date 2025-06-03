@@ -6,7 +6,8 @@ import {Vector2} from "../../Vector2.js";
 export class TextBox extends GameObject {
   constructor() {
     super({
-      position: new Vector2(32, 112)
+      position: new Vector2(332, 112)
+      // position: new Vector2(CANVAS_WIDTH/2, CANVAS_HEIGHT -32)
     });
     this.content = "Hi. How are ya? How are ya? How are ya?"
     this.backdrop = new Sprite({
@@ -20,7 +21,7 @@ export class TextBox extends GameObject {
     this.backdrop.drawImage(ctx, drawPosX, drawPosY)
 
     // Now we draw text...
-    ctx.font = "12px fontRetroGaming";
+    ctx.font = "14px fontRetroGaming";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillStyle = "#fff";

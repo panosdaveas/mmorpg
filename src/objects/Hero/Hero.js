@@ -193,7 +193,7 @@ export class Hero extends GameObject {
     }
   }
 
-  ready() {
+  async ready() {
     events.on("START_TEXT_BOX", this, () => {
       this.isLocked = true;
     })
@@ -476,18 +476,20 @@ export class Hero extends GameObject {
   }
 
   onPickUpItem({ image, position }) {
-    // Make sure we land right on the item
-    this.destinationPosition = position.duplicate();
+    if (!this.isRemote) {
+      // Make sure we land right on the item
+      this.destinationPosition = position.duplicate();
 
-    // Start the pickup animation
-    this.itemPickupTime = 500; // ms
+      // Start the pickup animation
+      this.itemPickupTime = 500; // ms
 
-    this.itemPickupShell = new GameObject({});
-    this.itemPickupShell.addChild(new Sprite({
-      resource: image,
-      position: new Vector2(0, -18)
-    }))
-    this.addChild(this.itemPickupShell);
+      this.itemPickupShell = new GameObject({});
+      this.itemPickupShell.addChild(new Sprite({
+        resource: image,
+        position: new Vector2(0, -18)
+      }))
+      this.addChild(this.itemPickupShell);
+    }
   }
 
   workOnItemPickup(delta) {

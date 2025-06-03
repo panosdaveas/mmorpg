@@ -3,11 +3,12 @@ import {Sprite} from "../../Sprite.js";
 import {resources} from "../../Resource.js";
 import {Vector2} from "../../Vector2.js";
 import {events} from "../../Events.js";
+import { MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "../../constants/worldConstants.js";
 
 export class Inventory extends GameObject {
   constructor() {
     super({
-      position: new Vector2(8, 8)
+      position: new Vector2(8, CANVAS_HEIGHT - 32)
     });
 
     this.drawLayer = "HUD";

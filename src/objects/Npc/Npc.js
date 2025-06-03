@@ -12,6 +12,7 @@ export class Npc extends GameObject {
 
     // Opt into being solid
     this.isSolid = true;
+    this.isInteractive = true;
 
     // Say something when talking
     this.textContent = textConfig.content;

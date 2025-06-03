@@ -351,6 +351,7 @@ export class Hero extends GameObject {
       // If there's an interactive object, emit an event for it
       events.emit("HERO_REQUESTS_ACTION", interactiveObject);
       if (interactiveObject.isRemote) {
+        // console.log(interactiveObject.getAttribute("address"));
         // this.handleRemotePlayerInteraction(interactiveObject);
         console.log("INTERACTIVE PLAYER");
       }

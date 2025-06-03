@@ -256,6 +256,7 @@ export class MultiplayerManager {
         if (data.attributes && typeof data.attributes === 'object') {
             console.log(`Loading attributes for player ${id}:`, data.attributes);
             remote.loadAttributesFromObject(data.attributes);
+            remote.addAttribute("id", id);
         }
 
         this.players[id] = remote;

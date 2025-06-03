@@ -30,10 +30,9 @@ export class Room1 extends Level {
 
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
     this.hero = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
-    this.addChild(this.hero);
 
     // toggle if the level is multiplayer or not
-    this.setLocalPlayer(this.hero);
+    // this.setLocalPlayer(this.hero);
 
     this.cameraEnabled = false; // Disable camera movement for this level
 
@@ -60,9 +59,9 @@ export class Room1 extends Level {
       ],
       portraitFrame: 1
     })
-    // this.addChild(npc1);
+    this.addChild(npc1);
 
-    const npc2 = new Npc(gridCells(8), gridCells(5), {
+    const npc2 = new Npc(gridCells(32), gridCells(18), {
       content: [
         {
           string: "What a wonderful day at work in the cave!",
@@ -72,7 +71,9 @@ export class Room1 extends Level {
       ],
       portraitFrame: 0
     })
-    // this.addChild(npc2);
+    this.addChild(npc2);
+
+    this.addChild(this.hero);
 
     // this.walls = new Set();
     // Add debug text display

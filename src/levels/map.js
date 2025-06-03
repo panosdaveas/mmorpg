@@ -132,7 +132,10 @@ export class MainMap extends Level {
     await super.ready();
 
     events.on("HERO_EXITS", this, () => {
-      this.cleanup(); // Cleanup current level
+      // this.cleanup(); // Cleanup current level
+      if (this.debugText && this.debugText.parentNode) {
+        this.debugText.parentNode.removeChild(this.debugText);
+      }
       events.emit("CHANGE_LEVEL", new Room1({
         heroPosition: new Vector2(gridCells(36), gridCells(21)),
         multiplayerManager: this.multiplayerManager, // Pass multiplayer manager to new level

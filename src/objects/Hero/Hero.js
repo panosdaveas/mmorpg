@@ -37,6 +37,7 @@ export class Hero extends GameObject {
     this.movementAnimationTimeout = 400; // Stop animation after this many ms
     this.isInteractive = false;
     this.currentLevelName = options.levelName ?? null;
+    this.wallet = new WalletConnector(this);
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -200,8 +201,8 @@ export class Hero extends GameObject {
     events.on("END_TEXT_BOX", this, () => {
       this.isLocked = false;
     })
-    const wallet = new WalletConnector(this);
-    wallet.connect();
+    // const wallet = new WalletConnector(this);
+    // wallet.connect();
   }
 
   update(delta) {
@@ -432,6 +433,14 @@ export class Hero extends GameObject {
     }
 
     // Handle action-1 (custom action type 1)
+    if (properties?.action === "connectWallet") {
+      if (this.getAttribute("address")) {
+        console.log("Account connected");
+        return;
+      }
+      this.wallet.connect();
+    }    
+
     if (properties?.action === "action-1") {
       
       console.log("action!")

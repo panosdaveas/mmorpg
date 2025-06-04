@@ -14,3 +14,7 @@ canvas {
   font-family: fontRetroGaming;
   src: url("/fonts/Retro Gaming.ttf");
 }
+
+#game-canvas {
+  cursor: url('/sprites/mousePointer.png'), auto;
+}

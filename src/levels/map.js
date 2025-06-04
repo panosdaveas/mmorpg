@@ -22,7 +22,7 @@ export class MainMap extends Level {
       mapData: mapData,
     });
 
-    const rod = new Rod(gridCells(33), gridCells(13))
+    const rod = new Rod(gridCells(29), gridCells(16))
     this.addChild(rod)
 
   
@@ -132,8 +132,7 @@ export class MainMap extends Level {
       <div>Remote Players: ${remoteCount}</div>
       <div>Local Position: x:${Math.round(tileX)}, y:${Math.round(tileY)}</div>
       <div>Last Update: ${debugInfo.lastReceivedUpdate || 'None'}</div>
-      
-      <div>${address?.name}: ${address?.value.slice(0, 6) + "..." + address?.value.slice(36, address.value.length) || 'Not connected'}</div>
+     <div>${address && address.name && address.value ? `${address.name}: ${address.value.slice(0, 6)}...${address.value.slice(36)}` : 'Wallet not connected'}</div>
     `;
   }
 

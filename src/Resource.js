@@ -20,6 +20,7 @@ class Resources {
       textBox: "/sprites/text-box.png",
       fontWhite: "/sprites/sprite-font-white.png",
       fontBlack: "/sprites/sprite-font-black.png",
+      font: "/sprites/font.png",
       portraits: "/sprites/portraits-sheet.png",
       water: "/sprites/Water.png",
       dialogBox: "/sprites/dialogBox.png",

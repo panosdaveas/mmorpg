@@ -42,6 +42,8 @@ const update = (delta) => {
 };
 
 const draw = () => {
+
+  
  
   if (!mainScene.level?.isReady) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);

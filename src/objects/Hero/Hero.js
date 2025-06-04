@@ -38,6 +38,7 @@ export class Hero extends GameObject {
     this.isInteractive = false;
     this.currentLevelName = options.levelName ?? null;
     this.wallet = new WalletConnector(this);
+    this.isSolid = true;
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -436,6 +437,7 @@ export class Hero extends GameObject {
     if (properties?.action === "connectWallet") {
       if (this.getAttribute("address")) {
         console.log("Account connected");
+        console.log(Number(this.wallet.provider._network.chainId));
         return;
       }
       this.wallet.connect();

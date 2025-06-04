@@ -28,7 +28,7 @@ export class WalletConnector {
             this.localPlayer.setAttribute("address", address);
 
             this.addListeners();
-            return address;
+            return this.signer;
         } catch (err) {
             console.error("MetaMask connection error:", err);
         }

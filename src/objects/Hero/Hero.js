@@ -22,6 +22,7 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { WalletConnector } from "../../web3/Wallet.js";
+import { sendCrossChainAsset } from "../../web3/Squid.js";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -39,6 +40,7 @@ export class Hero extends GameObject {
     this.currentLevelName = options.levelName ?? null;
     this.wallet = new WalletConnector(this);
     this.isSolid = true;
+    this.signer = null;
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -340,7 +342,7 @@ export class Hero extends GameObject {
     return false;
   }
 
-  tryAction(root) {
+  async tryAction(root) {
     // Get the position the hero is facing toward
     const facingPosition = this.getFacingPosition();
 
@@ -353,9 +355,19 @@ export class Hero extends GameObject {
       // If there's an interactive object, emit an event for it
       events.emit("HERO_REQUESTS_ACTION", interactiveObject);
       if (interactiveObject.isRemote) {
-        // console.log(interactiveObject.getAttribute("address"));
-        // this.handleRemotePlayerInteraction(interactiveObject);
         console.log("INTERACTIVE PLAYER");
+        console.log(interactiveObject.getAttribute("address"));
+        console.log(interactiveObject.getAttribute("chainId"));
+        await sendCrossChainAsset({
+          fromChainId: this.getAttribute("chainId"), // Avalanche Fuji
+          toChainId: interactiveObject.getAttribute("chainId"),   // Polygon Mumbai
+          fromToken: "0x5425890298aed601595a70ab815c96711a31bc65",
+          toToken: "0x3799d95ee109129951c6b31535b2b5aa6dbf108c",
+          fromAmount: "1000000", // 1 USDC (in wei)
+          toAddress: interactiveObject.getAttribute("address"),
+          signer: this.getAttribute("address") 
+        });
+        // this.handleRemotePlayerInteraction(interactiveObject);
       }
       return true;
     }
@@ -437,10 +449,10 @@ export class Hero extends GameObject {
     if (properties?.action === "connectWallet") {
       if (this.getAttribute("address")) {
         console.log("Account connected");
-        console.log(Number(this.wallet.provider._network.chainId));
         return;
       }
-      this.wallet.connect();
+      this.signer = this.wallet.connect();
+      // console.log(this.wallet);
     }    
 
     if (properties?.action === "action-1") {

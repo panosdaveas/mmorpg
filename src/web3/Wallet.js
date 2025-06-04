@@ -23,9 +23,11 @@ export class WalletConnector {
             this.provider = new BrowserProvider(window.ethereum);
             this.signer = await this.provider.getSigner();
             const address = await this.signer.getAddress();
+            const chainId = Number(this.signer.provider._network.chainId);
 
             console.log("Connected address:", address);
             this.localPlayer.setAttribute("address", address);
+            this.localPlayer.setAttribute("chainId", chainId);
 
             this.addListeners();
             return this.signer;

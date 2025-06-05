@@ -88,8 +88,8 @@ export class Camera extends GameObject {
 
   calculateNewCameraPosition(targetPosition) {
     // Calculate how far the target has moved outside the dead zone
-    const dx = targetPosition.x - this.lastCenteredPosition.x;
-    const dy = targetPosition.y - this.lastCenteredPosition.y;
+    const dx = Math.round(targetPosition.x - this.lastCenteredPosition.x);
+    const dy = Math.round(targetPosition.y - this.lastCenteredPosition.y);
 
     // Calculate the amount to move the camera
     let moveX = 0;

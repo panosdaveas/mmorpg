@@ -63,6 +63,9 @@ const draw = () => {
   const zoom = mainScene.level?.scale ?? 1;
   ctx.save();
   ctx.imageSmoothingEnabled = false; // 👈 Keep pixel-perfect
+  ctx.webkitImageSmoothingEnabled = false;
+  ctx.mozImageSmoothingEnabled = false;
+  ctx.msImageSmoothingEnabled = false;
   ctx.scale(zoom, zoom);
   if (mainScene.camera) {
     ctx.translate(mainScene.camera.position.x, mainScene.camera.position.y);

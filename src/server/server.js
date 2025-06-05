@@ -135,6 +135,21 @@ io.on('connection', socket => {
             levelName
         });
       });
+
+    socket.on("privateMessage", (data) => {
+        const { to, ...payload } = data;
+
+        const targetSocket = io.sockets.sockets.get(to);
+        if (targetSocket) {
+            targetSocket.emit(payload.type, {
+                ...payload,
+                from: socket.id
+            });
+            console.log(`[Server] Forwarded ${payload.type} to ${to}`);
+        } else {
+            console.warn(`[Server] Could not find socket for ${to}`);
+        }
+    });
 });
 
 httpServer.listen(3000, () => {

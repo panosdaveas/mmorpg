@@ -30,10 +30,10 @@ export class WalletConnector {
             this.localPlayer.setAttribute("chainId", chainId);
 
             this.addListeners();
-            return this.signer;
         } catch (err) {
             console.error("MetaMask connection error:", err);
         }
+        return this.signer;
     }
 
     addListeners() {

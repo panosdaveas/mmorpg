@@ -22,7 +22,7 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { WalletConnector } from "../../web3/Wallet.js";
-import { sendCrossChainAsset } from "../../web3/Squid.js";
+import { tradeManager } from "../../web3/TradeManager.js";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -355,19 +355,29 @@ export class Hero extends GameObject {
       // If there's an interactive object, emit an event for it
       events.emit("HERO_REQUESTS_ACTION", interactiveObject);
       if (interactiveObject.isRemote) {
+
         console.log("INTERACTIVE PLAYER");
         console.log(interactiveObject.getAttribute("address"));
         console.log(interactiveObject.getAttribute("chainId"));
-        await sendCrossChainAsset({
-          fromChainId: this.getAttribute("chainId"), // Avalanche Fuji
-          toChainId: interactiveObject.getAttribute("chainId"),   // Polygon Mumbai
-          fromToken: "0x5425890298aed601595a70ab815c96711a31bc65",
-          toToken: "0x3799d95ee109129951c6b31535b2b5aa6dbf108c",
-          fromAmount: "1000000", // 1 USDC (in wei)
-          toAddress: interactiveObject.getAttribute("address"),
-          signer: this.getAttribute("address") 
+
+        const remotePlayer = interactiveObject;
+        await tradeManager({
+          sourceChain: this.getAttribute("chainId"),
+          destChain: remotePlayer.getAttribute("chainId"),
+          // fromTokenAddress: "0x...", // ERC20 token address (not needed for native tokens)
+          fromTokenAddress: "0x5425890298aed601595a70ab815c96711a31bc65",
+          amount: "0.01",
+          toAddress: remotePlayer.getAttribute("address"),
+          signer: this.signer,
+          socket: root.level?.multiplayer?.socket,
+          toPlayerId: remotePlayer.socketId,
         });
-        // this.handleRemotePlayerInteraction(interactiveObject);
+
+        // const tradeManager = root.level.tradeManager;
+        // tradeManager.signer = this.getAttribute("address");
+        // const tradeManager = new TradeManager(root.level.multiplayerManager, this, this.wallet);
+
+        // Trigger trade to remote player
       }
       return true;
     }
@@ -425,7 +435,7 @@ export class Hero extends GameObject {
     return facingPosition;
   }
 
-  handleActionTile(actionTile, root) {
+  async handleActionTile(actionTile, root) {
     // Handle different types of actions based on properties
     const properties = actionTile?.properties;
 
@@ -451,8 +461,8 @@ export class Hero extends GameObject {
         console.log("Account connected");
         return;
       }
-      this.signer = this.wallet.connect();
-      // console.log(this.wallet);
+      this.signer = await this.wallet.connect();
+      // console.log(this.signer);
     }    
 
     if (properties?.action === "action-1") {

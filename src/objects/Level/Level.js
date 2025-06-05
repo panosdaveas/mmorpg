@@ -2,6 +2,7 @@ import { GameObject } from "../../GameObject.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
+// import { TradeManager } from "../../web3/TradeManager.js";
 
 export class Level extends GameObject {
   constructor(params = {}) {
@@ -23,7 +24,8 @@ export class Level extends GameObject {
 
     // Multiplayer support
     this.multiplayerManager = params.multiplayerManager || null;
-
+    // In MainMap or Level class
+    // this.tradeManager = null;
     // Level state
     this.isReady = false;
     this.levelName = params.levelName || "Unknown Level";
@@ -154,6 +156,9 @@ export class Level extends GameObject {
         this.multiplayerManager.sendLevelChangedUpdate(newLevel.levelName);
       }
     });
+
+    // In MainMap or Level class
+    // this.tradeManager = new TradeManager(this.multiplayerManager, this.localPlayer, this.localPlayer.getAttribute("address"));
 
     this.isReady = true;
     // Child classes should call super.ready() and then their own logic

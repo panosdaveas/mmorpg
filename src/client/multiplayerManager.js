@@ -25,7 +25,9 @@ export class MultiplayerManager {
             onPlayerLeave: [],
             onPlayerMoved: [],
             onPlayerDataUpdated: [],
-            onError: []
+            onError: [],
+            onTradeRequest: [],
+            onTradeAccepted: [],
         };
     }
 
@@ -77,6 +79,8 @@ export class MultiplayerManager {
             this.callbacks[event].push(callback);
         }
     }
+
+    
 
     // Unsubscribe from multiplayer events
     off(event, callback) {
@@ -182,6 +186,19 @@ export class MultiplayerManager {
                 }
                 console.log(`[Client] Updated remote player ${id} to level ${levelName}`);
             }
+        });
+
+        socket.on('TRADE_REQUEST', data => {
+            console.log("[Client] Received TRADE_REQUEST:", data);
+            this.emit("onTradeRequest", data); // ✅ will call TradeManager
+          });
+
+        socket.on('TRADE_CONFIRMED', data => {
+            console.log("[Client] Received TRADE_CONFIRMED:", data);
+        });
+
+        socket.on('TRADE_ACCEPTED', data => {
+            this.emit("onTradeAccepted", data); // triggers handleTradeAccepted()
         });
     }
 

@@ -10,6 +10,7 @@ import { Room1 } from "./room1.js";
 import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
 import { Npc } from "../objects/Npc/Npc.js";
+import { TradeModal } from "../objects/TradeModal/TradeModal.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -70,6 +71,13 @@ export class MainMap extends Level {
       portraitFrame: 0
     })
     this.addChild(npc2);
+
+    // In your main map class constructor
+    const tradingModal = new TradeModal({
+      position: new Vector2(0, 0),
+      multiplayerManager: this.multiplayerManager
+    });
+    this.addChild(tradingModal);
   }
 
   setupMultiplayerEvents() {

@@ -360,21 +360,6 @@ export class Hero extends GameObject {
         console.log(interactiveObject.getAttribute("chainId"));
 
         const remotePlayer = interactiveObject;
-        await tradeManager({
-          sourceChain: this.getAttribute("chainId"),
-          destChain: remotePlayer.getAttribute("chainId"),
-          // fromTokenAddress: "0x...", // ERC20 token address (not needed for native tokens)
-          fromTokenAddress: "0x5425890298aed601595a70ab815c96711a31bc65",
-          amount: "0.01",
-          toAddress: remotePlayer.getAttribute("address"),
-          signer: this.signer,
-          socket: root.level?.multiplayer?.socket,
-          toPlayerId: remotePlayer.socketId,
-        });
-
-        // const tradeManager = root.level.tradeManager;
-        // tradeManager.signer = this.getAttribute("address");
-        // const tradeManager = new TradeManager(root.level.multiplayerManager, this, this.wallet);
 
         // Trigger trade to remote player
       }
@@ -467,6 +452,11 @@ export class Hero extends GameObject {
     if (properties?.action === "action-1") {
       
       console.log("action!")
+      // In your tryAction method or wherever you want to open the trading modal
+      events.emit("OPEN_TRADING_MODAL", {
+        targetPlayer: this // Optional: pre-select a player
+      });
+
       events.emit("TRIGGER_ACTION", {
         type: "action",
         value: properties.action,

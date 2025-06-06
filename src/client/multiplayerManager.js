@@ -68,9 +68,9 @@ export class MultiplayerManager {
             this.sendLevelChangedUpdate(level.levelName);
         }
 
-        if (this.isConnected && level?.localPlayer) {
-            this.sendInitialPlayerData(level.localPlayer);
-        }
+        // if (this.isConnected && level?.localPlayer) {
+        //     this.sendInitialPlayerData(level.localPlayer);
+        // }
     }
 
     // Subscribe to multiplayer events

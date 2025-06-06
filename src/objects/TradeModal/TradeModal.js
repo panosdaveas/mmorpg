@@ -94,13 +94,31 @@ export class TradeModal extends GameObject {
 
     loadLiFiScript() {
         return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://widget.lifi.com/widget.js';
-            script.onload = resolve;
-            script.onerror = reject;
+            if (window.LiFiWidget) {
+                resolve();
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/@lifi/widget@2"; // ✅ CDN
+            script.async = true;
+            script.onload = () => {
+                // Wait up to 3 seconds for LiFiWidget to attach
+                let retries = 0;
+                const checkInterval = setInterval(() => {
+                    if (window.LiFiWidget) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    } else if (++retries > 30) {
+                        clearInterval(checkInterval);
+                        reject(new Error("LiFiWidget not available after retries"));
+                    }
+                }, 100);
+            };
+            script.onerror = () => reject(new Error("Failed to load LiFi widget script"));
             document.head.appendChild(script);
         });
-    }
+      }
 
     async fetchSupportedChains() {
         try {
@@ -158,6 +176,8 @@ export class TradeModal extends GameObject {
     }
 
     closeModal() {
+        const iframe = document.getElementById("lifi-iframe");
+        if (iframe) iframe.remove();
         this.isVisible = false;
         this.selectedPlayer = null;
 
@@ -304,13 +324,22 @@ export class TradeModal extends GameObject {
     }
 
     openLiFiWidget() {
-        // Open the standard Li.Fi widget as fallback
-        if (window.lifi) {
-            window.lifi.open();
-        } else {
-            console.warn('Li.Fi widget not available');
-        }
-    }
+        const existing = document.getElementById("lifi-iframe");
+        if (existing) return; // already open
+
+        const iframe = document.createElement("iframe");
+        iframe.id = "lifi-iframe";
+        iframe.src = "https://li.quest/widget-frame";
+        iframe.style.position = "absolute";
+        iframe.style.left = `${this.container.position.x}px`;
+        iframe.style.top = `${this.container.position.y}px`;
+        iframe.style.width = "400px";
+        iframe.style.height = "600px";
+        iframe.style.border = "none";
+        iframe.style.zIndex = 9999;
+
+        document.body.appendChild(iframe);
+      }
 
     // Override draw method to render the modal
     draw(ctx, x, y) {

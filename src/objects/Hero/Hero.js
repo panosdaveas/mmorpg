@@ -89,6 +89,11 @@ export class Hero extends GameObject {
     })
   }
 
+  setPosition(x, y) {
+    this.position.x = x;
+    this.position.y = y;
+  }
+
   addAttribute(name, value) {
     this.attributes.set(name, new Attribute(name, value));
     this.attributesChanged = true;
@@ -453,9 +458,9 @@ export class Hero extends GameObject {
       
       console.log("action!")
       // In your tryAction method or wherever you want to open the trading modal
-      events.emit("OPEN_TRADING_MODAL", {
-        targetPlayer: this // Optional: pre-select a player
-      });
+      // events.emit("OPEN_TRADING_MODAL", {
+      //   targetPlayer: this // Optional: pre-select a player
+      // });
 
       events.emit("TRIGGER_ACTION", {
         type: "action",

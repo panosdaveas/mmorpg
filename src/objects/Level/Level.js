@@ -30,7 +30,7 @@ export class Level extends GameObject {
     this.levelName = params.levelName || "Unknown Level";
 
     // Player reference
-    this.localPlayer = null;
+    this.localPlayer = params.hero ?? null;
 
   }
 

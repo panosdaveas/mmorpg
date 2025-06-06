@@ -4,10 +4,16 @@ import { GameLoop } from "./src/GameLoop.js";
 import { Main } from "./src/objects/Main/Main.js";
 import { MainMap } from './src/levels/map.js';
 import { MultiplayerManager } from './src/client/multiplayerManager.js';
+import { Hero } from './src/objects/Hero/Hero';
+import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
 
 // Grabbing the canvas to draw to
 const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
+
+// Create instance of Hero
+const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+const hero = new Hero(DEFAULT_HERO_POSITION.x, DEFAULT_HERO_POSITION.y);
 
 // Create multiplayer manager instance
 const multiplayerManager = new MultiplayerManager();
@@ -21,7 +27,7 @@ const mainScene = new Main({
 })
 
 // Set up the level with multiplayer support
-const mainMap = new MainMap({ multiplayerManager });
+const mainMap = new MainMap({ multiplayerManager, hero });
 mainScene.setLevel(mainMap);
 
 // Set the current level in multiplayer manager

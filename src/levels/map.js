@@ -27,10 +27,10 @@ export class MainMap extends Level {
     this.addChild(rod)
 
   
-
+    // this.localPlayer = params.hero;
     // Local player (our hero)
     this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
-    this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
+    // this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
     this.localPlayer.setAttribute("hp", 100);
     // Add the local player to the scene
     this.addChild(this.localPlayer);
@@ -162,7 +162,8 @@ export class MainMap extends Level {
       }
       events.emit("CHANGE_LEVEL", new Room1({
         heroPosition: new Vector2(gridCells(36), gridCells(21)),
-        multiplayerManager: this.multiplayerManager, // Pass multiplayer manager to new level
+        multiplayerManager: this.multiplayerManager,
+        localPlayer: this.localPlayer, // Pass multiplayer manager to new level
         // position: null, // Reset position for new level
       }));
     });

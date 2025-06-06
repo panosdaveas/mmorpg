@@ -22,7 +22,6 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { WalletConnector } from "../../web3/Wallet.js";
-import { tradeManager } from "../../web3/TradeManager.js";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {

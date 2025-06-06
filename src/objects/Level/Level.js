@@ -2,7 +2,6 @@ import { GameObject } from "../../GameObject.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
-// import { TradeManager } from "../../web3/TradeManager.js";
 
 export class Level extends GameObject {
   constructor(params = {}) {

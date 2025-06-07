@@ -202,7 +202,7 @@ export class Hero extends GameObject {
     }
   }
 
-  ready() {
+  async ready() {
     this.eventSubscriptions = [
       events.on("START_TEXT_BOX", this, () => {
         this.isLocked = true;
@@ -350,7 +350,7 @@ export class Hero extends GameObject {
     return false;
   }
 
-  async tryAction(root) {
+  tryAction(root) {
     // Get the position the hero is facing toward
     const facingPosition = this.getFacingPosition();
 
@@ -378,10 +378,7 @@ export class Hero extends GameObject {
     // If no interactive object, check for action tiles from the property handler
     // if (root.level?.propertyHandler) {
     if (root.level?.actions) {
-      // const actionTile = root.level.propertyHandler.getActionsAt(facingPosition.x, facingPosition.y);
-      // const px = facingPosition.x * TILE_SIZE;
-      // const py = facingPosition.y * TILE_SIZE;
-      // const actionTile = root.level?.getActionsAt(px, py);
+
       const actionTile = root.level?.getActionsAt(facingPosition.x, facingPosition.y);
 
       if (actionTile) {
@@ -461,10 +458,6 @@ export class Hero extends GameObject {
     if (properties?.action === "action-1") {
       
       console.log("action!")
-      // In your tryAction method or wherever you want to open the trading modal
-      // events.emit("OPEN_TRADING_MODAL", {
-      //   targetPlayer: this // Optional: pre-select a player
-      // });
 
       events.emit("TRIGGER_ACTION", {
         type: "action",
@@ -508,11 +501,15 @@ export class Hero extends GameObject {
 
   onPickUpItem({ image, position }) {
     if (!this.isRemote) {
+      if (this.itemPickupTime > 0) {
+        console.log('Already picking up, ignoring new pickup event');
+        return;
+      }
       // Make sure we land right on the item
       this.destinationPosition = position.duplicate();
 
       // Start the pickup animation
-      this.itemPickupTime = 500; // ms
+      this.itemPickupTime = 700; // ms
 
       this.itemPickupShell = new GameObject({});
       this.itemPickupShell.addChild(new Sprite({
@@ -529,6 +526,7 @@ export class Hero extends GameObject {
 
     // Remove the item being held overhead
     if (this.itemPickupTime <= 0) {
+      console.log("Item pickup complete");
       this.itemPickupShell.destroy();
     }
   }
@@ -540,4 +538,5 @@ export class Hero extends GameObject {
     // Call parent destroy
     super.destroy();
   }
+
 }

@@ -27,7 +27,7 @@ export class MainMap extends Level {
     });
 
     const rod = new Rod(gridCells(29), gridCells(16))
-    this.addChild(rod)
+    this.addChild(rod);
 
     // FIXED: Better position handling
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;

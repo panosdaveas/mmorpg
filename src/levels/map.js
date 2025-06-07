@@ -14,6 +14,7 @@ import { TradeModal } from "../objects/TradeModal/TradeModal.js";
 import { Input } from "../Input.js";
 import { TextBox } from "../objects/TextBox/TextBox.js";
 
+
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
@@ -84,7 +85,7 @@ export class MainMap extends Level {
     const npc2 = new Npc(gridCells(31), gridCells(20), {
       content: [
         {
-          string: "What a wonderful day at work in the block! I'm very pleased to meet you!",
+          string: "What a wonderful day at work in the block! I'm very pleased to meet you! this text should take a while to show up, taking up more thaatn 3 lines!",
           // string: "WHAT A WONDERFUL DAY AT WORK IN THE CAVE!",
           requires: [],
         }

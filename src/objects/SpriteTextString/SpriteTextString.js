@@ -1,42 +1,43 @@
-// Replace your SpriteTextString with this simplified version
-// src/objects/SpriteTextString/SpriteTextString.js
-
 import { GameObject } from "../../GameObject.js";
 import { resources } from "../../Resource.js";
 import { Vector2 } from "../../Vector2.js";
 import { Sprite } from "../../Sprite.js";
 import { events } from "../../Events.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../../constants/worldConstants.js";
 
 export class SpriteTextString extends GameObject {
   constructor(config = {}) {
     super({
-      position: new Vector2(0, 0) // Will be set dynamically
+      // 🚨 FIXED: Use original constants instead of dynamic positioning
+      position: new Vector2(CANVAS_WIDTH / 2 - 160, CANVAS_HEIGHT - 96)
     });
 
     this.drawLayer = "HUD";
 
     // Text content and settings
-    this.text = config.string ?? "Default text";
+    this.fullText = config.string ?? "Default text";
     this.portraitFrame = config.portraitFrame ?? 0;
+
+    // Pagination settings
+    this.maxLinesPerPage = 3;
+    this.pages = [];
+    this.currentPage = 0;
+    this.currentPageText = "";
 
     // Typewriter effect settings
     this.showingIndex = 0;
-    this.textSpeed = 50; // ms between characters
+    this.textSpeed = 80;
     this.timeUntilNextShow = this.textSpeed;
-    this.isComplete = false;
+    this.isPageComplete = false;
+    this.isAllPagesComplete = false;
 
-    // Dialog styling
+    // Dialog styling - FIXED VALUES
     this.dialogWidth = 320;
     this.dialogHeight = 80;
-    this.textStartX = 68;  // After portrait
-    this.textStartY = 18;  // Top padding
-    this.maxTextWidth = 240; // Available text width
-    this.lineHeight = 14;
-
-    // 🚨 Responsive positioning
-    this.updatePosition();
-    this.resizeHandler = () => this.updatePosition();
-    window.addEventListener('resize', this.resizeHandler);
+    this.textStartX = 66;
+    this.textStartY = 18;
+    this.maxTextWidth = 240; // Fixed max width
+    this.lineHeight = 16;
 
     // Create backdrop and portrait
     this.backdrop = new Sprite({
@@ -49,116 +50,173 @@ export class SpriteTextString extends GameObject {
       hFrames: 4,
       frame: this.portraitFrame
     });
+
+    // 🚨 Process text into pages (no canvas measurement issues)
+    this.processTextIntoPages();
+    this.startCurrentPage();
   }
 
-  updatePosition() {
-    const canvas = document.querySelector("#game-canvas");
-    if (!canvas) return;
+  // 🚨 SIMPLIFIED: Process text without canvas measurement
+  processTextIntoPages() {
+    // Simple word-based splitting instead of canvas measurement
+    const words = this.fullText.split(' ');
+    const allLines = [];
+    let currentLine = '';
+    const maxCharsPerLine = 28; // Approximate characters per line for 12px font
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = rect.width / canvas.width;
-    const scaleY = rect.height / canvas.height;
-    const scale = Math.min(scaleX, scaleY);
+    for (let word of words) {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
 
-    const effectiveWidth = rect.width / scale;
-    const effectiveHeight = rect.height / scale;
+      // Simple character-based line breaking
+      if (testLine.length > maxCharsPerLine && currentLine) {
+        allLines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
 
-    // Center horizontally, position near bottom
-    this.position.x = effectiveWidth / 2 - this.dialogWidth / 2;
-    this.position.y = effectiveHeight - this.dialogHeight - 16;
+    if (currentLine) {
+      allLines.push(currentLine);
+    }
+
+    // Group lines into pages (max 3 lines per page)
+    this.pages = [];
+    for (let i = 0; i < allLines.length; i += this.maxLinesPerPage) {
+      const pageLines = allLines.slice(i, i + this.maxLinesPerPage);
+      const pageText = pageLines.join('\n');
+      this.pages.push({
+        text: pageText,
+        lines: pageLines
+      });
+    }
+
+  }
+
+  startCurrentPage() {
+    if (this.currentPage < this.pages.length) {
+      this.currentPageText = this.pages[this.currentPage].text;
+      this.showingIndex = 0;
+      this.isPageComplete = false;
+      this.timeUntilNextShow = this.textSpeed;
+
+    } else {
+      this.isAllPagesComplete = true;
+    }
+  }
+
+  nextPage() {
+    this.currentPage++;
+    if (this.currentPage < this.pages.length) {
+      this.startCurrentPage();
+    } else {
+      this.isAllPagesComplete = true;
+    }
   }
 
   step(delta, root) {
-    // Listen for user input
     const input = root.input;
+
     if (input?.getActionJustPressed("Space")) {
-      if (this.showingIndex < this.text.length) {
-        // Skip typewriter - show all text immediately
-        this.showingIndex = this.text.length;
-        this.isComplete = true;
+      if (!this.isPageComplete) {
+        // Skip typewriter - show rest of current page
+        this.showingIndex = this.currentPageText.length;
+        this.isPageComplete = true;
         return;
       }
 
-      // Done with the textbox
-      events.emit("END_TEXT_BOX");
+      if (this.currentPage < this.pages.length - 1) {
+        // More pages to show - go to next page
+        this.nextPage();
+        return;
+      } else {
+        // All pages complete - close dialog
+        events.emit("END_TEXT_BOX");
+        return;
+      }
     }
 
-    // Typewriter effect
-    if (this.showingIndex < this.text.length) {
+    // Typewriter effect for current page
+    if (this.showingIndex < this.currentPageText.length) {
       this.timeUntilNextShow -= delta;
       if (this.timeUntilNextShow <= 0) {
         this.showingIndex += 1;
         this.timeUntilNextShow = this.textSpeed;
 
-        if (this.showingIndex >= this.text.length) {
-          this.isComplete = true;
+        if (this.showingIndex >= this.currentPageText.length) {
+          this.isPageComplete = true;
         }
       }
     }
   }
 
   drawImage(ctx, drawPosX, drawPosY) {
-    // Draw the backdrop
+    // Draw backdrop
     this.backdrop.drawImage(ctx, drawPosX, drawPosY);
 
-    // Draw the portrait
+    // Draw portrait
     this.portrait.drawImage(ctx, drawPosX + 16, drawPosY + 16);
 
-    // 🚨 Draw text using canvas font
+    // Draw current page text
     this.drawText(ctx, drawPosX, drawPosY);
+
+    // Draw page indicator if multiple pages
+    if (this.pages.length > 1) {
+      this.drawPageIndicator(ctx, drawPosX, drawPosY);
+    }
   }
 
   drawText(ctx, drawPosX, drawPosY) {
-    // Set up font styling
     ctx.save();
     ctx.font = "12px fontRetroGaming";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillStyle = "#000"; // Black text
+    ctx.fillStyle = "#000";
 
-    // Calculate text position
     const textX = drawPosX + this.textStartX;
     const textY = drawPosY + this.textStartY;
 
-    // Get the text to display (typewriter effect)
-    const displayText = this.text.substring(0, this.showingIndex);
+    // Display current page text with typewriter effect
+    const displayText = this.currentPageText.substring(0, this.showingIndex);
 
-    // Word wrap and draw text
-    this.drawWrappedText(ctx, displayText, textX, textY, this.maxTextWidth, this.lineHeight);
+    // Draw line by line
+    const lines = displayText.split('\n');
+    lines.forEach((line, index) => {
+      const lineY = textY + (index * this.lineHeight);
+      ctx.fillText(line, textX, lineY);
+    });
 
     ctx.restore();
   }
 
-  drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
-    const words = text.split(' ');
-    let line = '';
-    let currentY = y;
+  drawPageIndicator(ctx, drawPosX, drawPosY) {
+    ctx.save();
+    // ctx.font = "10px fontRetroGaming";
+    // ctx.textAlign = "right";
+    // ctx.textBaseline = "bottom";
+    // ctx.fillStyle = "#666";
 
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line + words[i] + ' ';
-      const metrics = ctx.measureText(testLine);
+    // const indicatorText = `${this.currentPage + 1}/${this.pages.length}`;
+    // const indicatorX = drawPosX + this.dialogWidth - 10;
+    // const indicatorY = drawPosY + this.dialogHeight - 5;
 
-      if (metrics.width > maxWidth && line !== '') {
-        // Line is too long, draw current line and start new one
-        ctx.fillText(line.trim(), x, currentY);
-        line = words[i] + ' ';
-        currentY += lineHeight;
-      } else {
-        line = testLine;
-      }
+    // ctx.fillText(indicatorText, indicatorX, indicatorY);
+
+    // Show continuation arrow if more pages
+    if (this.isPageComplete && this.currentPage < this.pages.length - 1) {
+      ctx.fillStyle = "#000";
+      ctx.font = "12px fontRetroGaming";
+      ctx.textAlign = "center";
+      const arrowX = drawPosX + this.dialogWidth - 23;
+      const arrowY = drawPosY + this.dialogHeight - 18;
+      ctx.fillText("▼", arrowX, arrowY);
     }
 
-    // Draw the last line
-    if (line.trim().length > 0) {
-      ctx.fillText(line.trim(), x, currentY);
-    }
+    ctx.restore();
   }
 
-  destroy() {
-    // Clean up event listener
-    if (this.resizeHandler) {
-      window.removeEventListener('resize', this.resizeHandler);
-    }
-    super.destroy();
-  }
+  // 🚨 REMOVED: No more dynamic positioning or event listeners
+  // destroy() {
+  //   super.destroy();
+  // }
 }

@@ -1,83 +1,81 @@
-import {GameObject} from "../../GameObject.js";
-import {resources} from "../../Resource.js";
-import {Vector2} from "../../Vector2.js";
-import {Sprite} from "../../Sprite.js";
-import {getCharacterFrame, getCharacterWidth} from "./spriteFontMap.js";
-import {events} from "../../Events.js";
-import { CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from "../../constants/worldConstants.js";
+// Replace your SpriteTextString with this simplified version
+// src/objects/SpriteTextString/SpriteTextString.js
+
+import { GameObject } from "../../GameObject.js";
+import { resources } from "../../Resource.js";
+import { Vector2 } from "../../Vector2.js";
+import { Sprite } from "../../Sprite.js";
+import { events } from "../../Events.js";
 
 export class SpriteTextString extends GameObject {
-  constructor(config={}) {
+  constructor(config = {}) {
     super({
-      position: new Vector2(CANVAS_WIDTH/2 - 160, CANVAS_HEIGHT - 96)
+      position: new Vector2(0, 0) // Will be set dynamically
     });
 
-
-    // Draw on top layer
     this.drawLayer = "HUD";
 
-    // Create an array of words (because it helps with line wrapping later)
-    const content = config.string ?? "Default text";
-    this.words = content.split(" ").map(word => {
+    // Text content and settings
+    this.text = config.string ?? "Default text";
+    this.portraitFrame = config.portraitFrame ?? 0;
 
-      // We need to know how wide this word is
-      let wordWidth = 0;
+    // Typewriter effect settings
+    this.showingIndex = 0;
+    this.textSpeed = 50; // ms between characters
+    this.timeUntilNextShow = this.textSpeed;
+    this.isComplete = false;
 
-      // Break each word into single characters
-      const chars = word.split("").map(char => {
-        // Measure each one
-        const charWidth = getCharacterWidth(char);
-        wordWidth += charWidth;
+    // Dialog styling
+    this.dialogWidth = 320;
+    this.dialogHeight = 80;
+    this.textStartX = 68;  // After portrait
+    this.textStartY = 18;  // Top padding
+    this.maxTextWidth = 240; // Available text width
+    this.lineHeight = 14;
 
-        // Also create a Sprite for each character in the word
-        return {
-          width: charWidth,
-          sprite: new Sprite({
-            resource: resources.images.fontBlack,
-            hFrames: 13,
-            vFrames: 6,
-            frame: getCharacterFrame(char)
-          })
-        }
-      })
+    // 🚨 Responsive positioning
+    this.updatePosition();
+    this.resizeHandler = () => this.updatePosition();
+    window.addEventListener('resize', this.resizeHandler);
 
-      // Return a length and a list of characters per word
-      return {
-        wordWidth,
-        chars
-      }
-    })
-
-    // Create background for text
+    // Create backdrop and portrait
     this.backdrop = new Sprite({
       resource: resources.images.dialogBox,
-      frameSize: new Vector2(320, 80)
-    })
+      frameSize: new Vector2(this.dialogWidth, this.dialogHeight)
+    });
 
-    // Create a portrait
     this.portrait = new Sprite({
       resource: resources.images.portraits,
       hFrames: 4,
-      frame: config.portraitFrame ?? 0
-    })
+      frame: this.portraitFrame
+    });
+  }
 
-    // Typewriter
-    this.showingIndex = 0;
-    this.finalIndex = this.words.reduce((acc, word) => acc + word.chars.length, 0);
-    this.textSpeed = 80;
-    this.timeUntilNextShow = this.textSpeed;
+  updatePosition() {
+    const canvas = document.querySelector("#game-canvas");
+    if (!canvas) return;
 
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = rect.width / canvas.width;
+    const scaleY = rect.height / canvas.height;
+    const scale = Math.min(scaleX, scaleY);
+
+    const effectiveWidth = rect.width / scale;
+    const effectiveHeight = rect.height / scale;
+
+    // Center horizontally, position near bottom
+    this.position.x = effectiveWidth / 2 - this.dialogWidth / 2;
+    this.position.y = effectiveHeight - this.dialogHeight - 16;
   }
 
   step(delta, root) {
-
-    // Listen for user Input
-    /** @type {Input} */
+    // Listen for user input
     const input = root.input;
     if (input?.getActionJustPressed("Space")) {
-      if (this.showingIndex < this.finalIndex) {
-        // Skip
-        this.showingIndex = this.finalIndex;
+      if (this.showingIndex < this.text.length) {
+        // Skip typewriter - show all text immediately
+        this.showingIndex = this.text.length;
+        this.isComplete = true;
         return;
       }
 
@@ -85,85 +83,82 @@ export class SpriteTextString extends GameObject {
       events.emit("END_TEXT_BOX");
     }
 
-    // Work on typewriter
-    this.timeUntilNextShow -= delta;
-    if (this.timeUntilNextShow <= 0) {
-      // Increase amount of characters that are drawn
-      this.showingIndex += 1;
+    // Typewriter effect
+    if (this.showingIndex < this.text.length) {
+      this.timeUntilNextShow -= delta;
+      if (this.timeUntilNextShow <= 0) {
+        this.showingIndex += 1;
+        this.timeUntilNextShow = this.textSpeed;
 
-      // Reset time counter for next character
-      this.timeUntilNextShow = this.textSpeed;
+        if (this.showingIndex >= this.text.length) {
+          this.isComplete = true;
+        }
+      }
     }
   }
 
   drawImage(ctx, drawPosX, drawPosY) {
     // Draw the backdrop
-    this.backdrop.drawImage(ctx, drawPosX, drawPosY)
+    this.backdrop.drawImage(ctx, drawPosX, drawPosY);
 
     // Draw the portrait
-    this.portrait.drawImage(ctx, drawPosX+16, drawPosY+16);
+    this.portrait.drawImage(ctx, drawPosX + 16, drawPosY + 16);
 
-    // Configuration options
-    const PADDING_LEFT = 68;
-    const PADDING_RIGHT = 16;
-    const PADDING_TOP = 18;
-    const LINE_WIDTH_MAX = 240;
-    const LINE_VERTICAL_HEIGHT = 14;
+    // 🚨 Draw text using canvas font
+    this.drawText(ctx, drawPosX, drawPosY);
+  }
 
-    // Initial position of cursor
-    let cursorX = drawPosX + PADDING_LEFT;
-    let cursorY = drawPosY + PADDING_TOP;
-    let currentShowingIndex = 0;
+  drawText(ctx, drawPosX, drawPosY) {
+    // Set up font styling
+    ctx.save();
+    ctx.font = "12px fontRetroGaming";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#000"; // Black text
 
-    this.words.forEach(word => {
+    // Calculate text position
+    const textX = drawPosX + this.textStartX;
+    const textY = drawPosY + this.textStartY;
 
-      // Decide if we can fit this next word on this next line
-      const spaceRemaining = drawPosX + LINE_WIDTH_MAX - cursorX + PADDING_LEFT - PADDING_RIGHT;
-      if (spaceRemaining < word.wordWidth) {
-        cursorX = drawPosX + PADDING_LEFT;
-        cursorY += LINE_VERTICAL_HEIGHT;
+    // Get the text to display (typewriter effect)
+    const displayText = this.text.substring(0, this.showingIndex);
+
+    // Word wrap and draw text
+    this.drawWrappedText(ctx, displayText, textX, textY, this.maxTextWidth, this.lineHeight);
+
+    ctx.restore();
+  }
+
+  drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && line !== '') {
+        // Line is too long, draw current line and start new one
+        ctx.fillText(line.trim(), x, currentY);
+        line = words[i] + ' ';
+        currentY += lineHeight;
+      } else {
+        line = testLine;
       }
+    }
 
-      // Draw this whole segment of text
-      word.chars.forEach(char => {
+    // Draw the last line
+    if (line.trim().length > 0) {
+      ctx.fillText(line.trim(), x, currentY);
+    }
+  }
 
-        // Stop here if we should not yet show the following characters
-        if (currentShowingIndex > this.showingIndex) {
-          return;
-        }
-
-        const {sprite, width} = char;
-
-        const withCharOffset = cursorX - 5;
-        sprite.draw(ctx, withCharOffset, cursorY)
-
-        // Add width of the character we just printed to cursor pos
-        cursorX += width;
-
-        // plus 1px between character
-        cursorX += 1;
-
-        // Uptick the index we are counting
-        currentShowingIndex += 1;
-      })
-
-      // Move the cursor over
-      cursorX += 3;
-    })
-
-
+  destroy() {
+    // Clean up event listener
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
+    super.destroy();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

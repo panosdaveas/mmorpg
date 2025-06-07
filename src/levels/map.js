@@ -29,11 +29,6 @@ export class MainMap extends Level {
 
     const rod = new Rod(gridCells(29), gridCells(16))
     this.addChild(rod);
-    const Textbox = new TextBox({
-      position: new Vector2(0, CANVAS_HEIGHT - 64),
-      content: "Welcome to the Main Map! This is a place where you can explore, interact with NPCs, and find items like this rod.",
-    });
-    this.addChild(Textbox);
 
     // FIXED: Better position handling
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
@@ -224,6 +219,7 @@ export class MainMap extends Level {
     });
 
     this.updateDebugText();
+    console.log("CHILDREN", this.children);
   }
 
   cleanup() {

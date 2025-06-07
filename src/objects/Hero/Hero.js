@@ -551,7 +551,7 @@ export class Hero extends GameObject {
 
   destroy() {
     // Clean up event listeners before destroying
-    events.unsubscribe(this);
+    // events.unsubscribe(this);
 
     // Call parent destroy
     super.destroy();

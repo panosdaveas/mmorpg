@@ -21,8 +21,8 @@ export class TextBox extends GameObject {
     // Draw backdrop first
     this.backdrop.drawImage(ctx, drawPosX, drawPosY)
 
-    // Now we draw text...
-    ctx.font = "12px fontRetroGaming";
+    // Now we draw text...§
+    ctx.font = "12px fontRetroGaming"; // set in style.css
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillStyle = "#000";

@@ -15,16 +15,12 @@ export class Rod extends GameObject {
       position: new Vector2(0, -5) // nudge upwards visually
     })
     this.addChild(sprite);
-    this.hasBeenPickedUp = false;
 
   }
 
   ready() {
     events.on("HERO_POSITION", this, pos => {
-      if (this.hasBeenPickedUp) {
-        return;
-      }
-      // detect overlap...
+
       const roundedHeroX = Math.round(pos.x);
       const roundedHeroY = Math.round(pos.y);
       if (roundedHeroX === this.position.x && roundedHeroY === this.position.y) {
@@ -34,10 +30,7 @@ export class Rod extends GameObject {
   }
 
   onCollideWithHero() {
-    if (this.hasBeenPickedUp) {
-      return; // Already being processed
-    }
-    this.hasBeenPickedUp = true;
+
     // Remove this instance from the scene
     this.destroy();
 

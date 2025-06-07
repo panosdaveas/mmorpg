@@ -88,6 +88,7 @@ export class Hero extends GameObject {
     events.on("HERO_PICKS_UP_ITEM", this, data => {
       this.onPickUpItem(data)
     })
+
   }
 
   setPosition(x, y) {
@@ -139,7 +140,7 @@ export class Hero extends GameObject {
   // Set appropriate animation based on movement direction
   updateAnimation(movingDirection) {
     if (!movingDirection) {
-      // Standing still
+      // Standing still - use current facing direction
       if (this.facingDirection === LEFT) {
         this.body.animations.play("standLeft");
       } else if (this.facingDirection === RIGHT) {
@@ -150,7 +151,9 @@ export class Hero extends GameObject {
         this.body.animations.play("standDown");
       }
     } else {
-      // Moving
+      // Moving - update facing direction and play walk animation
+      this.facingDirection = movingDirection;
+
       if (movingDirection === LEFT) {
         this.body.animations.play("walkLeft");
       } else if (movingDirection === RIGHT) {
@@ -160,9 +163,9 @@ export class Hero extends GameObject {
       } else {
         this.body.animations.play("walkDown");
       }
-      this.facingDirection = movingDirection;
     }
   }
+  
 
   // New method to handle position updates for remote players
   updateRemotePosition(x, y) {
@@ -202,7 +205,7 @@ export class Hero extends GameObject {
     }
   }
 
-  async ready() {
+  ready() {
     this.eventSubscriptions = [
       events.on("START_TEXT_BOX", this, () => {
         this.isLocked = true;
@@ -210,9 +213,6 @@ export class Hero extends GameObject {
       events.on("END_TEXT_BOX", this, () => {
         this.isLocked = false;
       }),
-      events.on("HERO_PICKS_UP_ITEM", this, data => {
-        this.onPickUpItem(data)
-      })
     ];
   }
 
@@ -291,36 +291,59 @@ export class Hero extends GameObject {
 
     const { input } = root;
 
-    if (!input.direction) {
-      this.updateAnimation(null);
+    // 🚨 NEW: Handle facing direction immediately
+    const facingDirection = input.facingDirection;
+    if (facingDirection && input.isDirectionJustPressed(facingDirection)) {
+      // Immediately update facing direction on first press
+      this.facingDirection = facingDirection;
+      this.updateAnimation(null); // Standing animation in new direction
+    }
+
+    // 🚨 NEW: Only move if direction has been held long enough
+    const movementDirection = input.movementDirection;
+
+    if (!movementDirection) {
+      // No movement, just maintain current animation
+      if (facingDirection) {
+        // Still pressing but not long enough to move
+        this.updateAnimation(null); // Standing animation
+      } else {
+        // Not pressing anything
+        this.updateAnimation(null);
+      }
       return;
+    }
+
+    // 🚨 NEW: Check if we just became eligible for movement
+    if (input.isDirectionReadyForMovement(movementDirection)) {
     }
 
     let nextX = this.destinationPosition.x;
     let nextY = this.destinationPosition.y;
     const gridSize = 16;
 
-    if (input.direction === DOWN) {
+    if (movementDirection === DOWN) {
       nextY += gridSize;
     }
-    if (input.direction === UP) {
+    if (movementDirection === UP) {
       nextY -= gridSize;
     }
-    if (input.direction === LEFT) {
+    if (movementDirection === LEFT) {
       nextX -= gridSize;
     }
-    if (input.direction === RIGHT) {
+    if (movementDirection === RIGHT) {
       nextX += gridSize;
     }
 
-    // Update animation regardless of whether we can move
-    this.updateAnimation(input.direction);
+    // Update animation for movement
+    this.updateAnimation(movementDirection);
 
     // Validating that the next destination is free
     const spaceIsFree = isSpaceFree(root.level?.walls, nextX, nextY);
     const solidBodyAtSpace = this.parent.children.find(c => {
       return c.isSolid && c.position.x === nextX && c.position.y === nextY
     })
+
     if (spaceIsFree && !solidBodyAtSpace) {
       this.destinationPosition.x = nextX;
       this.destinationPosition.y = nextY;
@@ -501,10 +524,6 @@ export class Hero extends GameObject {
 
   onPickUpItem({ image, position }) {
     if (!this.isRemote) {
-      if (this.itemPickupTime > 0) {
-        console.log('Already picking up, ignoring new pickup event');
-        return;
-      }
       // Make sure we land right on the item
       this.destinationPosition = position.duplicate();
 
@@ -526,7 +545,6 @@ export class Hero extends GameObject {
 
     // Remove the item being held overhead
     if (this.itemPickupTime <= 0) {
-      console.log("Item pickup complete");
       this.itemPickupShell.destroy();
     }
   }

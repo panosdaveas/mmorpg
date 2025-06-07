@@ -1,3 +1,5 @@
+import { MOVING_THRESHOLD } from "./constants/worldConstants"
+
 export const LEFT = "LEFT"
 export const RIGHT = "RIGHT"
 export const UP = "UP"
@@ -5,16 +7,18 @@ export const DOWN = "DOWN"
 
 export class Input {
   constructor() {
-
     this.heldDirections = [];
     this.keys = {};
     this.lastKeys = {};
 
-    document.addEventListener("keydown", (e) => {
+    // 🚨 NEW: Track timing for Pokemon-style movement
+    this.directionTimings = new Map(); // direction -> timestamp when started
+    this.movementThreshold = MOVING_THRESHOLD; // ms - threshold for movement vs facing
 
+    document.addEventListener("keydown", (e) => {
       this.keys[e.code] = true;
 
-      // Also check for dedicated direction list
+      // Check for dedicated direction list
       if (e.code === "ArrowUp" || e.code === "KeyW") {
         this.onArrowPressed(UP);
       }
@@ -30,10 +34,9 @@ export class Input {
     })
 
     document.addEventListener("keyup", (e) => {
-
       this.keys[e.code] = false;
 
-      // Also check for dedicated direction list
+      // Check for dedicated direction list
       if (e.code === "ArrowUp" || e.code === "KeyW") {
         this.onArrowReleased(UP);
       }
@@ -49,13 +52,47 @@ export class Input {
     })
   }
 
-  get direction() {
+  // 🚨 NEW: Get the current direction for facing (immediate)
+  get facingDirection() {
     return this.heldDirections[0];
+  }
+
+  // 🚨 NEW: Get direction for movement (only after threshold)
+  get movementDirection() {
+    const currentDirection = this.heldDirections[0];
+    if (!currentDirection) return null;
+
+    const startTime = this.directionTimings.get(currentDirection);
+    if (!startTime) return null;
+
+    const holdTime = Date.now() - startTime;
+    return holdTime >= this.movementThreshold ? currentDirection : null;
+  }
+
+  // 🚨 NEW: Check if direction was just pressed (for immediate facing)
+  isDirectionJustPressed(direction) {
+    if (!this.directionTimings.has(direction)) return false;
+
+    const startTime = this.directionTimings.get(direction);
+    const holdTime = Date.now() - startTime;
+    return holdTime < 16; // Within one frame (assuming 60fps)
+  }
+
+  // 🚨 NEW: Check if direction just became eligible for movement
+  isDirectionReadyForMovement(direction) {
+    if (!this.directionTimings.has(direction)) return false;
+
+    const startTime = this.directionTimings.get(direction);
+    const holdTime = Date.now() - startTime;
+
+    // Check if we just crossed the threshold
+    return holdTime >= this.movementThreshold &&
+      holdTime < this.movementThreshold + 16; // Within one frame of crossing
   }
 
   update() {
     // Diff the keys on previous frame to know when new ones are pressed
-    this.lastKeys = {...this.keys};
+    this.lastKeys = { ...this.keys };
   }
 
   getActionJustPressed(keyCode) {
@@ -70,6 +107,9 @@ export class Input {
     // Add this arrow to the queue if it's new
     if (this.heldDirections.indexOf(direction) === -1) {
       this.heldDirections.unshift(direction);
+
+      // 🚨 NEW: Record when this direction started being held
+      this.directionTimings.set(direction, Date.now());
     }
   }
 
@@ -78,8 +118,12 @@ export class Input {
     if (index === -1) {
       return;
     }
+
     // Remove this key from the list
     this.heldDirections.splice(index, 1);
+
+    // 🚨 NEW: Remove timing record
+    this.directionTimings.delete(direction);
   }
 
   reset() {
@@ -87,6 +131,6 @@ export class Input {
     this.heldDirections = [];
     this.keys = {};
     this.lastKeys = {};
+    this.directionTimings.clear(); // 🚨 NEW: Clear timings
   }
-  
 }

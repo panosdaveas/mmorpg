@@ -2,18 +2,19 @@ import {GameObject} from "../../GameObject.js";
 import {Sprite} from "../../Sprite.js";
 import {resources} from "../../Resource.js";
 import {Vector2} from "../../Vector2.js";
+import {CANVAS_WIDTH, CANVAS_HEIGHT} from "../../constants/worldConstants.js";
 
 export class TextBox extends GameObject {
   constructor() {
     super({
-      position: new Vector2(332, 112)
-      // position: new Vector2(CANVAS_WIDTH/2, CANVAS_HEIGHT -32)
+      position: new Vector2(CANVAS_WIDTH / 2 , CANVAS_HEIGHT - 8)
     });
     this.content = "Hi. How are ya? How are ya? How are ya?"
     this.backdrop = new Sprite({
-      resource: resources.images.textBox,
-      frameSize: new Vector2(256, 64)
+      resource: resources.images.dialogBox,
+      frameSize: new Vector2(320, 80)
     })
+    this.drawLayer = "HUD";
   }
 
   drawImage(ctx, drawPosX, drawPosY) {
@@ -24,12 +25,12 @@ export class TextBox extends GameObject {
     ctx.font = "14px fontRetroGaming";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#000";
 
     const MAX_WIDTH = 250;
-    const LINE_HEIGHT = 20;
-    const PADDING_LEFT = 10;
-    const PADDING_TOP = 12;
+    const LINE_HEIGHT = 16;
+    const PADDING_LEFT = 65;
+    const PADDING_TOP = 18;
 
     let words = this.content.split(" ");
     let line = "";

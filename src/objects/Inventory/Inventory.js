@@ -8,7 +8,7 @@ import { MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "../../consta
 export class Inventory extends GameObject {
   constructor() {
     super({
-      position: new Vector2(8, CANVAS_HEIGHT - 32)
+      position: new Vector2(8, CANVAS_HEIGHT - 48)
     });
 
     this.drawLayer = "HUD";
@@ -24,6 +24,9 @@ export class Inventory extends GameObject {
         image: resources.images.rod
       }
     ]
+
+    this.updatePosition();
+    window.addEventListener('resize', () => this.updatePosition());
 
     // React to Hero picking up an item
     events.on("HERO_PICKS_UP_ITEM", this, data => {
@@ -62,6 +65,24 @@ export class Inventory extends GameObject {
   removeFromInventory(id) {
     this.items = this.items.filter(item => item.id !== id);
     this.renderInventory();
+  }
+
+  updatePosition() {
+    const canvas = document.querySelector("#game-canvas");
+    if (!canvas) return;
+
+    // Get actual scaled dimensions
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = rect.width / canvas.width;
+    const scaleY = rect.height / canvas.height;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Calculate effective viewport
+    const effectiveHeight = rect.height / scale;
+
+    // Position at bottom-left
+    this.position.x = 8;  // 8px from left
+    this.position.y = effectiveHeight - 48; // 48px from bottom
   }
 
 }

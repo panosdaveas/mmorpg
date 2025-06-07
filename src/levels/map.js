@@ -12,6 +12,7 @@ import mapData from './json/map.json';
 import { Npc } from "../objects/Npc/Npc.js";
 import { TradeModal } from "../objects/TradeModal/TradeModal.js";
 import { Input } from "../Input.js";
+import { TextBox } from "../objects/TextBox/TextBox.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -28,6 +29,11 @@ export class MainMap extends Level {
 
     const rod = new Rod(gridCells(29), gridCells(16))
     this.addChild(rod);
+    const Textbox = new TextBox({
+      position: new Vector2(0, CANVAS_HEIGHT - 64),
+      content: "Welcome to the Main Map! This is a place where you can explore, interact with NPCs, and find items like this rod.",
+    });
+    this.addChild(Textbox);
 
     // FIXED: Better position handling
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;

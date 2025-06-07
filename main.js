@@ -7,8 +7,47 @@ import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
 
+// Add this to main.js for pixel-perfect scaling
+// 16:9 Cover behavior - fills window, maintains aspect ratio, crops if needed
+function setupGame16x9Cover() {
+  const canvas = document.querySelector("#game-canvas");
+
+  function resize() {
+    const targetAspect = 16 / 9; // Your game's aspect ratio
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const windowAspect = windowWidth / windowHeight;
+
+    let canvasWidth, canvasHeight;
+
+    if (windowAspect > targetAspect) {
+      // Window is wider than 16:9 → fit to width (crop top/bottom)
+      canvasWidth = windowWidth;
+      canvasHeight = windowWidth / targetAspect;
+    } else {
+      // Window is taller than 16:9 → fit to height (crop left/right)
+      canvasHeight = windowHeight;
+      canvasWidth = windowHeight * targetAspect;
+    }
+
+    canvas.style.width = canvasWidth + 'px';
+    canvas.style.height = canvasHeight + 'px';
+
+    // console.log(`Canvas: ${canvasWidth}x${canvasHeight} in ${windowWidth}x${windowHeight} window`);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+}
+
+
+
 // Grabbing the canvas to draw to
 const canvas = document.querySelector("#game-canvas");
+
+// Add this after your canvas is created
+setupGame16x9Cover();
+
 const ctx = canvas.getContext("2d");
 
 // Create instance of Hero

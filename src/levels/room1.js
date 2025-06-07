@@ -58,7 +58,7 @@ export class Room1 extends Level {
 
       // Add to scene graph and set as local player
       this.addChild(this.localPlayer);
-      this.setLocalPlayer(this.localPlayer);
+      // this.setLocalPlayer(this.localPlayer);
     }
 
     this.cameraEnabled = false;

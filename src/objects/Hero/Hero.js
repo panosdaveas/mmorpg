@@ -524,6 +524,10 @@ export class Hero extends GameObject {
 
   onPickUpItem({ image, position }) {
     if (!this.isRemote) {
+      if (this.itemPickupTime > 0) {
+        console.log('Already picking up, ignoring new pickup event');
+        return;
+      }
       // Make sure we land right on the item
       this.destinationPosition = position.duplicate();
 
@@ -551,7 +555,7 @@ export class Hero extends GameObject {
 
   destroy() {
     // Clean up event listeners before destroying
-    // events.unsubscribe(this);
+    events.unsubscribe(this);
 
     // Call parent destroy
     super.destroy();

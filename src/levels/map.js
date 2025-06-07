@@ -32,26 +32,30 @@ export class MainMap extends Level {
     // FIXED: Better position handling
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
     this.localPlayer = params.hero;
+    this.multiplayerManager = params.multiplayerManager;
 
     console.log('MainMap - Setting player position to:', this.heroStartPosition);
 
     // FIXED: Set position immediately and ensure it sticks
     if (this.localPlayer) {
-      // Stop any current movement or interpolation
-      this.localPlayer.isSolid = true; // Prevent unwanted movement
+      // Stop any current movement or interpolation  
+      this.localPlayer.isSolid = true;
 
-      // Set position directly on the player object properties
+      // Set position directly
       this.localPlayer.position.x = this.heroStartPosition.x;
       this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // Reset destination position to prevent interpolated movement
+      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
 
       // If your player has a setPosition method, use it
       if (typeof this.localPlayer.setPosition === 'function') {
         this.localPlayer.setPosition(this.heroStartPosition.x, this.heroStartPosition.y);
       }
 
-      console.log('MainMap - Player position set to:', this.localPlayer.position);
+      console.log('Room1 - Player position set to:', this.localPlayer.position);
 
-      this.localPlayer.setAttribute("hp", 100);
+      // Add to scene graph and set as local player
       this.addChild(this.localPlayer);
       this.setLocalPlayer(this.localPlayer);
     }
@@ -89,11 +93,11 @@ export class MainMap extends Level {
     this.addChild(npc2);
 
     // In your main map class constructor
-    const tradingModal = new TradeModal({
-      position: new Vector2(0, 0),
-      multiplayerManager: this.multiplayerManager
-    });
-    this.addChild(tradingModal);
+    // const tradingModal = new TradeModal({
+    //   position: new Vector2(0, 0),
+    //   multiplayerManager: this.multiplayerManager
+    // });
+    // this.addChild(tradingModal);
   }
 
   setupMultiplayerEvents() {
@@ -164,7 +168,7 @@ export class MainMap extends Level {
   update(delta) {
     // Call parent update first (handles basic multiplayer updates)
     super.update(delta);
-    // this.updateDebugText();
+    this.updateDebugText();
 
   }
 
@@ -173,9 +177,20 @@ export class MainMap extends Level {
 
     // FIXED: Ensure player position is set after level is ready
     if (this.localPlayer && this.heroStartPosition) {
-      console.log('MainMap ready - Final position set:', this.heroStartPosition);
+      console.log('Level ready - Setting position:', this.heroStartPosition);
+
+      // 🚨 CRITICAL: Reset movement state
       this.localPlayer.position.x = this.heroStartPosition.x;
       this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // Reset destination position to prevent interpolated movement
+      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
+
+      // Lock player briefly to prevent immediate movement
+      this.localPlayer.isLocked = true;
+      setTimeout(() => {
+        this.localPlayer.isLocked = false;
+      }, 100); // Brief 100ms lock
 
       // Force position update event
       events.emit("HERO_POSITION", this.localPlayer.position);

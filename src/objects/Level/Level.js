@@ -243,6 +243,17 @@ export class Level extends GameObject {
     super.cleanup && super.cleanup();
   }
 
+  destroy() {
+    // 🚨 CRITICAL: Remove player before destroying level to prevent destruction
+    if (this.localPlayer) {
+      console.log(`Protecting ${this.levelName} player from destruction`);
+      this.removeChild(this.localPlayer);
+    }
+
+    // Call parent destroy (this will destroy remaining children)
+    super.destroy();
+  }
+
   // Get all remote players in this level
   getRemotePlayers() {
     if (!this.multiplayerManager) return {};

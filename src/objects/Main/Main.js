@@ -65,8 +65,11 @@ export class Main extends GameObject {
   setLevel(newLevelInstance) {
     // Clean up old level
     if (this.level) {
+      
+      
       // Cleanup the old level properly
       if (this.level.cleanup) {
+        
         this.level.cleanup();
       }
 
@@ -74,19 +77,22 @@ export class Main extends GameObject {
       this.level.destroy();
     }
 
+    // 🚨 CRITICAL FIX: Reset input state when changing levels
+    if (this.input) {
+      this.input.reset();
+      console.log('Input reset during level change');
+    }
+
     // Set new level
     this.level = newLevelInstance;
     this.addChild(this.level);
 
-    // Important: Update the camera's reference to the new level
-    if (this.camera && this.level.localPlayer) {
-      // Reset camera state for new level
+    // 🚨 Additional fix: Ensure camera is properly initialized for new level
+    if (this.camera && this.level.heroStartPosition) {
+      // Force camera to immediately center on the new position
+      this.camera.position = null;
       this.camera.lastCenteredPosition = null;
-      this.camera.targetPosition = this.level.localPlayer.position;
-    }
-
-    if (this.input) {
-      this.input.reset();
+      this.camera.targetPosition = this.level.heroStartPosition;
     }
   }
 

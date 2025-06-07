@@ -33,6 +33,7 @@ export class Room1 extends Level {
     // FIXED: Better position handling
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
     this.localPlayer = params.hero;
+    this.multiplayerManager = params.multiplayerManager;
 
     console.log('Room1 - Setting player position to:', this.heroStartPosition);
 
@@ -45,6 +46,9 @@ export class Room1 extends Level {
       this.localPlayer.position.x = this.heroStartPosition.x;
       this.localPlayer.position.y = this.heroStartPosition.y;
 
+      // Reset destination position to prevent interpolated movement
+      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
+
       // If your player has a setPosition method, use it
       if (typeof this.localPlayer.setPosition === 'function') {
         this.localPlayer.setPosition(this.heroStartPosition.x, this.heroStartPosition.y);
@@ -52,6 +56,7 @@ export class Room1 extends Level {
 
       console.log('Room1 - Player position set to:', this.localPlayer.position);
 
+      // Add to scene graph and set as local player
       this.addChild(this.localPlayer);
       this.setLocalPlayer(this.localPlayer);
     }
@@ -128,9 +133,20 @@ export class Room1 extends Level {
 
     // FIXED: Ensure player position is set after level is ready
     if (this.localPlayer && this.heroStartPosition) {
-      console.log('Room1 ready - Final position set:', this.heroStartPosition);
+      console.log('Level ready - Setting position:', this.heroStartPosition);
+
+      // 🚨 CRITICAL: Reset movement state
       this.localPlayer.position.x = this.heroStartPosition.x;
       this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // Reset destination position to prevent interpolated movement
+      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
+
+      // Lock player briefly to prevent immediate movement
+      this.localPlayer.isLocked = true;
+      setTimeout(() => {
+        this.localPlayer.isLocked = false;
+      }, 100); // Brief 100ms lock
 
       // Force position update event
       events.emit("HERO_POSITION", this.localPlayer.position);
@@ -174,6 +190,7 @@ export class Room1 extends Level {
       <div>Tile Position: x:${tileX}, y:${tileY}</div>
       <div>Camera Enabled: ${this.cameraEnabled}</div>
       <div>Level Ready: ${this.isReady}</div>
+      <div>Address: ${this.localPlayer.getAttribute('address') || 'N/A'}</div>
     `;
   }
 

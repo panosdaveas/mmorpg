@@ -63,11 +63,31 @@ export class Main extends GameObject {
   }
 
   setLevel(newLevelInstance) {
+    // Clean up old level
     if (this.level) {
+      // Cleanup the old level properly
+      if (this.level.cleanup) {
+        this.level.cleanup();
+      }
+
+      // Remove old level from scene
       this.level.destroy();
     }
+
+    // Set new level
     this.level = newLevelInstance;
     this.addChild(this.level);
+
+    // Important: Update the camera's reference to the new level
+    if (this.camera && this.level.localPlayer) {
+      // Reset camera state for new level
+      this.camera.lastCenteredPosition = null;
+      this.camera.targetPosition = this.level.localPlayer.position;
+    }
+
+    if (this.input) {
+      this.input.reset();
+    }
   }
 
   drawBackground(ctx) {
@@ -75,25 +95,6 @@ export class Main extends GameObject {
       this.level.drawBackground(ctx); // ✅ Properly delegate
     }
   }
-
-  // drawObjects(ctx) {
-  //   const currentLevelName = this.level?.levelName;
-
-  //   this.children.forEach(group => {
-  //     if (group.drawLayer !== "HUD" && group.children?.length > 0) {
-  //       group.children.forEach(child => {
-  //         if (child.isRemote && child.currentLevelName !== currentLevelName) {
-  //           // console.log(child.currentLevelName);
-  //           return; // ⛔ Don't draw remote players not in same level
-  //         }
-
-  //         if (typeof child.draw === "function") {
-  //           child.draw(ctx, 0, 0);
-  //         }
-  //       });
-  //     }
-  //   });
-  // }
 
   drawObjects(ctx) {
     const currentLevelName = this.level?.levelName;

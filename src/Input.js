@@ -81,4 +81,12 @@ export class Input {
     // Remove this key from the list
     this.heldDirections.splice(index, 1);
   }
+
+  reset() {
+    // Clear all held directions and keys
+    this.heldDirections = [];
+    this.keys = {};
+    this.lastKeys = {};
+  }
+  
 }

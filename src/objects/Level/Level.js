@@ -28,9 +28,10 @@ export class Level extends GameObject {
     // Level state
     this.isReady = false;
     this.levelName = params.levelName || "Unknown Level";
+    this.heroStartPosition = params.heroPosition || null;
 
     // Player reference
-    this.localPlayer = params.hero ?? null;
+    this.localPlayer = null;
 
   }
 
@@ -96,27 +97,30 @@ export class Level extends GameObject {
 
   // Update method that handles both local and multiplayer updates
   update(delta) {
-
     this.updateAnimatedTiles(delta);
+
     // Update local player first
     if (this.localPlayer) {
       this.localPlayer.update(delta);
     }
 
-    // Send updates through multiplayer manager after player update
-    if (this.multiplayerManager && this.multiplayerManager.isSocketConnected() && this.localPlayer) {
+    // ONLY send multiplayer updates if this level is active and ready
+    if (this.multiplayerManager &&
+      this.multiplayerManager.isSocketConnected() &&
+      this.localPlayer &&
+      this.isReady) {
+
       this.multiplayerManager.sendPositionUpdate(this.localPlayer.position);
 
       // Send attributes update after the player has been updated
       if (this.localPlayer.attributesChanged) {
-        // Get fresh attributes after update
         const currentAttributes = this.localPlayer.getAttributesAsObject();
         this.multiplayerManager.sendAttributesUpdate(currentAttributes);
         this.localPlayer.attributesChanged = false;
       }
     }
-    // Child classes should call super.update(delta) and then their own logic
   }
+
 
   // Called when level becomes active
   async ready() {
@@ -155,9 +159,6 @@ export class Level extends GameObject {
         this.multiplayerManager.sendLevelChangedUpdate(newLevel.levelName);
       }
     });
-
-    // In MainMap or Level class
-    // this.tradeManager = new TradeManager(this.multiplayerManager, this.localPlayer, this.localPlayer.getAttribute("address"));
 
     this.isReady = true;
     // Child classes should call super.ready() and then their own logic
@@ -225,12 +226,21 @@ export class Level extends GameObject {
 
   // Cleanup when level is changed
   cleanup() {
+    console.log(`Cleaning up level: ${this.levelName}`);
     this.isReady = false;
 
-    // Multiplayer cleanup is handled by the manager itself
-    // We don't disconnect here since other levels might use the same connection
+    // Remove all event listeners for this level
+    events.off("HERO_POSITION", this);
+    events.off("HERO_ATTRIBUTES_CHANGED", this);
+    events.off("CHANGE_LEVEL", this);
+    events.off("HERO_EXITS", this);
 
-    // Child classes should call super.cleanup() for their own cleanup
+    // Clear local player reference but don't destroy the player object
+    // since it will be passed to the next level
+    // this.localPlayer = null;
+
+    // Call parent cleanup
+    super.cleanup && super.cleanup();
   }
 
   // Get all remote players in this level

@@ -40,6 +40,7 @@ export class Hero extends GameObject {
     this.wallet = new WalletConnector(this);
     this.isSolid = true;
     this.signer = null;
+    this.eventSubscriptions = [];
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -201,15 +202,18 @@ export class Hero extends GameObject {
     }
   }
 
-  async ready() {
-    events.on("START_TEXT_BOX", this, () => {
-      this.isLocked = true;
-    })
-    events.on("END_TEXT_BOX", this, () => {
-      this.isLocked = false;
-    })
-    // const wallet = new WalletConnector(this);
-    // wallet.connect();
+  ready() {
+    this.eventSubscriptions = [
+      events.on("START_TEXT_BOX", this, () => {
+        this.isLocked = true;
+      }),
+      events.on("END_TEXT_BOX", this, () => {
+        this.isLocked = false;
+      }),
+      events.on("HERO_PICKS_UP_ITEM", this, data => {
+        this.onPickUpItem(data)
+      })
+    ];
   }
 
   update(delta) {
@@ -527,5 +531,13 @@ export class Hero extends GameObject {
     if (this.itemPickupTime <= 0) {
       this.itemPickupShell.destroy();
     }
+  }
+
+  destroy() {
+    // Clean up event listeners before destroying
+    events.unsubscribe(this);
+
+    // Call parent destroy
+    super.destroy();
   }
 }

@@ -11,12 +11,15 @@ import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from ".
 import mapData from './json/map.json';
 import { Npc } from "../objects/Npc/Npc.js";
 import { TradeModal } from "../objects/TradeModal/TradeModal.js";
+import { Input } from "../Input.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
 export class MainMap extends Level {
   constructor(params = {}) {
+    console.log('MainMap constructor - heroPosition:', params.heroPosition);
+
     super({
       ...params,
       levelName: "Main Map",
@@ -26,24 +29,38 @@ export class MainMap extends Level {
     const rod = new Rod(gridCells(29), gridCells(16))
     this.addChild(rod)
 
-  
-    // this.localPlayer = params.hero;
-    // Local player (our hero)
-    this.heroStartPosition = params.heroPosition ?? DEFAULT_HERO_POSITION;
-    // this.localPlayer = new Hero(this.heroStartPosition.x, this.heroStartPosition.y);
-    this.localPlayer.setAttribute("hp", 100);
-    // Add the local player to the scene
-    this.addChild(this.localPlayer);
+    // FIXED: Better position handling
+    this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
+    this.localPlayer = params.hero;
 
-    // Set the local player in the base class
-    this.setLocalPlayer(this.localPlayer);
+    console.log('MainMap - Setting player position to:', this.heroStartPosition);
 
+    // FIXED: Set position immediately and ensure it sticks
+    if (this.localPlayer) {
+      // Stop any current movement or interpolation
+      this.localPlayer.isSolid = true; // Prevent unwanted movement
+
+      // Set position directly on the player object properties
+      this.localPlayer.position.x = this.heroStartPosition.x;
+      this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // If your player has a setPosition method, use it
+      if (typeof this.localPlayer.setPosition === 'function') {
+        this.localPlayer.setPosition(this.heroStartPosition.x, this.heroStartPosition.y);
+      }
+
+      console.log('MainMap - Player position set to:', this.localPlayer.position);
+
+      this.localPlayer.setAttribute("hp", 100);
+      this.addChild(this.localPlayer);
+      this.setLocalPlayer(this.localPlayer);
+    }
+
+    // FIXED: Create exit with different coordinates to avoid conflicts
     const exit = new Exit(gridCells(23), gridCells(16))
     this.addChild(exit);
 
-    
-
-    // Add debug text display
+    // Setup debug text and multiplayer
     this.debugText = document.createElement('div');
     this.debugText.style.position = 'absolute';
     this.debugText.style.top = '10px';
@@ -55,7 +72,6 @@ export class MainMap extends Level {
     this.debugText.style.zIndex = '1000';
     document.body.appendChild(this.debugText);
 
-    // Setup multiplayer if manager is available
     if (this.multiplayerManager) {
       this.setupMultiplayerEvents();
     }
@@ -148,24 +164,37 @@ export class MainMap extends Level {
   update(delta) {
     // Call parent update first (handles basic multiplayer updates)
     super.update(delta);
-    this.updateDebugText();
+    // this.updateDebugText();
 
   }
 
   async ready() {
     await super.ready();
 
+    // FIXED: Ensure player position is set after level is ready
+    if (this.localPlayer && this.heroStartPosition) {
+      console.log('MainMap ready - Final position set:', this.heroStartPosition);
+      this.localPlayer.position.x = this.heroStartPosition.x;
+      this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // Force position update event
+      events.emit("HERO_POSITION", this.localPlayer.position);
+    }
+
+    // FIXED: Clean event binding to prevent conflicts
+    events.off("HERO_EXITS", this); // Remove any existing listeners
     events.on("HERO_EXITS", this, () => {
-      // this.cleanup(); // Cleanup current level
-      if (this.debugText && this.debugText.parentNode) {
-        this.debugText.parentNode.removeChild(this.debugText);
-      }
-      events.emit("CHANGE_LEVEL", new Room1({
+      console.log('MainMap - HERO_EXITS triggered');
+      this.cleanup(); // Cleanup current level
+
+      // Create new level with specific spawn position
+      const newLevel = new Room1({
         heroPosition: new Vector2(gridCells(36), gridCells(21)),
         multiplayerManager: this.multiplayerManager,
-        localPlayer: this.localPlayer, // Pass multiplayer manager to new level
-        // position: null, // Reset position for new level
-      }));
+        hero: this.localPlayer,
+      });
+
+      events.emit("CHANGE_LEVEL", newLevel);
     });
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
@@ -173,12 +202,12 @@ export class MainMap extends Level {
       height: mapData.height * TILE_SIZE,
     });
 
-    // Update debug text initially
     this.updateDebugText();
-
   }
 
   cleanup() {
+    console.log('MainMap cleanup called');
+
     // Remove debug display
     if (this.debugText && this.debugText.parentNode) {
       this.debugText.parentNode.removeChild(this.debugText);

@@ -27,7 +27,11 @@ const mainScene = new Main({
 })
 
 // Set up the level with multiplayer support
-const mainMap = new MainMap({ multiplayerManager, hero });
+const mainMap = new MainMap({
+  multiplayerManager,
+  hero,
+  heroPosition: DEFAULT_HERO_POSITION
+});
 mainScene.setLevel(mainMap);
 
 // Set the current level in multiplayer manager
@@ -90,10 +94,6 @@ const draw = () => {
 window.addEventListener('beforeunload', () => {
   multiplayerManager.disconnect();
 });
-
-// Start the game!
-// const gameLoop = new GameLoop(update, draw);
-// gameLoop.start();
 
 // ✅ Wait for the map to fully load before starting game loop
 (async () => {

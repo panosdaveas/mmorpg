@@ -12,13 +12,14 @@ import { Npc } from "../objects/Npc/Npc.js";
 import { TALKED_TO_A, TALKED_TO_B } from "../StoryFlags.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } from "../constants/worldConstants.js";
 import mapData from './json/room1.json';
-import { Input } from "../Input.js";
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(36), gridCells(21))
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
 export class Room1 extends Level {
   constructor(params = {}) {
+    console.log('Room1 constructor - heroPosition:', params.heroPosition);
+
     super({
       ...params,
       levelName: "Room 1",
@@ -29,18 +30,34 @@ export class Room1 extends Level {
     const exit = new Exit(gridCells(36), gridCells(22))
     this.addChild(exit);
 
-    this.heroStartPosition = params.heroPosition;
-    (this.localPlayer = params.localPlayer).setPosition(
-      params.heroPosition.x,
-      params.heroPosition.y
-    );
-    events.emit("HERO_POSITION", this.localPlayer.position);
-    this.addChild(this.localPlayer);
+    // FIXED: Better position handling
+    this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
+    this.localPlayer = params.hero;
 
-    // toggle if the level is multiplayer or not
-    // this.setLocalPlayer(this.hero);
+    console.log('Room1 - Setting player position to:', this.heroStartPosition);
 
-    this.cameraEnabled = false; // Disable camera movement for this level
+    // FIXED: Set position immediately and ensure it sticks
+    if (this.localPlayer) {
+      // Stop any current movement or interpolation  
+      this.localPlayer.isSolid = true;
+
+      // Set position directly
+      this.localPlayer.position.x = this.heroStartPosition.x;
+      this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // If your player has a setPosition method, use it
+      if (typeof this.localPlayer.setPosition === 'function') {
+        this.localPlayer.setPosition(this.heroStartPosition.x, this.heroStartPosition.y);
+      }
+
+      console.log('Room1 - Player position set to:', this.localPlayer.position);
+
+      this.addChild(this.localPlayer);
+      this.setLocalPlayer(this.localPlayer);
+    }
+
+    this.cameraEnabled = false;
+
 
     const rod = new Rod(gridCells(9), gridCells(6))
     // this.addChild(rod)
@@ -82,6 +99,7 @@ export class Room1 extends Level {
 
     // this.walls = new Set();
     // Add debug text display
+    // Debug text setup
     this.debugText = document.createElement('div');
     this.debugText.style.position = 'absolute';
     this.debugText.style.top = '10px';
@@ -107,16 +125,30 @@ export class Room1 extends Level {
 
   async ready() {
     await super.ready();
-    // events.emit("HERO_POSITION", this.localPlayer.position);
-    
+
+    // FIXED: Ensure player position is set after level is ready
+    if (this.localPlayer && this.heroStartPosition) {
+      console.log('Room1 ready - Final position set:', this.heroStartPosition);
+      this.localPlayer.position.x = this.heroStartPosition.x;
+      this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // Force position update event
+      events.emit("HERO_POSITION", this.localPlayer.position);
+    }
+
+    // FIXED: Clean event binding
+    events.off("HERO_EXITS", this); // Remove any existing listeners
     events.on("HERO_EXITS", this, () => {
+      console.log('Room1 - HERO_EXITS triggered');
       this.cleanup();
-      events.emit("CHANGE_LEVEL", new MainMap({
+
+      const newLevel = new MainMap({
         heroPosition: new Vector2(gridCells(23), gridCells(17)),
         multiplayerManager: this.multiplayerManager,
-        localPlayer: this.localPlayer // Pass multiplayer manager to new level
-        // position: null, // Reset position for new level
-      }))
+        hero: this.localPlayer
+      });
+
+      events.emit("CHANGE_LEVEL", newLevel);
     })
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
@@ -125,37 +157,40 @@ export class Room1 extends Level {
     });
 
     events.emit("SET_CAMERA_OPTIONS", {
-      zoom: this.scale, // Set zoom level for this level
-      enabled: this.cameraEnabled, // Disable camera movement for this level
-      // position: DEFAULT_HERO_POSITION,
+      zoom: this.scale,
+      enabled: this.cameraEnabled,
     })
   }
 
   updateDebugText() {
+    if (!this.localPlayer) return;
 
     const tileX = Math.floor(this.localPlayer.position.x / TILE_SIZE);
     const tileY = Math.floor(this.localPlayer.position.y / TILE_SIZE);
 
     this.debugText.innerHTML = `
-      <div>Local Position: x:${Math.round(tileX)}, y:${Math.round(tileY)}</div>
+      <div>Level: ${this.levelName}</div>
+      <div>Local Position: x:${Math.round(this.localPlayer.position.x)}, y:${Math.round(this.localPlayer.position.y)}</div>
+      <div>Tile Position: x:${tileX}, y:${tileY}</div>
+      <div>Camera Enabled: ${this.cameraEnabled}</div>
+      <div>Level Ready: ${this.isReady}</div>
     `;
   }
 
-  // Called on each game tick from main.js
   update(delta) {
-    // Call parent update first (handles basic multiplayer updates)
     super.update(delta);
     this.updateDebugText();
   }
 
   cleanup() {
-    // Call parent cleanup
-      // Remove debug display
-      if (this.debugText && this.debugText.parentNode) {
-        this.debugText.parentNode.removeChild(this.debugText);
-      }
+    console.log('Room1 cleanup called');
 
-      // Call parent cleanup
+    // Remove debug display
+    if (this.debugText && this.debugText.parentNode) {
+      this.debugText.parentNode.removeChild(this.debugText);
+    }
+
+    // Call parent cleanup
     super.cleanup();
   }
 

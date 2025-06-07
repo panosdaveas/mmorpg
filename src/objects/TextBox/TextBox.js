@@ -22,7 +22,7 @@ export class TextBox extends GameObject {
     this.backdrop.drawImage(ctx, drawPosX, drawPosY)
 
     // Now we draw text...
-    ctx.font = "14px fontRetroGaming";
+    ctx.font = "12px fontRetroGaming";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillStyle = "#000";

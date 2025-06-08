@@ -15,8 +15,6 @@
     "vite": "^4.4.5"
   },
   "dependencies": {
-    "@lifi/sdk": "^3.7.8",
-    "@lifi/widget": "^3.23.0",
     "ethers": "^6.14.3",
     "express": "^5.1.0",
     "socket.io": "^4.8.1",

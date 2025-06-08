@@ -220,7 +220,8 @@ export class MainMap extends Level {
     });
 
     this.updateDebugText();
-    console.log("CHILDREN", this.children);
+    // console.log("CHILDREN", this.children);
+    // console.log("LOCAL PLAYER", this.localPlayer);
   }
 
   cleanup() {

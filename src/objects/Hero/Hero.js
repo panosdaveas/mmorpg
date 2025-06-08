@@ -487,7 +487,7 @@ export class Hero extends GameObject {
         value: properties.action,
         position: new Vector2(actionTile.x * 16, actionTile.y * 16)
       });
-      this.setAttribute("hp", 50);
+      // this.setAttribute("hp", 50);
     }
 
     // Handle action-2 (custom action type 2)

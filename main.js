@@ -6,6 +6,7 @@ import { MainMap } from './src/levels/map.js';
 import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
+import { Menu } from './src/objects/Menu/Menu.js';
 
 // Add this to main.js for pixel-perfect scaling
 // 16:9 Cover behavior - fills window, maintains aspect ratio, crops if needed
@@ -64,6 +65,12 @@ multiplayerManager.connect('http://localhost:3000');
 const mainScene = new Main({
   position: new Vector2(0, 0)
 })
+
+const menu = new Menu({
+  multiplayerManager
+});
+
+mainScene.addChild(menu);
 
 // Set up the level with multiplayer support
 const mainMap = new MainMap({

@@ -24,6 +24,8 @@ class Resources {
       portraits: "/sprites/portraits-sheet.png",
       water: "/sprites/Water.png",
       dialogBox: "/sprites/dialogBox.png",
+      menuBox: "/sprites/menu-dark.png",
+      interfaceBox: "/sprites/menu.png",
     };
 
     // A bucket to keep all of our images

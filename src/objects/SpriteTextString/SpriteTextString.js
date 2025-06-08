@@ -26,7 +26,7 @@ export class SpriteTextString extends GameObject {
 
     // Typewriter effect settings
     this.showingIndex = 0;
-    this.textSpeed = 80;
+    this.textSpeed = 50;
     this.timeUntilNextShow = this.textSpeed;
     this.isPageComplete = false;
     this.isAllPagesComplete = false;

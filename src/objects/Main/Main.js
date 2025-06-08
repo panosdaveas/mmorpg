@@ -118,7 +118,7 @@ export class Main extends GameObject {
 
   drawForeground(ctx) {
     this.children.forEach(child => {
-      if (child.drawLayer === "HUD") {
+      if (child.drawLayer === "HUD" || child.drawLayer === "UI") {
         child.draw(ctx, 0, 0);
       }
     })

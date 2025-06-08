@@ -5,12 +5,13 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../../constants/worldConstants";
 // PlayersInterface.js - Interface for showing connected players
 export class PlayersInterface extends MenuInterface {
     constructor({ multiplayerManager }) {
+        
         const tileSize = 16;
         const interfaceWidth = tileSize * 20; // 320px
         const interfaceHeight = tileSize * 15; // 240px
 
         // Center the interface
-        const centerX = (CANVAS_WIDTH - interfaceWidth) / 2;
+        const centerX = (CANVAS_WIDTH - interfaceWidth) / 2 ;
         const centerY = (CANVAS_HEIGHT - interfaceHeight) / 2;
 
         super({
@@ -24,20 +25,20 @@ export class PlayersInterface extends MenuInterface {
         this.maxVisiblePlayers = 10;
 
         // Title
-        this.title = new SpriteTextString({
-            string: "Connected Players",
-            position: new Vector2(tileSize, tileSize)
-        });
+        // this.title = new SpriteTextString({
+        //     string: "Connected Players",
+        //     position: new Vector2(tileSize, tileSize)
+        // });
 
-        this.content.push(this.title);
+        // this.content.push(this.title);
 
         // Close button hint
-        this.closeHint = new SpriteTextString({
-            string: "Press ESC to close",
-            position: new Vector2(tileSize, interfaceHeight - tileSize * 2)
-        });
+        // this.closeHint = new SpriteTextString({
+        //     string: "Press ESC to close",
+        //     position: new Vector2(tileSize, interfaceHeight - tileSize * 2)
+        // });
 
-        this.content.push(this.closeHint);
+        // this.content.push(this.closeHint);
     }
 
     step(delta, root) {
@@ -68,13 +69,17 @@ export class PlayersInterface extends MenuInterface {
         this.backdrop.draw(ctx, x, y);
 
         // Draw title and close hint
-        this.title.draw(ctx, x, y);
-        this.closeHint.draw(ctx, x, y);
+        // this.title.draw(ctx, x, y);
+        // this.closeHint.draw(ctx, x, y);
 
         // Draw player list
-        const players = this.multiplayerManager.getRemotePlayers();
+        const playersObj = this.multiplayerManager.getRemotePlayers();
+        const players = Object.entries(playersObj).map(([id, player]) => ({
+            id,
+            ...player
+        }));
         const tileSize = 16;
-        const startY = tileSize * 3;
+        const startY = tileSize;
 
         ctx.save();
         ctx.font = "12px fontRetroGaming";
@@ -89,12 +94,13 @@ export class PlayersInterface extends MenuInterface {
         players.slice(this.scrollOffset, this.scrollOffset + this.maxVisiblePlayers).forEach((player, index) => {
             const playerY = startY + (index * tileSize * 1.5);
             const playerX = tileSize * 2;
-
             // Player ID
             ctx.fillText(`ID: ${player.id}`, x + playerX, y + playerY);
 
+            console.log(player.attributes.get('address').get());
             // Player address (if available)
-            const address = player.getAttributes ? player.getAttributes("address") : "N/A";
+            const address = player.attributes.get('address').get() ?? "N/A";
+          
             ctx.fillText(`Address: ${address}`, x + playerX, y + playerY + tileSize);
         });
 

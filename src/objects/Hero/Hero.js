@@ -213,6 +213,12 @@ export class Hero extends GameObject {
       events.on("END_TEXT_BOX", this, () => {
         this.isLocked = false;
       }),
+      events.on("MENU_OPEN", this, () => {
+        this.isLocked = true;
+      }),
+      events.on("MENU_CLOSE", this, () => {
+        this.isLocked = false;
+      }),
     ];
   }
 

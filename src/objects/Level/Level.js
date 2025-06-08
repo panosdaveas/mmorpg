@@ -23,8 +23,6 @@ export class Level extends GameObject {
 
     // Multiplayer support
     this.multiplayerManager = params.multiplayerManager || null;
-    // In MainMap or Level class
-    // this.tradeManager = null;
     // Level state
     this.isReady = false;
     this.levelName = params.levelName || "Unknown Level";

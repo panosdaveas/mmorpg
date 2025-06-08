@@ -2,8 +2,9 @@ import { PlayersInterface } from "../InterfaceObjects/PlayersInterface";
 import { GameObject } from "../../GameObject";
 import { Vector2 } from "../../Vector2";
 import { Sprite } from "../../Sprite";
+import { events } from "../../Events";
 import { resources } from "../../Resource";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../../constants/worldConstants";
+import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from "../../constants/worldConstants";
 // Menu.js - Main menu class
 export class Menu extends GameObject {
     constructor({ multiplayerManager }) {
@@ -13,7 +14,7 @@ export class Menu extends GameObject {
 
       this.canvas = document.getElementById('game-canvas');
       this.multiplayerManager = multiplayerManager;
-      this.tileSize = 16;
+      this.tileSize = TILE_SIZE;
       
       // Menu configuration
       this.menuWidth = this.tileSize * 10; // 160px
@@ -49,9 +50,11 @@ export class Menu extends GameObject {
     setupMouseListeners() {
       this.canvas.addEventListener('mousemove', (e) => {
         const rect = this.canvas.getBoundingClientRect();
-        this.mouseX = e.clientX - rect.left;
-        this.mouseY = e.clientY - rect.top;
-        // console.log("MOUSE POS:", this.mouseX, this.mouseY);
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+
+        this.mouseX = (e.clientX - rect.left) * scaleX;
+        this.mouseY = (e.clientY - rect.top) * scaleY;
         
         // Check if mouse is over menu items when menu is visible
         if (this.isVisible) {
@@ -68,12 +71,11 @@ export class Menu extends GameObject {
     
     checkMouseHover() {
       const itemHeight = this.tileSize * 1.5;
-      const startY = this.menuY + this.tileSize * 4.5;
+      const startY = this.menuY + this.tileSize * 1.5;
       
       for (let i = 0; i < this.menuItems.length; i++) {
         const itemY = startY + (i * itemHeight);
         const itemX = this.menuX + this.tileSize;
-        console.log(itemX);
         
           if (this.mouseX >= itemX &&
               this.mouseX <= itemX + this.menuWidth - this.tileSize &&
@@ -104,14 +106,20 @@ export class Menu extends GameObject {
       }
     }
     
-    show() {
-      this.isVisible = true;
-      this.selectedIndex = 0;
-    }
-    
-    hide() {
-      this.isVisible = false;
-    }
+  show() {
+    this.isVisible = true;
+    this.selectedIndex = 0;
+    events.emit("MENU_OPEN");
+
+    //TODO Hide remote players
+  }
+
+  hide() {
+    this.isVisible = false;
+    events.emit("MENU_CLOSE");
+
+    // Show remote players again
+  }
     
     selectMenuItem() {
       const selectedItem = this.menuItems[this.selectedIndex];
@@ -175,7 +183,7 @@ export class Menu extends GameObject {
     draw(ctx, x, y) {
       // Draw interfaces first (they might be fullscreen)
         Object.values(this.interfaces).forEach(interfaceObj => {
-            interfaceObj.draw(ctx, 0, 0);
+            interfaceObj.draw(ctx, CANVAS_WIDTH/2, CANVAS_HEIGHT/2);
       });
       
       // Draw menu if visible

@@ -339,6 +339,7 @@ export class MultiplayerManager {
         const currentLevelName = this.currentLevel?.levelName;
 
         for (const id in this.players) {
+
             if (id === this.mySocketId) continue;
 
             const player = this.players[id];

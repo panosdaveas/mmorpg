@@ -46,6 +46,7 @@ export class PlayersInterface extends MenuInterface {
 
         // Handle ESC key to close
         if (this.isOpen && root.input.getActionJustPressed("Escape")) {
+            console.log("Closing Players Interface");
             this.close();
             root.menu.show(); // Show menu again
         }
@@ -97,9 +98,10 @@ export class PlayersInterface extends MenuInterface {
             // Player ID
             ctx.fillText(`ID: ${player.id}`, x + playerX, y + playerY);
 
-            console.log(player.attributes.get('address').get());
+            // console.log(player.attributes.get('address').get());
             // Player address (if available)
-            const address = player.attributes.get('address').get() ?? "N/A";
+            const address = "N/A";
+            // const address = player.attributes.get('address').get() ?? "N/A";
           
             ctx.fillText(`Address: ${address}`, x + playerX, y + playerY + tileSize);
         });

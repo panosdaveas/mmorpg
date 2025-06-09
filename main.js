@@ -70,7 +70,9 @@ const menu = new Menu({
   multiplayerManager
 });
 
-mainScene.addChild(menu);
+// mainScene.children.push(menu);
+// mainScene.addChild(menu);
+mainScene.setMenu(menu);
 
 // Set up the level with multiplayer support
 const mainMap = new MainMap({

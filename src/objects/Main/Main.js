@@ -5,6 +5,7 @@ import {Inventory} from "../Inventory/Inventory.js";
 import {events} from "../../Events.js";
 import {SpriteTextString} from "../SpriteTextString/SpriteTextString.js";
 import {storyFlags} from "../../StoryFlags.js";
+import { Menu } from "../Menu/Menu.js";
 
 export class Main extends GameObject {
   constructor() {
@@ -12,6 +13,7 @@ export class Main extends GameObject {
     this.level = null;
     this.input = new Input()
     this.camera = new Camera()
+    this.menu = null; 
   }
 
   ready() {
@@ -60,6 +62,23 @@ export class Main extends GameObject {
     })
     
     // Wait for the level to fully initialize
+  }
+
+  setMenu(menuInstance) {
+    // Clean up old menu
+    if (this.menu) {
+      this.menu.destroy();
+    }
+
+    // Set new menu
+    this.menu = menuInstance;
+    this.addChild(this.menu);
+
+    // Reset input state when changing menus
+    if (this.input) {
+      this.input.reset();
+      console.log('Input reset during menu change');
+    }
   }
 
   setLevel(newLevelInstance) {

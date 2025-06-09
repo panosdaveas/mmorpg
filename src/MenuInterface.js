@@ -2,6 +2,7 @@ import { GameObject } from "./GameObject";
 import { Sprite } from "./Sprite";
 import { resources } from "./Resource";
 import { Vector2 } from "./Vector2";
+import { events } from "./Events";
 // Interface.js - Base interface class for UI screens
 export class MenuInterface extends GameObject {
     constructor({ position, width, height }) {
@@ -24,10 +25,12 @@ export class MenuInterface extends GameObject {
 
     open() {
         this.isOpen = true;
+        events.emit("MENU_OPEN");
     }
 
     close() {
         this.isOpen = false;
+        events.emit("MENU_CLOSE");
     }
 
     step(delta, root) {

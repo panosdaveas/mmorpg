@@ -27,7 +27,7 @@ export class MenuItem {
 
         if (isSelected) {
             ctx.fillStyle = "#FFD700";
-            ctx.fillText("►", this.x - tileSize * 0.5, textY);
+            ctx.fillText("►", this.x, textY);
             ctx.fillStyle = "#FFF";
         } else {
             ctx.fillStyle = this.isHovered ? "#FFF" : "#CCC";

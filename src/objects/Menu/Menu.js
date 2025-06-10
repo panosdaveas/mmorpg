@@ -4,6 +4,7 @@ import { Vector2 } from "../../Vector2";
 import { Sprite } from "../../Sprite";
 import { events } from "../../Events";
 import { resources } from "../../Resource";
+import { MenuItem } from "./MenuItem";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from "../../constants/worldConstants";
 // Menu.js - Main menu class
 export class Menu extends GameObject {
@@ -42,6 +43,50 @@ export class Menu extends GameObject {
       // Mouse tracking
       this.mouseX = 0;
       this.mouseY = 0;
+
+      const itemHeight = this.tileSize * 1.5;
+      const startY = this.menuY + this.tileSize;
+
+      this.menuItems = [
+        new MenuItem({
+          label: "PROFILE",
+          x: this.menuX + this.tileSize,
+          y: startY + itemHeight * 0,
+          width: this.menuWidth - this.tileSize * 3,
+          height: itemHeight,
+          onClick: () => console.log("Profile selected - not implemented yet")
+        }),
+        new MenuItem({
+          label: "PLAYERS",
+          x: this.menuX + this.tileSize,
+          y: startY + itemHeight * 1,
+          width: this.menuWidth - this.tileSize * 3,
+          height: itemHeight,
+          onClick: () => {
+            this.hide();
+            this.interfaces.players.open();
+          }
+        }),
+        new MenuItem({
+          label: "OPTIONS",
+          x: this.menuX + this.tileSize,
+          y: startY + itemHeight * 2,
+          width: this.menuWidth - this.tileSize * 3,
+          height: itemHeight,
+          onClick: () => console.log("Options selected - not implemented yet")
+        }),
+        new MenuItem({
+          label: "EXIT",
+          x: this.menuX + this.tileSize,
+          y: startY + itemHeight * 3,
+          width: this.menuWidth - this.tileSize * 3,
+          height: itemHeight,
+          onClick: () => {
+            console.log("Exit selected");
+            this.hide();
+          }
+        })
+      ];
       
       // Add mouse event listeners
       this.setupMouseListeners();
@@ -69,41 +114,20 @@ export class Menu extends GameObject {
       });
     }
     
-    checkMouseHover() {
-      const itemHeight = this.tileSize * 1.5;
-      const startY = this.menuY + this.tileSize * 1.5;
-      
-      for (let i = 0; i < this.menuItems.length; i++) {
-        const itemY = startY + (i * itemHeight);
-        const itemX = this.menuX + this.tileSize;
-        
-          if (this.mouseX >= itemX &&
-              this.mouseX <= itemX + this.menuWidth - this.tileSize &&
-              this.mouseY >= itemY - this.tileSize / 2 &&
-              this.mouseY <= itemY + this.tileSize / 2) {
-          this.selectedIndex = i;
-          break;
-        }
+  checkMouseHover() {
+    this.menuItems.forEach((item, index) => {
+      item.isHovered = item.contains(this.mouseX, this.mouseY);
+      if (item.isHovered) {
+        this.selectedIndex = index;
       }
+    });
+  }
+
+  handleMouseClick() {
+    const item = this.menuItems[this.selectedIndex];
+    if (item && item.contains(this.mouseX, this.mouseY)) {
+      item.onClick();
     }
-    
-    handleMouseClick() {
-      // Check if click is on a menu item
-      const itemHeight = this.tileSize * 1.5;
-      const startY = this.menuY + this.tileSize * 1.5;
-      
-      for (let i = 0; i < this.menuItems.length; i++) {
-        const itemY = startY + (i * itemHeight);
-        const itemX = this.menuX + this.tileSize;
-        
-        if (this.mouseX >= itemX && 
-            this.mouseX <= itemX + this.menuWidth - this.tileSize * 2 &&
-            this.mouseY >= itemY - this.tileSize / 2 && 
-            this.mouseY <= itemY + this.tileSize / 2) {
-          this.selectMenuItem();
-          break;
-        }
-      }
     }
     
   show() {
@@ -199,26 +223,8 @@ export class Menu extends GameObject {
       // Draw menu items
       ctx.font = "12px fontRetroGaming";
       
-      const itemHeight = this.tileSize * 1.5;
-      const startY = this.menuY + this.tileSize * 1.5;
-      
       this.menuItems.forEach((item, index) => {
-        const itemY = startY + (index * itemHeight);
-        const itemX = this.menuX + this.tileSize * 2;
-        
-        // Highlight selected item
-        if (index === this.selectedIndex) {
-          // Draw selection indicator
-          ctx.fillStyle = "#FFD700";
-          ctx.fillText("►", this.menuX + this.tileSize, itemY);
-          
-          ctx.fillStyle = "#FFF";
-        } else {
-          ctx.fillStyle = "#CCC";
-        }
-        
-        // Draw menu text
-        ctx.fillText(item, itemX, itemY);
+        item.draw(ctx, index === this.selectedIndex, this.tileSize);
       });
       
       // Restore context state

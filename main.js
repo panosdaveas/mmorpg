@@ -7,6 +7,8 @@ import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
 import { Menu } from './src/objects/Menu/Menu.js';
+import { UIManager } from './src/objects/Menu/UIManager.js';
+import { PlayersInterface } from './src/objects/InterfaceObjects/PlayersInterface.js';
 
 // Add this to main.js for pixel-perfect scaling
 // 16:9 Cover behavior - fills window, maintains aspect ratio, crops if needed
@@ -66,13 +68,21 @@ const mainScene = new Main({
   position: new Vector2(0, 0)
 })
 
+// const uiManager = new UIManager(canvas);
+// const menu = new Menu({x: 100, y: 100, width: 120, interfaces: []});
+// // const menu = new Menu({x: 100, y: 100, width: 120, interfaces: [new PlayersInterface(multiplayerManager)]});
+// uiManager.register(menu);
+// mainScene.addChild(uiManager);
+// uiManager.register(menu)
+
+
 const menu = new Menu({
   multiplayerManager
 });
 
-// mainScene.children.push(menu);
+mainScene.children.push(menu);
 // mainScene.addChild(menu);
-mainScene.setMenu(menu);
+// mainScene.setMenu(menu);
 
 // Set up the level with multiplayer support
 const mainMap = new MainMap({

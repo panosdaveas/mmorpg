@@ -5,6 +5,7 @@ import {Inventory} from "../Inventory/Inventory.js";
 import {events} from "../../Events.js";
 import {SpriteTextString} from "../SpriteTextString/SpriteTextString.js";
 import {storyFlags} from "../../StoryFlags.js";
+import { UIManager } from "../Menu/UIManager.js";
 import { Menu } from "../Menu/Menu.js";
 
 export class Main extends GameObject {

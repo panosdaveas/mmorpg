@@ -15,6 +15,7 @@ export class Main extends GameObject {
     this.input = new Input()
     this.camera = new Camera()
     this.menu = null; 
+    this.uiManager = null;
   }
 
   ready() {

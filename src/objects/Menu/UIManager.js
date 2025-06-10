@@ -1,3 +1,4 @@
+import { events } from "../../Events";
 // UIManager.js
 export class UIManager {
     constructor(canvas) {
@@ -6,6 +7,8 @@ export class UIManager {
         this.ctx = canvas.getContext("2d");
         this.mouseX = 0;
         this.mouseY = 0;
+        // this.isVisible = false;
+        this.drawLayer = "HUD"; // Default draw layer
 
         // Bind events to canvas
         this.canvas.addEventListener("mousemove", this.handleMouseMove.bind(this));
@@ -40,6 +43,21 @@ export class UIManager {
             }
         }
     }
+
+    show() {
+        this.isVisible = true;
+        this.selectedIndex = 0;
+        events.emit("MENU_OPEN");
+
+        //TODO Hide remote players
+    }
+
+    hide() {
+        this.isVisible = false;
+        events.emit("MENU_CLOSE");
+
+    // Show remote players again
+      }
 
     handleMouseMove(e) {
         const rect = this.canvas.getBoundingClientRect();

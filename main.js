@@ -47,7 +47,7 @@ function setupGame16x9Cover() {
 const canvas = document.querySelector("#game-canvas");
 
 // Add this after your canvas is created
-setupGame16x9Cover();
+// setupGame16x9Cover();
 
 const ctx = canvas.getContext("2d");
 
@@ -70,7 +70,8 @@ const menu = new Menu({
   multiplayerManager: multiplayerManager
 });
 
-mainScene.children.push(menu);
+mainScene.setMenu(menu);
+// mainScene.children.push(menu);
 // mainScene.addChild(menu);
 
 // Set up the level with multiplayer support

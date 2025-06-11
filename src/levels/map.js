@@ -31,35 +31,14 @@ export class MainMap extends Level {
     const rod = new Rod(gridCells(29), gridCells(16))
     this.addChild(rod);
 
-    // FIXED: Better position handling
+    // Store player setup info (don't set position here)
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
     this.localPlayer = params.hero;
     this.multiplayerManager = params.multiplayerManager;
+    this.setLocalPlayer(this.localPlayer);
 
-    console.log('MainMap - Setting player position to:', this.heroStartPosition);
-
-    // FIXED: Set position immediately and ensure it sticks
     if (this.localPlayer) {
-      // Stop any current movement or interpolation  
-      this.localPlayer.isSolid = true;
-
-      // Set position directly
-      this.localPlayer.position.x = this.heroStartPosition.x;
-      this.localPlayer.position.y = this.heroStartPosition.y;
-
-      // Reset destination position to prevent interpolated movement
-      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
-
-      // If your player has a setPosition method, use it
-      if (typeof this.localPlayer.setPosition === 'function') {
-        this.localPlayer.setPosition(this.heroStartPosition.x, this.heroStartPosition.y);
-      }
-
-      console.log('Room1 - Player position set to:', this.localPlayer.position);
-
-      // Add to scene graph and set as local player
       this.addChild(this.localPlayer);
-      this.setLocalPlayer(this.localPlayer);
     }
 
     // FIXED: Create exit with different coordinates to avoid conflicts
@@ -177,26 +156,7 @@ export class MainMap extends Level {
   async ready() {
     await super.ready();
 
-    // FIXED: Ensure player position is set after level is ready
-    if (this.localPlayer && this.heroStartPosition) {
-      console.log('Level ready - Setting position:', this.heroStartPosition);
-
-      // 🚨 CRITICAL: Reset movement state
-      this.localPlayer.position.x = this.heroStartPosition.x;
-      this.localPlayer.position.y = this.heroStartPosition.y;
-
-      // Reset destination position to prevent interpolated movement
-      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
-
-      // Lock player briefly to prevent immediate movement
-      this.localPlayer.isLocked = true;
-      setTimeout(() => {
-        this.localPlayer.isLocked = false;
-      }, 100); // Brief 100ms lock
-
-      // Force position update event
-      events.emit("HERO_POSITION", this.localPlayer.position);
-    }
+    this.setPlayerPosition();
 
     // FIXED: Clean event binding to prevent conflicts
     events.off("HERO_EXITS", this); // Remove any existing listeners

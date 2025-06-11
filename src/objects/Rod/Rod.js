@@ -31,8 +31,6 @@ export class Rod extends GameObject {
 
   onCollideWithHero() {
 
-    // Remove this instance from the scene
-    this.destroy();
 
     // Alert other things that we picked up a rod
     events.emit("HERO_PICKS_UP_ITEM", {
@@ -40,6 +38,8 @@ export class Rod extends GameObject {
       image: resources.images.rod,
       position: this.position
     })
+    // Remove this instance from the scene
+    this.destroy();
   }
 
 }

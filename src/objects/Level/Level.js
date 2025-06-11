@@ -233,10 +233,6 @@ export class Level extends GameObject {
     events.off("CHANGE_LEVEL", this);
     events.off("HERO_EXITS", this);
 
-    // Clear local player reference but don't destroy the player object
-    // since it will be passed to the next level
-    // this.localPlayer = null;
-
     // Call parent cleanup
     super.cleanup && super.cleanup();
   }
@@ -296,4 +292,35 @@ export class Level extends GameObject {
     const key = `${tileX},${tileY}`;
     return this.actions.get(key);
   }
+
+  // Extract position-setting logic into reusable method
+  setPlayerPosition() {
+    if (this.localPlayer && this.heroStartPosition) {
+      console.log('Setting player position:', this.heroStartPosition);
+
+      // Stop any current movement
+      this.localPlayer.isSolid = true;
+
+      // Set position directly
+      this.localPlayer.position.x = this.heroStartPosition.x;
+      this.localPlayer.position.y = this.heroStartPosition.y;
+
+      // Reset destination position to prevent interpolated movement
+      this.localPlayer.destinationPosition = this.localPlayer.position.duplicate();
+
+      // Use setPosition method if available
+      if (typeof this.localPlayer.setPosition === 'function') {
+        this.localPlayer.setPosition(this.heroStartPosition.x, this.heroStartPosition.y);
+      }
+
+      // Lock player briefly to prevent immediate movement
+      this.localPlayer.isLocked = true;
+      setTimeout(() => {
+        this.localPlayer.isLocked = false;
+      }, 100);
+
+      // Force position update event
+      events.emit("HERO_POSITION", this.localPlayer.position);
+    }
+    }
 }

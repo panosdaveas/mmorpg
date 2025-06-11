@@ -65,10 +65,18 @@ export class GameObject {
 
   // Remove from the tree
   destroy() {
+    // 1. Clean up ALL event listeners for this object FIRST
+    events.unsubscribe(this);
+
+    // 2. Destroy all children
     this.children.forEach(child => {
       child.destroy();
     })
-    this.parent.removeChild(this)
+
+    // 3. Remove from parent
+    if (this.parent) {
+      this.parent.removeChild(this);
+    }
   }
 
   /* Other Game Objects are nestable inside this one */

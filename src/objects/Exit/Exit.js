@@ -26,4 +26,19 @@ export class Exit extends GameObject {
       }
     })
   }
+
+  // 🚨 CRITICAL FIX: Clean up event listeners when destroyed
+  // destroy() {
+  //   // Remove the specific event subscription
+  //   if (this.heroPositionSubscription) {
+  //     events.off(this.heroPositionSubscription);
+  //     this.heroPositionSubscription = null;
+  //   }
+
+  //   // Alternative/backup cleanup - remove ALL events for this object
+  //   events.unsubscribe(this);
+
+  //   // Call parent destroy
+  //   super.destroy();
+  // }
 }

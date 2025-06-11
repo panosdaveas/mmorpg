@@ -1,73 +1,51 @@
-import { events } from "../../Events";
-// UIManager.js
-export class UIManager {
+// UIManager.js - Simplified to work with step() input handling
+import { GameObject } from "../../GameObject.js";
+import { Vector2 } from "../../Vector2.js";
+
+export class UIManager extends GameObject {
     constructor(canvas) {
-        this.components = []; // All registered UI components
+        super({
+            position: new Vector2(0, 0)
+        });
+
         this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
+        this.drawLayer = "HUD";
         this.mouseX = 0;
         this.mouseY = 0;
-        // this.isVisible = false;
-        this.drawLayer = "HUD"; // Default draw layer
 
-        // Bind events to canvas
+        // Only setup mouse events for UI interactions
+        this.setupMouseListeners();
+    }
+
+    setupMouseListeners() {
         this.canvas.addEventListener("mousemove", this.handleMouseMove.bind(this));
         this.canvas.addEventListener("click", this.handleMouseClick.bind(this));
     }
 
-    register(component) {
-        this.components.push(component);
+    // Use addChild to register components (standard GameObject way)
+    registerComponent(component) {
+        this.addChild(component);
+        component.uiManager = this;
+        this.sortComponents();
+        return component;
     }
 
-    unregister(component) {
-        this.components = this.components.filter(c => c !== component);
+    sortComponents() {
+        this.children.sort((a, b) => (a.layer || 0) - (b.layer || 0));
     }
-
-    bringToFront(component) {
-        this.unregister(component);
-        this.register(component);
-    }
-
-    draw() {
-        for (const component of this.components) {
-            if (component.visible !== false && component.draw) {
-                component.draw(this.ctx);
-            }
-        }
-    }
-
-    update(delta, root) {
-        for (const component of this.components) {
-            if (component.visible !== false && component.step) {
-                component.step(delta, root);
-            }
-        }
-    }
-
-    show() {
-        this.isVisible = true;
-        this.selectedIndex = 0;
-        events.emit("MENU_OPEN");
-
-        //TODO Hide remote players
-    }
-
-    hide() {
-        this.isVisible = false;
-        events.emit("MENU_CLOSE");
-
-    // Show remote players again
-      }
 
     handleMouseMove(e) {
         const rect = this.canvas.getBoundingClientRect();
-        this.mouseX = e.clientX - rect.left;
-        this.mouseY = e.clientY - rect.top;
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
 
-        for (let i = this.components.length - 1; i >= 0; i--) {
-            const comp = this.components[i];
-            if (comp.contains?.(this.mouseX, this.mouseY)) {
-                if (comp.onHover) comp.onHover(this.mouseX, this.mouseY);
+        this.mouseX = (e.clientX - rect.left) * scaleX;
+        this.mouseY = (e.clientY - rect.top) * scaleY;
+
+        // Check components in reverse order (front to back)
+        for (let i = this.children.length - 1; i >= 0; i--) {
+            const component = this.children[i];
+            if (component.onMouseMove && component.onMouseMove(this.mouseX, this.mouseY)) {
                 break;
             }
         }
@@ -75,15 +53,22 @@ export class UIManager {
 
     handleMouseClick(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
 
-        for (let i = this.components.length - 1; i >= 0; i--) {
-            const comp = this.components[i];
-            if (comp.contains?.(x, y)) {
-                if (comp.onClick) comp.onClick(x, y);
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        for (let i = this.children.length - 1; i >= 0; i--) {
+            const component = this.children[i];
+            if (component.onMouseClick && component.onMouseClick(x, y)) {
                 break;
             }
         }
     }
-  }
+
+    drawImage(ctx, x, y) {
+        // Background is handled by backdrop sprite child
+        // Menu items are handled by MenuItem children
+    }
+}

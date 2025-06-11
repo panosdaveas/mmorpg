@@ -1,101 +1,188 @@
-// Menu.js (extends UIComponent for UIManager compatibility)
-import { MenuItem } from "./MenuItem.js";
+// UIMenu.js - Menu as UIComponent with step() input handling
 import { UIComponent } from "./UIComponent.js";
-import { TILE_SIZE } from "../../constants/worldConstants.js";
+import { UIMenuItem } from "./UIMenuItem.js";
+import { Sprite } from "../../Sprite.js";
+import { Vector2 } from "../../Vector2.js";
+import { resources } from "../../Resource.js";
+import { events } from "../../Events.js";
+import { CANVAS_WIDTH, TILE_SIZE } from "../../constants/worldConstants.js";
 
-export class Menu extends UIComponent {
-    constructor({ x, y, width, tileSize = TILE_SIZE, interfaces }) {
-        super({ x, y, width, height: tileSize * 8 });
+export class UIMenu extends UIComponent {
+    constructor({ multiplayerManager, interfaces = {} }) {
+        const menuWidth = TILE_SIZE * 10;
+        const menuHeight = TILE_SIZE * 12;
+        const menuX = CANVAS_WIDTH - menuWidth + TILE_SIZE;
+        const menuY = TILE_SIZE;
 
-        this.tileSize = tileSize;
+        super({
+            x: menuX,
+            y: menuY,
+            width: menuWidth,
+            height: menuHeight,
+            layer: 100
+        });
+
+        this.multiplayerManager = multiplayerManager;
         this.interfaces = interfaces;
         this.selectedIndex = 0;
-        this.menuItems = this.createMenuItems();
+        this.visible = false; // Start hidden
+
+        // Create backdrop sprite
+        // this.backdrop = new Sprite({
+        //     resource: resources.images.menuBox,
+        //     frameSize: new Vector2(menuWidth, menuHeight),
+        //     position: new Vector2(0, 0)
+        // });
+
+        // Create menu backdrop sprite
+      
+        this.backdrop = new Sprite({
+            resource: resources.images.menuBox.isLoaded,
+            frameSize: new Vector2(this.menuWidth, this.menuHeight)
+          });
+        this.addChild(this.backdrop);
+
+        this.createMenuItems();
     }
 
     createMenuItems() {
-        const itemHeight = this.tileSize * 1.5;
-        const startY = this.y + this.tileSize * 1.5;
+        const itemHeight = TILE_SIZE * 1.5;
+        const startY = TILE_SIZE * 1.5;
 
-        return [
-            new MenuItem({
+        const menuItems = [
+            {
                 label: "PROFILE",
-                x: this.x + this.tileSize * 2,
-                y: startY + itemHeight * 0,
-                width: this.width - this.tileSize * 3,
-                height: itemHeight,
-                onClick: () => console.log("Profile selected - not implemented yet")
-            }),
-            new MenuItem({
+                onClick: () => console.log("Profile selected")
+            },
+            {
                 label: "PLAYERS",
-                x: this.x + this.tileSize * 2,
-                y: startY + itemHeight * 1,
-                width: this.width - this.tileSize * 3,
-                height: itemHeight,
                 onClick: () => {
-                    this.visible = false;
-                    this.interfaces.players.open();
+                    this.hide();
+                    if (this.interfaces.players) {
+                        this.interfaces.players.show();
+                    }
                 }
-            }),
-            new MenuItem({
+            },
+            {
                 label: "OPTIONS",
-                x: this.x + this.tileSize * 2,
-                y: startY + itemHeight * 2,
-                width: this.width - this.tileSize * 3,
-                height: itemHeight,
-                onClick: () => console.log("Options selected - not implemented yet")
-            }),
-            new MenuItem({
+                onClick: () => console.log("Options selected")
+            },
+            {
                 label: "EXIT",
-                x: this.x + this.tileSize * 2,
-                y: startY + itemHeight * 3,
-                width: this.width - this.tileSize * 3,
-                height: itemHeight,
                 onClick: () => {
                     console.log("Exit selected");
-                    this.visible = false;
+                    this.hide();
                 }
-            })
+            }
         ];
-    }
 
-    draw(ctx) {
-        if (!this.visible) return;
+        menuItems.forEach((item, index) => {
+            const menuItem = new UIMenuItem({
+                label: item.label,
+                x: TILE_SIZE,
+                y: startY + itemHeight * index,
+                width: this.width - TILE_SIZE * 2,
+                height: itemHeight,
+                onClick: item.onClick,
+            });
 
-        ctx.fillStyle = "#222";
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-
-        this.menuItems.forEach((item, index) => {
-            item.draw(ctx, index === this.selectedIndex, this.tileSize);
+            this.addChild(menuItem);
         });
     }
 
+    // Add step function to handle input like the old Menu
     step(delta, root) {
-        // Optional update logic here
-    }
-
-    contains(mouseX, mouseY) {
-        return this.menuItems.some(item => item.contains(mouseX, mouseY));
-    }
-
-    onClick(x, y) {
-        for (let i = 0; i < this.menuItems.length; i++) {
-            const item = this.menuItems[i];
-            if (item.contains(x, y)) {
-                this.selectedIndex = i;
-                item.onClick();
-                break;
+        if (!this.visible || !this.isActive) {
+            // Handle menu toggle when hidden
+            if (root.input.getActionJustPressed("Enter")) {
+                this.show();
             }
+            return;
         }
+
+        // Call parent step
+        super.step(delta, root);
+
+        // Handle menu navigation when visible
+        if (root.input.getActionJustPressed("ArrowUp")) {
+            const menuItems = this.children.filter(c => c instanceof UIMenuItem);
+            this.selectedIndex = (this.selectedIndex - 1 + menuItems.length) % menuItems.length;
+            this.updateSelection();
+        }
+
+        if (root.input.getActionJustPressed("ArrowDown")) {
+            const menuItems = this.children.filter(c => c instanceof UIMenuItem);
+            this.selectedIndex = (this.selectedIndex + 1) % menuItems.length;
+            this.updateSelection();
+        }
+
+        // Select item with Space or Enter
+        if (root.input.getActionJustPressed("Space") ||
+            root.input.getActionJustPressed("Enter")) {
+            this.selectCurrentItem();
+        }
+
+        // Close menu with Escape
+        if (root.input.getActionJustPressed("Escape")) {
+            this.hide();
+        }
+
+        // Update interfaces
+        Object.values(this.interfaces).forEach(interfaceObj => {
+            if (interfaceObj.step) {
+                interfaceObj.step(delta, root);
+            }
+        });
     }
 
-    onHover(x, y) {
-        for (let i = 0; i < this.menuItems.length; i++) {
-            const item = this.menuItems[i];
-            item.isHovered = item.contains(x, y);
-            if (item.isHovered) {
-                this.selectedIndex = i;
+    onMouseMove(x, y) {
+        if (!this.visible || !this.isActive) return false;
+
+        const menuItems = this.children.filter(c => c instanceof UIMenuItem);
+        menuItems.forEach((child, index) => {
+            // Adjust coordinates relative to this component's position
+            const relativeX = x - this.position.x;
+            const relativeY = y - this.position.y;
+            if (child.contains && child.contains(relativeX, relativeY)) {
+                this.selectedIndex = index;
+                this.updateSelection();
             }
+        });
+
+        return this.contains(x, y);
+    }
+
+    show() {
+        super.show();
+        this.selectedIndex = 0;
+        this.updateSelection();
+        events.emit("MENU_OPEN");
+    }
+
+    hide() {
+        super.hide();
+        events.emit("MENU_CLOSE");
+    }
+
+    drawImage(ctx, x, y) {
+        // Background is handled by backdrop sprite child
+        // Menu items are handled by MenuItem children
+    }
+
+    updateSelection() {
+        const menuItems = this.children.filter(c => c instanceof UIMenuItem);
+        menuItems.forEach((child, index) => {
+            if (child.setSelected) {
+                child.setSelected(index === this.selectedIndex);
+            }
+        });
+    }
+
+    selectCurrentItem() {
+        const menuItems = this.children.filter(c => c instanceof UIMenuItem);
+        const selectedItem = menuItems[this.selectedIndex];
+        if (selectedItem && selectedItem.onClick) {
+            selectedItem.onClick();
         }
     }
 }

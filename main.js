@@ -7,6 +7,10 @@ import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
 import { Menu } from './src/objects/Menu/Menu.js';
+import { UIManager } from './src/objects/Menu/UIManager.js';
+import { UIMenu } from './src/objects/Menu/UIMenu.js';
+import { UIPlayersInterface } from './src/objects/Menu/UIPlayersInterface.js';
+
 
 // Add this to main.js for pixel-perfect scaling
 // 16:9 Cover behavior - fills window, maintains aspect ratio, crops if needed
@@ -66,13 +70,28 @@ const mainScene = new Main({
   position: new Vector2(0, 0)
 })
 
-const menu = new Menu({
-  multiplayerManager: multiplayerManager
-});
+// const menu = new Menu({
+//   multiplayerManager: multiplayerManager
+// });
 
-mainScene.setMenu(menu);
+// mainScene.setMenu(menu);
+// mainScene.setMenu(menu);
 // mainScene.children.push(menu);
 // mainScene.addChild(menu);
+
+const uiManager = new UIManager(canvas);
+
+const playersInterface = new UIPlayersInterface({ multiplayerManager });
+uiManager.registerComponent(playersInterface);
+
+const menu = new UIMenu({
+  multiplayerManager,
+  interfaces: { players: playersInterface }
+});
+uiManager.registerComponent(menu);
+
+// Add UIManager to your scene (it's a GameObject now)
+mainScene.addChild(uiManager);
 
 // Set up the level with multiplayer support
 const mainMap = new MainMap({
@@ -89,6 +108,16 @@ multiplayerManager.setLevel(mainMap);
 const update = (delta) => {
   mainScene.stepEntry(delta, mainScene);
   mainScene.input?.update();
+
+  // Toggle menu with Enter key
+  if (mainScene.input.getActionJustPressed("Enter")) {
+    if (menu.visible) {
+      menu.hide();
+    } else {
+      menu.show();
+    }
+    }
+
   const level = mainScene.level;
   if (level?.update) {
     level.update(delta);
@@ -96,6 +125,7 @@ const update = (delta) => {
 
   // Update remote players through multiplayer manager
   multiplayerManager.updateRemotePlayers(delta);
+
 };
 
 const draw = () => {
@@ -133,6 +163,7 @@ const draw = () => {
   ctx.restore();
 
   // 5. Draw HUD/UI
+  uiManager.draw();
   mainScene.drawForeground(ctx);
 }
 
@@ -143,7 +174,7 @@ window.addEventListener('beforeunload', () => {
 
 // ✅ Wait for the map to fully load before starting game loop
 (async () => {
-  const level = mainScene.level;
+  const level = mainScene?.level;
   await level.ready();
   // await mainMap.ready();              // Wait for map tiles & tilesets to load
 

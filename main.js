@@ -104,6 +104,7 @@ const menu = new UIMenu({
 uiManager.registerComponent(menu);
 
 // Add UIManager to your scene (it's a GameObject now)
+// mainScene.addChild(uiManager);
 mainScene.setUIManager(uiManager);
 
 // Establish update and draw loops

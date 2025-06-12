@@ -4,7 +4,7 @@ import { Vector2 } from "../../Vector2.js";
 import { resources } from "../../Resource.js";
 import { events } from "../../Events.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../../constants/worldConstants.js";
-// UIProfileInterface.jms - Fullscreen player profile interface
+
 export class UIProfileInterface extends UIComponent {
     constructor({ hero }) {
         super({
@@ -15,7 +15,6 @@ export class UIProfileInterface extends UIComponent {
             layer: 300 // Higher than other interfaces
         });
 
-        this.hero = hero;
         this.tileSize = 16;
         this.visible = false; // Start hidden
 
@@ -25,7 +24,7 @@ export class UIProfileInterface extends UIComponent {
             frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT),
             position: new Vector2(0, 0)
         });
-
+        this.hero = hero; // Store the hero for player info
     }
 
     // Use step() for input handling like the old system
@@ -44,27 +43,18 @@ export class UIProfileInterface extends UIComponent {
         }
     }
 
-    getPlayerInfo(root) {
-        // Get the local player from the main scene
-        const localPlayer = root?.level?.localPlayer || root?.level?.children?.find(child =>
-            child.constructor.name === 'Hero' && !child.isRemote
-        );
+    getPlayerInfo() {
 
-        if (!localPlayer) {
-            return {
-                id: "Unknown",
-                attributes: {},
-                currentLevel: "Unknown",
-                walletAddress: "Not connected"
-            };
-        }
+        const id = this.hero.getAttribute("id") || "Local Player";
+        const currentLevel = this.hero.getAttribute("currentLevel") || "Unknown";
+        const walletAddress = this.hero.getAttribute("address") || "Not connected";
 
         return {
-            id: localPlayer.getAttribute("id") || "Local Player",
-            attributes: localPlayer.getAttributesAsObject(),
-            currentLevel: localPlayer.currentLevelName || root?.level?.levelName || "Unknown",
-            walletAddress: localPlayer.wallet?.address || "Not connected"
+            id: id,
+            currentLevel: currentLevel,
+            walletAddress: walletAddress
         };
+
     }
 
     onMouseClick(x, y) {
@@ -76,7 +66,6 @@ export class UIProfileInterface extends UIComponent {
     draw(ctx, x, y) {
         // Safety check for context
         if (!ctx || !this.visible) return;
-        const playerInfo = this.getPlayerInfo(ctx.root);
 
         // Calculate absolute position (fullscreen, so just use passed coordinates)
         const absX = x;
@@ -110,6 +99,7 @@ export class UIProfileInterface extends UIComponent {
         ctx.fillText("PLAYER PROFILE", titleX, titleY);
 
         // Get player info (we need access to root/scene)
+        // const playerInfo = this.getPlayerInfo(this.parent?.parent);
         // For now, we'll use placeholder data
         ctx.font = "12px fontRetroGaming";
         ctx.fillStyle = "#FFF";
@@ -117,6 +107,8 @@ export class UIProfileInterface extends UIComponent {
         let currentY = titleY + this.tileSize * 2;
         const lineHeight = this.tileSize * 1.5;
         const infoX = titleX;
+
+        const playerInfo = this.getPlayerInfo();
 
         // Player ID
         ctx.fillText("Player ID:", infoX, currentY);
@@ -128,23 +120,15 @@ export class UIProfileInterface extends UIComponent {
         ctx.fillStyle = "#FFF";
         ctx.fillText("Current Level:", infoX, currentY);
         ctx.fillStyle = "#CCC";
-        ctx.fillText("Unknown", infoX + 120, currentY);
+        ctx.fillText(playerInfo.currentLevel, infoX + 120, currentY);
         currentY += lineHeight;
 
         // Wallet Address
         ctx.fillStyle = "#FFF";
         ctx.fillText("Wallet:", infoX, currentY);
         ctx.fillStyle = "#CCC";
-        ctx.fillText("Not connected", infoX + 120, currentY);
+        ctx.fillText(playerInfo.walletAddress, infoX + 120, currentY);
         currentY += lineHeight * 2;
-
-        // Attributes section
-        ctx.fillStyle = "#FFD700";
-        ctx.fillText("ATTRIBUTES:", infoX, currentY);
-        currentY += lineHeight;
-
-        ctx.fillStyle = "#CCC";
-        ctx.fillText("No attributes found", infoX, currentY);
 
         // Close hint
         ctx.fillStyle = "#666";

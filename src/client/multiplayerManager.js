@@ -113,6 +113,7 @@ export class MultiplayerManager {
 
             // Send initial data if we have a level and player ready
             if (this.currentLevel && this.currentLevel.localPlayer) {
+                this.currentLevel.localPlayer.addAttribute("id", this.mySocketId);
                 this.sendInitialPlayerData(this.currentLevel.localPlayer);
             }
         });

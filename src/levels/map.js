@@ -1,18 +1,13 @@
 import { Level } from "../objects/Level/Level.js";
-import { Sprite } from "../Sprite.js";
 import { Vector2 } from "../Vector2.js";
 import { Exit } from "../objects/Exit/Exit.js";
 import { gridCells } from "../helpers/grid.js";
-import { Hero } from "../objects/Hero/Hero.js";
 import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
 import { Room1 } from "./room1.js";
-import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants/worldConstants.js";
+import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/map.json';
 import { Npc } from "../objects/Npc/Npc.js";
-import { TradeModal } from "../objects/TradeModal/TradeModal.js";
-import { Input } from "../Input.js";
-import { TextBox } from "../objects/TextBox/TextBox.js";
 
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
@@ -64,7 +59,7 @@ export class MainMap extends Level {
     const npc2 = new Npc(gridCells(31), gridCells(20), {
       content: [
         {
-          string: "What a wonderful day at work in the block! I'm very pleased to meet you! this text should take a while to show up, taking up more thaatn 3 lines!",
+          string: "What a wonderful day at work in the block! I'm very pleased to meet you! this text should take a while to show up, taking up more than 3 lines!",
           // string: "WHAT A WONDERFUL DAY AT WORK IN THE CAVE!",
           requires: [],
         }
@@ -157,6 +152,7 @@ export class MainMap extends Level {
     await super.ready();
 
     this.setPlayerPosition();
+    // this.localPlayer.addAttribute("id", debugInfo.socketId);
 
     // FIXED: Clean event binding to prevent conflicts
     events.off("HERO_EXITS", this); // Remove any existing listeners
@@ -180,8 +176,6 @@ export class MainMap extends Level {
     });
 
     this.updateDebugText();
-    // console.log("CHILDREN", this.children);
-    // console.log("LOCAL PLAYER", this.localPlayer);
   }
 
   cleanup() {

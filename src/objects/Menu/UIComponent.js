@@ -1,9 +1,10 @@
 // UIComponent.js - Base class for UI components
 import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../../constants/worldConstants.js";
 
 export class UIComponent extends GameObject {
-  constructor({ x = 0, y = 0, width = 100, height = 100, layer = 0 }) {
+  constructor({ x = 0, y = 0, width = CANVAS_WIDTH, height = CANVAS_HEIGHT, layer = 0 }) {
     super({
       position: new Vector2(x, y)
     });

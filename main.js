@@ -10,6 +10,7 @@ import { Menu } from './src/objects/Menu/Menu.js';
 import { UIManager } from './src/objects/Menu/UIManager.js';
 import { UIMenu } from './src/objects/Menu/UIMenu.js';
 import { UIPlayersInterface } from './src/objects/Menu/UIPlayersInterface.js';
+import { UIProfileInterface } from './src/objects/Menu/UIProfileInterface.js';
 
 
 // Add this to main.js for pixel-perfect scaling
@@ -92,11 +93,13 @@ multiplayerManager.setLevel(mainMap);
 const uiManager = new UIManager(canvas);
 
 const playersInterface = new UIPlayersInterface({ multiplayerManager });
+const profileInterface = new UIProfileInterface({ hero });
 uiManager.registerComponent(playersInterface);
+uiManager.registerComponent(profileInterface);
 
 const menu = new UIMenu({
   multiplayerManager,
-  interfaces: { players: playersInterface }
+  interfaces: { players: playersInterface, profile: profileInterface }
 });
 uiManager.registerComponent(menu);
 

@@ -44,7 +44,13 @@ export class UIMenu extends UIComponent {
         const menuItemData = [
             {
                 label: "PROFILE",
-                onClick: () => console.log("Profile selected")
+                onClick: () => {
+                    this.hide();
+                    if (this.interfaces.profile) {
+                        this.interfaces.profile.show();
+                    }
+                }
+                // onClick: () => console.log("Profile selected")
             },
             {
                 label: "PLAYERS",

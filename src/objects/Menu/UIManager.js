@@ -1,4 +1,5 @@
 // UIManager.js - Simplified to work with step() input handling
+import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
 
@@ -65,10 +66,5 @@ export class UIManager extends GameObject {
                 break;
             }
         }
-    }
-
-    drawImage(ctx, x, y) {
-        // Background is handled by backdrop sprite child
-        // Menu items are handled by MenuItem children
     }
 }

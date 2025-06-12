@@ -1,4 +1,6 @@
+// MenuItem.js - Updated to work with new system
 import { UIComponent } from "./UIComponent.js";
+import { TILE_SIZE } from "../../constants/worldConstants.js";
 
 export class UIMenuItem extends UIComponent {
     constructor({ label, x, y, width, height, onClick }) {
@@ -8,7 +10,7 @@ export class UIMenuItem extends UIComponent {
         this.onClick = onClick;
         this.isSelected = false;
         this.isHovered = false;
-        this.tileSize = 16;
+        this.tileSize = TILE_SIZE;
     }
 
     setSelected(selected) {

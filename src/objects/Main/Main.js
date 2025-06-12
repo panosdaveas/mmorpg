@@ -5,8 +5,6 @@ import {Inventory} from "../Inventory/Inventory.js";
 import {events} from "../../Events.js";
 import {SpriteTextString} from "../SpriteTextString/SpriteTextString.js";
 import {storyFlags} from "../../StoryFlags.js";
-import { UIManager } from "../Menu/UIManager.js";
-import { Menu } from "../Menu/Menu.js";
 
 export class Main extends GameObject {
   constructor() {
@@ -80,6 +78,23 @@ export class Main extends GameObject {
     if (this.input) {
       this.input.reset();
       console.log('Input reset during menu change');
+    }
+  }
+
+  setUIManager(uiManagerInstance) {
+    // Clean up old UIManager
+    if (this.uiManager) {
+      this.uiManager.destroy();
+    }
+
+    // Set new UIManager
+    this.uiManager = uiManagerInstance;
+    this.addChild(this.uiManager);
+
+    // Reset input state when changing UI managers
+    if (this.input) {
+      this.input.reset();
+      console.log('Input reset during UI manager change');
     }
   }
 

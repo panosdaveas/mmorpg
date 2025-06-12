@@ -1,4 +1,4 @@
-// UIPlayersInterface.js - With step() input handling
+// UIPlayersInterface.js - With step() input handling and custom draw method
 import { UIComponent } from "./UIComponent.js";
 import { Sprite } from "../../Sprite.js";
 import { Vector2 } from "../../Vector2.js";
@@ -28,13 +28,12 @@ export class UIPlayersInterface extends UIComponent {
         this.tileSize = tileSize;
         this.visible = false; // Start hidden
 
-        // Create backdrop sprite
+        // Create backdrop sprite (don't add as child, draw manually)
         this.backdrop = new Sprite({
             resource: resources.images.interfaceBox,
             frameSize: new Vector2(interfaceWidth, interfaceHeight),
             position: new Vector2(0, 0)
         });
-        this.addChild(this.backdrop);
     }
 
     // Use step() for input handling like the old system
@@ -72,34 +71,68 @@ export class UIPlayersInterface extends UIComponent {
         return Object.entries(playersObj).map(([id, player]) => ({ id, ...player }));
     }
 
-    drawImage(ctx, x, y) {
+    // Override draw method completely like the original PlayersInterface
+    draw(ctx, x, y) {
         if (!this.visible) return;
 
-        // Draw title
+        // Draw backdrop first
+        this.backdrop.draw(ctx, this.position.x, this.position.y);
+
+        // Draw title and content
         ctx.save();
         ctx.font = "12px fontRetroGaming";
         ctx.fillStyle = "#FFF";
-        ctx.fillText("Connected Players", x + this.tileSize, y + this.tileSize * 2);
+        ctx.fillText("Connected Players", this.position.x + this.tileSize, this.position.y + this.tileSize * 2);
 
         // Draw players list
         const players = this.getPlayersList();
         const startY = this.tileSize * 3;
         ctx.fillStyle = "#333";
 
+        // Create clipping region for scrollable area
+        ctx.beginPath();
+        ctx.rect(this.position.x + this.tileSize, this.position.y + startY, this.width - this.tileSize * 2, this.tileSize * 10);
+        ctx.clip();
+
+        // Draw players
         const visiblePlayers = players.slice(this.scrollOffset, this.scrollOffset + this.maxVisiblePlayers);
         visiblePlayers.forEach((player, index) => {
             const playerY = startY + (index * this.tileSize * 1.5);
             const playerX = this.tileSize * 2;
 
-            ctx.fillText(`ID: ${player.id}`, x + playerX, y + playerY);
-            ctx.fillText(`Address: N/A`, x + playerX, y + playerY + this.tileSize);
+            ctx.fillText(`ID: ${player.id}`, this.position.x + playerX, this.position.y + playerY);
+            ctx.fillText(`Address: N/A`, this.position.x + playerX, this.position.y + playerY + this.tileSize);
         });
 
-        // Draw close hint
-        ctx.fillStyle = "#666";
-        ctx.fillText("Press ESC to close", x + this.tileSize, y + this.height - this.tileSize * 2);
-
         ctx.restore();
+
+        // Draw scroll indicators if needed
+        if (players.length > this.maxVisiblePlayers) {
+            ctx.save();
+            ctx.font = "12px fontRetroGaming";
+            ctx.fillStyle = "#666";
+
+            if (this.scrollOffset > 0) {
+                ctx.fillText("▲", this.position.x + this.width - this.tileSize * 2, this.position.y + startY);
+            }
+            if (this.scrollOffset < players.length - this.maxVisiblePlayers) {
+                ctx.fillText("▼", this.position.x + this.width - this.tileSize * 2, this.position.y + startY + this.tileSize * 9);
+            }
+
+            ctx.restore();
+        }
+
+        // Draw close hint
+        ctx.save();
+        ctx.font = "12px fontRetroGaming";
+        ctx.fillStyle = "#666";
+        ctx.fillText("Press ESC to close", this.position.x + this.tileSize, this.position.y + this.height - this.tileSize * 2);
+        ctx.restore();
+    }
+
+    // Don't use drawImage - we override draw completely
+    drawImage(ctx, x, y) {
+        // Not used - draw method handles everything
     }
 
     show() {

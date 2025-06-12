@@ -75,9 +75,19 @@ const mainScene = new Main({
 // });
 
 // mainScene.setMenu(menu);
-// mainScene.setMenu(menu);
-// mainScene.children.push(menu);
-// mainScene.addChild(menu);
+
+
+
+// Set up the level with multiplayer support
+const mainMap = new MainMap({
+  multiplayerManager,
+  hero,
+  heroPosition: DEFAULT_HERO_POSITION
+});
+mainScene.setLevel(mainMap);
+
+// Set the current level in multiplayer manager
+multiplayerManager.setLevel(mainMap);
 
 const uiManager = new UIManager(canvas);
 
@@ -91,18 +101,7 @@ const menu = new UIMenu({
 uiManager.registerComponent(menu);
 
 // Add UIManager to your scene (it's a GameObject now)
-mainScene.addChild(uiManager);
-
-// Set up the level with multiplayer support
-const mainMap = new MainMap({
-  multiplayerManager,
-  hero,
-  heroPosition: DEFAULT_HERO_POSITION
-});
-mainScene.setLevel(mainMap);
-
-// Set the current level in multiplayer manager
-multiplayerManager.setLevel(mainMap);
+mainScene.setUIManager(uiManager);
 
 // Establish update and draw loops
 const update = (delta) => {
@@ -110,13 +109,6 @@ const update = (delta) => {
   mainScene.input?.update();
 
   // Toggle menu with Enter key
-  if (mainScene.input.getActionJustPressed("Enter")) {
-    if (menu.visible) {
-      menu.hide();
-    } else {
-      menu.show();
-    }
-    }
 
   const level = mainScene.level;
   if (level?.update) {
@@ -163,7 +155,6 @@ const draw = () => {
   ctx.restore();
 
   // 5. Draw HUD/UI
-  uiManager.draw();
   mainScene.drawForeground(ctx);
 }
 

@@ -20,7 +20,7 @@ export class UIProfileInterface extends UIComponent {
 
         // Create fullscreen backdrop sprite
         this.backdrop = new Sprite({
-            resource: resources.images.interfaceBox,
+            resource: resources.images.interface,
             frameSize: new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT),
             position: new Vector2(0, 0)
         });
@@ -83,13 +83,16 @@ export class UIProfileInterface extends UIComponent {
         const panelY = absY + (CANVAS_HEIGHT - panelHeight) / 2;
 
         // Panel background
-        ctx.fillStyle = "#222";
-        ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+        // ctx.fillStyle = "#222";
+        // ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
 
-        // Panel border
-        ctx.strokeStyle = "#666";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+        // // Panel border
+        // ctx.strokeStyle = "#666";
+        // ctx.lineWidth = 2;
+        // ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+
+        // this.backdrop.draw(ctx, panelX, panelY, panelWidth, panelHeight);
+        ctx.drawImage(resources.images.interface.image, panelX, panelY, panelWidth, panelHeight);
 
         // Title
         ctx.font = "16px fontRetroGaming";
@@ -132,7 +135,7 @@ export class UIProfileInterface extends UIComponent {
 
         // Close hint
         ctx.fillStyle = "#666";
-        ctx.fillText("Press ESC to close", panelX + this.tileSize, panelY + panelHeight - this.tileSize * 2);
+        ctx.fillText("Press ESC to close", panelX + this.tileSize*2, panelY + panelHeight - this.tileSize * 2);
 
         ctx.restore();
     }

@@ -26,6 +26,7 @@ class Resources {
       dialogBox: "/sprites/dialogBox.png",
       menuBox: "/sprites/menu-dark.png",
       interfaceBox: "/sprites/menu.png",
+      interface: "/sprites/interface.png",
     };
 
     // A bucket to keep all of our images

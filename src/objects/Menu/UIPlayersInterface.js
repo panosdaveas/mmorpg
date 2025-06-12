@@ -30,7 +30,7 @@ export class UIPlayersInterface extends UIComponent {
 
         // Create backdrop sprite (don't add as child, draw manually)
         this.backdrop = new Sprite({
-            resource: resources.images.interfaceBox,
+            resource: resources.images.interface,
             frameSize: new Vector2(interfaceWidth, interfaceHeight),
             position: new Vector2(0, 0)
         });

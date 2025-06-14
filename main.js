@@ -11,6 +11,7 @@ import { UIManager } from './src/objects/Menu/UIManager.js';
 import { UIMenu } from './src/objects/Menu/UIMenu.js';
 import { UIPlayersInterface } from './src/objects/Menu/UIPlayersInterface.js';
 import { UIProfileInterface } from './src/objects/Menu/UIProfileInterface.js';
+import { TiledUIMenu } from './src/objects/Menu/TiledUIMenu.js';
 
 
 // Add this to main.js for pixel-perfect scaling
@@ -106,6 +107,11 @@ uiManager.registerComponent(menu);
 // Add UIManager to your scene (it's a GameObject now)
 // mainScene.addChild(uiManager);
 mainScene.setUIManager(uiManager);
+
+// Add TiledUIMenu for tiled menu support
+const tiledMenu = new TiledUIMenu({ canvas });
+
+mainScene.addChild(tiledMenu);
 
 // Establish update and draw loops
 const update = (delta) => {

@@ -1,10 +1,10 @@
-// TiledUIMenu.js - A menu system using Tiled JSON exports
+// TiledUIMenu.js - Enhanced with class-based button system
 import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
 import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
-import menuData from "../../levels/json/menu.json"; // Import your Tiled JSON data
+import menuData from "../../levels/json/menu.json";
 
 export class TiledUIMenu extends GameObject {
     constructor({ canvas }) {
@@ -13,13 +13,16 @@ export class TiledUIMenu extends GameObject {
         });
 
         this.canvas = canvas;
-        this.menuData = menuData; // JSON data from Tiled export
+        this.menuData = menuData;
         this.propertyHandler = null;
         this.tilesetImages = new Map();
-        this.interactiveTiles = []; // Array of navigable tiles and objects
+        this.interactiveTiles = [];
+        this.buttonComponents = new Map(); // Store button component groups
         this.selectedTileIndex = 0;
         this.isVisible = true;
         this.drawLayer = "HUD";
+        this.hoveredButtonId = null;
+        this.pressedButtonId = null;
 
         // Action handlers mapping
         this.actionHandlers = {
@@ -29,42 +32,41 @@ export class TiledUIMenu extends GameObject {
             'closeMenu': () => this.hide(),
             'action1': () => console.log("Action 1 triggered!"),
             'action2': () => console.log("Action 2 triggered!"),
-            // Add more handlers as needed
         };
 
         this.init();
     }
 
     async init() {
-        // Initialize property handler (same as Level class)
+        // Initialize property handler
         this.propertyHandler = new TiledPropertyHandler(this.menuData);
 
         // Load tileset images
         this.tilesetImages = await this.propertyHandler.loadTilesetImages(
             this.menuData.tilesets,
-            "../assets/maps/" // UI tilesets folder
+            "../assets/maps/"
         );
 
-        // Parse interactive tiles from the menu data
-        this.parseInteractiveTiles();
+        // Parse class-based interactive components
+        this.parseClassBasedComponents();
 
-        // Setup mouse/keyboard listeners
+        // Setup event listeners
         this.setupEventListeners();
     }
 
-    parseInteractiveTiles() {
+    parseClassBasedComponents() {
         this.interactiveTiles = [];
+        this.buttonComponents = new Map();
 
-        // Find layers that contain interactive elements
         this.menuData.layers.forEach(layer => {
             if (layer.type === "tilelayer") {
                 this.parseTileLayer(layer);
             } else if (layer.type === "objectgroup") {
-                this.parseObjectLayer(layer);
+                this.parseObjectLayerClassBased(layer);
             }
         });
 
-        // Sort by position (top-to-bottom, left-to-right) for logical navigation
+        // Sort interactive tiles for navigation
         this.interactiveTiles.sort((a, b) => {
             if (a.position.y !== b.position.y) {
                 return a.position.y - b.position.y;
@@ -73,6 +75,128 @@ export class TiledUIMenu extends GameObject {
         });
 
         console.log(`Found ${this.interactiveTiles.length} interactive elements`);
+        console.log(`Found ${this.buttonComponents.size} button components`);
+    }
+
+    parseObjectLayerClassBased(layer) {
+        if (!layer.objects) return;
+
+        // Check if this layer has a class property
+        const layerProperties = this.convertPropertiesToObject(layer.properties);
+
+        if (layerProperties.type === 'button' || layer.class === 'Button') {
+            // This is a button component layer
+            this.parseButtonComponent(layer);
+        } else {
+            // Parse as regular objects
+            this.parseRegularObjects(layer);
+        }
+    }
+
+    parseButtonComponent(layer) {
+        const layerProperties = this.convertPropertiesToObject(layer.properties);
+        const buttonId = layer.id || layer.name;
+
+        // Create button component
+        const buttonComponent = {
+            id: buttonId,
+            layerName: layer.name,
+            properties: layerProperties,
+            states: {
+                normal: [],
+                hover: [],
+                pressed: []
+            },
+            currentState: 'normal',
+            bounds: null // Will be calculated from normal state objects
+        };
+
+        // Group objects by their button state
+        layer.objects.forEach(obj => {
+            const objProperties = this.convertPropertiesToObject(obj.properties);
+            const buttonState = this.getButtonStateFromType(obj.type);
+
+            if (buttonState) {
+                const stateObject = {
+                    id: obj.id,
+                    name: obj.name,
+                    gid: obj.gid,
+                    position: { x: obj.x, y: obj.y },
+                    size: { width: obj.width, height: obj.height },
+                    visible: obj.visible,
+                    properties: objProperties,
+                    type: obj.type,
+                    rotation: obj.rotation || 0
+                };
+
+                buttonComponent.states[buttonState].push(stateObject);
+
+                // Calculate bounds from normal state objects (they define the interactive area)
+                if (buttonState === 'normal') {
+                    // Use the same Y coordinate as stored in object (no adjustment for bounds)
+                    // The adjustment only happens during rendering, not for mouse interaction
+                    if (!buttonComponent.bounds) {
+                        buttonComponent.bounds = {
+                            x: obj.x,
+                            y: obj.y,
+                            width: obj.width,
+                            height: obj.height
+                        };
+                    } else {
+                        // Expand bounds to include this object
+                        const left = Math.min(buttonComponent.bounds.x, obj.x);
+                        const top = Math.min(buttonComponent.bounds.y, obj.y);
+                        const right = Math.max(buttonComponent.bounds.x + buttonComponent.bounds.width, obj.x + obj.width);
+                        const bottom = Math.max(buttonComponent.bounds.y + buttonComponent.bounds.height, obj.y + obj.height);
+
+                        buttonComponent.bounds = {
+                            x: left,
+                            y: top,
+                            width: right - left,
+                            height: bottom - top
+                        };
+                    }
+                }
+            }
+        });
+
+        // Add to button components
+        this.buttonComponents.set(buttonId, buttonComponent);
+
+        // Add to interactive tiles for navigation
+        if (buttonComponent.bounds && layerProperties.navigable) {
+            this.interactiveTiles.push({
+                type: 'button_component',
+                buttonId: buttonId,
+                properties: layerProperties,
+                position: { x: buttonComponent.bounds.x, y: buttonComponent.bounds.y },
+                size: { width: buttonComponent.bounds.width, height: buttonComponent.bounds.height },
+                index: this.interactiveTiles.length,
+                layer: layer.name
+            });
+        }
+    }
+
+    parseRegularObjects(layer) {
+        layer.objects.forEach(obj => {
+            const properties = this.convertPropertiesToObject(obj.properties);
+
+            if (properties.navigable || properties.onclick || obj.type === "button") {
+                this.interactiveTiles.push({
+                    type: 'object',
+                    objectId: obj.id,
+                    name: obj.name,
+                    properties,
+                    position: { x: obj.x, y: obj.y },
+                    size: { width: obj.width, height: obj.height },
+                    index: this.interactiveTiles.length,
+                    layer: layer.name,
+                    text: obj.text || null,
+                    objectType: obj.type,
+                    gid: obj.gid
+                });
+            }
+        });
     }
 
     parseTileLayer(layer) {
@@ -82,11 +206,9 @@ export class TiledUIMenu extends GameObject {
             const rawTileId = tileId & 0x1FFFFFFF;
             if (rawTileId === 0) return;
 
-            // Get tile properties
             const properties = this.propertyHandler.tilePropertiesMap.get(rawTileId);
             if (!properties) return;
 
-            // Check if tile is interactive
             if (properties.navigable || properties.onclick || properties.button) {
                 const x = (index % width) * TILE_SIZE;
                 const y = Math.floor(index / width) * TILE_SIZE;
@@ -104,191 +226,257 @@ export class TiledUIMenu extends GameObject {
         });
     }
 
-    parseObjectLayer(layer) {
-        if (!layer.objects) return;
+    getButtonStateFromType(objectType) {
+        if (!objectType) return null;
 
-        layer.objects.forEach(obj => {
-            // Convert Tiled properties format to our format
-            const properties = {};
-            if (obj.properties) {
-                obj.properties.forEach(prop => {
-                    properties[prop.name] = prop.value;
-                });
-            }
+        const lowerType = objectType.toLowerCase();
+        if (lowerType.includes('normal')) return 'normal';
+        if (lowerType.includes('hover')) return 'hover';
+        if (lowerType.includes('pressed') || lowerType.includes('press')) return 'pressed';
 
-            // Check if object is interactive
-            if (properties.navigable || properties.onclick || obj.type === "button") {
-                this.interactiveTiles.push({
-                    type: 'object',
-                    objectId: obj.id,
-                    name: obj.name,
-                    properties,
-                    position: { x: obj.x, y: obj.y },
-                    size: { width: obj.width, height: obj.height },
-                    index: this.interactiveTiles.length,
-                    layer: layer.name,
-                    text: obj.text || null, // Store text data if it exists
-                    objectType: obj.type
-                });
-            }
-        });
+        return null;
+    }
+
+    convertPropertiesToObject(propertiesArray) {
+        const properties = {};
+        if (propertiesArray) {
+            propertiesArray.forEach(prop => {
+                properties[prop.name] = prop.value;
+            });
+        }
+        return properties;
     }
 
     setupEventListeners() {
-        // Mouse events
-        this.canvas.addEventListener("click", (e) => {
-            if (this.isVisible) {
-                this.handleMouseClick(e);
-            }
-        });
+        if (!this.canvas) return;
 
-        this.canvas.addEventListener("mousemove", (e) => {
-            if (this.isVisible) {
-                this.handleMouseMove(e);
-            }
-        });
-    }
+        // Mouse events for hover and click
+        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
 
-    handleMouseClick(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const scaleX = this.canvas.width / rect.width;
-        const scaleY = this.canvas.height / rect.height;
-
-        const clickX = (e.clientX - rect.left) * scaleX;
-        const clickY = (e.clientY - rect.top) * scaleY;
-
-        // Check if click hits any interactive element
-        const clickedElement = this.interactiveTiles.find(element => {
-            return clickX >= element.position.x &&
-                clickX < element.position.x + element.size.width &&
-                clickY >= element.position.y &&
-                clickY < element.position.y + element.size.height;
-        });
-
-        if (clickedElement) {
-            this.executeAction(clickedElement.properties.onclick);
-        }
+        // Keyboard events
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
     }
 
     handleMouseMove(e) {
+        if (!this.isVisible) return;
+
         const rect = this.canvas.getBoundingClientRect();
         const scaleX = this.canvas.width / rect.width;
         const scaleY = this.canvas.height / rect.height;
-
         const mouseX = (e.clientX - rect.left) * scaleX;
         const mouseY = (e.clientY - rect.top) * scaleY;
 
-        // Update selection based on mouse position
-        const hoveredElementIndex = this.interactiveTiles.findIndex(element => {
+        let hoveredButton = null;
+        let hoveredElementIndex = -1;
+
+        // Check button components for hover states
+        for (const [buttonId, component] of this.buttonComponents) {
+            if (this.isPointInBounds(mouseX, mouseY, component.bounds)) {
+                hoveredButton = buttonId;
+                break;
+            }
+        }
+
+        // Find hovered interactive element for selection rectangle
+        hoveredElementIndex = this.interactiveTiles.findIndex(element => {
             return mouseX >= element.position.x &&
                 mouseX < element.position.x + element.size.width &&
                 mouseY >= element.position.y &&
                 mouseY < element.position.y + element.size.height;
         });
 
+        // Update selection index for yellow rectangle
         if (hoveredElementIndex !== -1) {
             this.selectedTileIndex = hoveredElementIndex;
         }
+
+        // Update button hover state
+        if (hoveredButton !== this.hoveredButtonId) {
+            // Clear previous hover
+            if (this.hoveredButtonId) {
+                this.setButtonState(this.hoveredButtonId, 'normal');
+            }
+
+            // Set new hover
+            this.hoveredButtonId = hoveredButton;
+            if (hoveredButton) {
+                this.setButtonState(hoveredButton, 'hover');
+                this.canvas.style.cursor = 'pointer';
+            } else {
+                this.canvas.style.cursor = 'default';
+            }
+        }
     }
 
-    // Keyboard navigation
-    step(delta, root) {
+    handleMouseDown(e) {
+        if (!this.isVisible || !this.hoveredButtonId) return;
+
+        this.pressedButtonId = this.hoveredButtonId;
+        this.setButtonState(this.pressedButtonId, 'pressed');
+    }
+
+    handleMouseUp(e) {
         if (!this.isVisible) return;
 
-        // Arrow key navigation
-        if (root.input.getActionJustPressed("ArrowUp")) {
-            this.navigateUp();
-        }
-        if (root.input.getActionJustPressed("ArrowDown")) {
-            this.navigateDown();
-        }
-        if (root.input.getActionJustPressed("ArrowLeft")) {
-            this.navigateLeft();
-        }
-        if (root.input.getActionJustPressed("ArrowRight")) {
-            this.navigateRight();
-        }
+        if (this.pressedButtonId) {
+            const component = this.buttonComponents.get(this.pressedButtonId);
+            if (component && this.hoveredButtonId === this.pressedButtonId) {
+                // Execute button action
+                if (component.properties.onclick) {
+                    this.executeAction(component.properties.onclick);
+                }
+            }
 
-        // Activate selected tile
-        if (root.input.getActionJustPressed("Space") ||
-            root.input.getActionJustPressed("Enter")) {
-            this.activateSelectedTile();
-        }
-
-        // Close menu
-        if (root.input.getActionJustPressed("Escape")) {
-            this.hide();
+            // Reset to hover state if still hovering, normal otherwise
+            this.setButtonState(this.pressedButtonId, this.hoveredButtonId === this.pressedButtonId ? 'hover' : 'normal');
+            this.pressedButtonId = null;
         }
     }
 
-    navigateUp() {
-        const currentElement = this.interactiveTiles[this.selectedTileIndex];
-        const candidates = this.interactiveTiles.filter(element =>
-            element.position.y < currentElement.position.y &&
-            this.elementsOverlap(element, currentElement, 'horizontal')
-        );
-
-        if (candidates.length > 0) {
-            const closest = candidates.reduce((closest, element) =>
-                Math.abs(element.position.y - currentElement.position.y) <
-                    Math.abs(closest.position.y - currentElement.position.y) ? element : closest
-            );
-            this.selectedTileIndex = closest.index;
+    handleMouseLeave() {
+        if (this.hoveredButtonId) {
+            this.setButtonState(this.hoveredButtonId, 'normal');
+            this.hoveredButtonId = null;
         }
+        if (this.pressedButtonId) {
+            this.setButtonState(this.pressedButtonId, 'normal');
+            this.pressedButtonId = null;
+        }
+        this.canvas.style.cursor = 'default';
+    }
+
+    handleKeyDown(e) {
+        if (!this.isVisible) return;
+
+        switch (e.code) {
+            case 'ArrowUp':
+            case 'KeyW':
+                this.navigateUp();
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+            case 'KeyS':
+                this.navigateDown();
+                e.preventDefault();
+                break;
+            case 'ArrowLeft':
+            case 'KeyA':
+                this.navigateLeft();
+                e.preventDefault();
+                break;
+            case 'ArrowRight':
+            case 'KeyD':
+                this.navigateRight();
+                e.preventDefault();
+                break;
+            case 'Enter':
+            case 'Space':
+                this.activateSelectedTile();
+                e.preventDefault();
+                break;
+        }
+    }
+
+    setButtonState(buttonId, state) {
+        const component = this.buttonComponents.get(buttonId);
+        if (component) {
+            component.currentState = state;
+        }
+    }
+
+    isPointInBounds(x, y, bounds) {
+        return x >= bounds.x && x < bounds.x + bounds.width &&
+            y >= bounds.y && y < bounds.y + bounds.height;
+    }
+
+    // Navigation methods (keeping existing logic)
+    navigateUp() {
+        this.navigate('up');
     }
 
     navigateDown() {
-        const currentElement = this.interactiveTiles[this.selectedTileIndex];
-        const candidates = this.interactiveTiles.filter(element =>
-            element.position.y > currentElement.position.y &&
-            this.elementsOverlap(element, currentElement, 'horizontal')
-        );
-
-        if (candidates.length > 0) {
-            const closest = candidates.reduce((closest, element) =>
-                Math.abs(element.position.y - currentElement.position.y) <
-                    Math.abs(closest.position.y - currentElement.position.y) ? element : closest
-            );
-            this.selectedTileIndex = closest.index;
-        }
+        this.navigate('down');
     }
 
     navigateLeft() {
-        const currentElement = this.interactiveTiles[this.selectedTileIndex];
-        const candidates = this.interactiveTiles.filter(element =>
-            element.position.x < currentElement.position.x &&
-            this.elementsOverlap(element, currentElement, 'vertical')
-        );
-
-        if (candidates.length > 0) {
-            const closest = candidates.reduce((closest, element) =>
-                Math.abs(element.position.x - currentElement.position.x) <
-                    Math.abs(closest.position.x - currentElement.position.x) ? element : closest
-            );
-            this.selectedTileIndex = closest.index;
-        }
+        this.navigate('left');
     }
 
     navigateRight() {
+        this.navigate('right');
+    }
+
+    navigate(direction) {
+        if (this.interactiveTiles.length === 0) return;
+
         const currentElement = this.interactiveTiles[this.selectedTileIndex];
-        const candidates = this.interactiveTiles.filter(element =>
-            element.position.x > currentElement.position.x &&
-            this.elementsOverlap(element, currentElement, 'vertical')
-        );
+        const candidates = this.findNavigationCandidates(currentElement, direction);
 
         if (candidates.length > 0) {
-            const closest = candidates.reduce((closest, element) =>
-                Math.abs(element.position.x - currentElement.position.x) <
-                    Math.abs(closest.position.x - currentElement.position.x) ? element : closest
-            );
-            this.selectedTileIndex = closest.index;
+            this.selectedTileIndex = candidates[0].index;
         }
     }
 
-    // Helper method to check if two elements overlap in a given direction
-    elementsOverlap(element1, element2, direction) {
+    findNavigationCandidates(currentElement, direction) {
+        const candidates = [];
+
+        this.interactiveTiles.forEach((element, index) => {
+            if (index === this.selectedTileIndex) return;
+
+            const isValidDirection = this.isValidNavigationDirection(currentElement, element, direction);
+            if (isValidDirection) {
+                const distance = this.calculateNavigationDistance(currentElement, element, direction);
+                candidates.push({ element, index, distance });
+            }
+        });
+
+        return candidates.sort((a, b) => a.distance - b.distance);
+    }
+
+    isValidNavigationDirection(from, to, direction) {
+        const threshold = 8;
+
+        switch (direction) {
+            case 'up':
+                return to.position.y < from.position.y - threshold &&
+                    this.hasOverlap(from, to, 'horizontal');
+            case 'down':
+                return to.position.y > from.position.y + from.size.height + threshold &&
+                    this.hasOverlap(from, to, 'horizontal');
+            case 'left':
+                return to.position.x < from.position.x - threshold &&
+                    this.hasOverlap(from, to, 'vertical');
+            case 'right':
+                return to.position.x > from.position.x + from.size.width + threshold &&
+                    this.hasOverlap(from, to, 'vertical');
+            default:
+                return false;
+        }
+    }
+
+    calculateNavigationDistance(from, to, direction) {
+        const fromCenterX = from.position.x + from.size.width / 2;
+        const fromCenterY = from.position.y + from.size.height / 2;
+        const toCenterX = to.position.x + to.size.width / 2;
+        const toCenterY = to.position.y + to.size.height / 2;
+
+        switch (direction) {
+            case 'up':
+            case 'down':
+                return Math.abs(fromCenterY - toCenterY) + Math.abs(fromCenterX - toCenterX) * 0.1;
+            case 'left':
+            case 'right':
+                return Math.abs(fromCenterX - toCenterX) + Math.abs(fromCenterY - toCenterY) * 0.1;
+            default:
+                return Infinity;
+        }
+    }
+
+    hasOverlap(element1, element2, direction) {
         if (direction === 'horizontal') {
-            // Check if they overlap horizontally (for up/down navigation)
             const e1Left = element1.position.x;
             const e1Right = element1.position.x + element1.size.width;
             const e2Left = element2.position.x;
@@ -296,7 +484,6 @@ export class TiledUIMenu extends GameObject {
 
             return !(e1Right <= e2Left || e2Right <= e1Left);
         } else if (direction === 'vertical') {
-            // Check if they overlap vertically (for left/right navigation)
             const e1Top = element1.position.y;
             const e1Bottom = element1.position.y + element1.size.height;
             const e2Top = element2.position.y;
@@ -309,7 +496,14 @@ export class TiledUIMenu extends GameObject {
 
     activateSelectedTile() {
         const selectedElement = this.interactiveTiles[this.selectedTileIndex];
-        if (selectedElement && selectedElement.properties.onclick) {
+        if (!selectedElement) return;
+
+        if (selectedElement.type === 'button_component') {
+            const component = this.buttonComponents.get(selectedElement.buttonId);
+            if (component && component.properties.onclick) {
+                this.executeAction(component.properties.onclick);
+            }
+        } else if (selectedElement.properties.onclick) {
             this.executeAction(selectedElement.properties.onclick);
         }
     }
@@ -319,7 +513,6 @@ export class TiledUIMenu extends GameObject {
             this.actionHandlers[actionName]();
         } else {
             console.warn(`No handler found for action: ${actionName}`);
-            // Emit a generic event
             events.emit("UI_ACTION", { action: actionName });
         }
     }
@@ -351,7 +544,7 @@ export class TiledUIMenu extends GameObject {
         events.emit("UI_MENU_CLOSE");
     }
 
-    // Draw the menu (similar to Level drawing)
+    // Enhanced drawing methods
     draw(ctx) {
         if (!this.isVisible) return;
 
@@ -360,8 +553,11 @@ export class TiledUIMenu extends GameObject {
         // Draw background tiles
         this.drawBackground(ctx);
 
-        // Draw objects (buttons, text, etc.)
-        this.drawObjects(ctx);
+        // Draw button components
+        this.drawButtonComponents(ctx);
+
+        // Draw regular objects
+        this.drawRegularObjects(ctx);
 
         // Draw selection highlight
         this.drawSelection(ctx);
@@ -381,7 +577,6 @@ export class TiledUIMenu extends GameObject {
                 const rawTileId = tileId & 0x1FFFFFFF;
                 if (rawTileId === 0) return;
 
-                // Find the correct tileset
                 const tilesetEntry = [...this.tilesetImages.entries()]
                     .reverse()
                     .find(([firstgid]) => rawTileId >= firstgid);
@@ -408,11 +603,81 @@ export class TiledUIMenu extends GameObject {
         });
     }
 
-    drawObjects(ctx) {
+    drawButtonComponents(ctx) {
+        for (const [buttonId, component] of this.buttonComponents) {
+            this.drawButtonComponent(ctx, component);
+        }
+    }
+
+    drawButtonComponent(ctx, component) {
+        // Only draw objects for the current state
+        const stateObjects = component.states[component.currentState];
+
+        if (stateObjects && stateObjects.length > 0) {
+            stateObjects.forEach(obj => {
+                this.drawStateObject(ctx, obj);
+            });
+        } else {
+            // Fallback to normal state if current state has no objects
+            component.states.normal.forEach(obj => {
+                if (obj.visible) {
+                    this.drawStateObject(ctx, obj);
+                }
+            });
+        }
+    }
+
+    drawStateObject(ctx, obj) {
+        if (!obj.gid) return;
+
+        const rawTileId = obj.gid & 0x1FFFFFFF;
+        if (rawTileId === 0) return;
+
+        // Find the correct tileset
+        const tilesetEntry = [...this.tilesetImages.entries()]
+            .reverse()
+            .find(([firstgid]) => rawTileId >= firstgid);
+
+        if (!tilesetEntry) return;
+
+        const [firstgid, { image, tileset }] = tilesetEntry;
+        const localId = rawTileId - firstgid;
+        const columns = tileset.columns;
+
+        const sx = (localId % columns) * TILE_SIZE;
+        const sy = Math.floor(localId / columns) * TILE_SIZE;
+
+        if (!image.complete || image.naturalWidth === 0) return;
+
+        ctx.save();
+
+        // Handle rotation if needed
+        if (obj.rotation && obj.rotation !== 0) {
+            const centerX = obj.position.x + obj.size.width / 2;
+            const centerY = obj.position.y + obj.size.height / 2;
+            ctx.translate(centerX, centerY);
+            ctx.rotate(obj.rotation * Math.PI / 180);
+            ctx.translate(-centerX, -centerY);
+        }
+
+        ctx.drawImage(
+            image,
+            sx, sy, TILE_SIZE, TILE_SIZE,
+            obj.position.x, obj.position.y, obj.size.width, obj.size.height
+        );
+
+        ctx.restore();
+    }
+
+    drawRegularObjects(ctx) {
         if (!this.menuData) return;
 
         this.menuData.layers.forEach(layer => {
             if (layer.type !== "objectgroup" || !layer.objects) return;
+
+            // Skip button component layers
+            const layerProperties = this.convertPropertiesToObject(layer.properties);
+            if (layerProperties.type === 'button' || layer.class === 'Button') return;
 
             layer.objects.forEach(obj => {
                 this.drawObject(ctx, obj);
@@ -421,146 +686,59 @@ export class TiledUIMenu extends GameObject {
     }
 
     drawObject(ctx, obj) {
-        // Draw tile image if object has a gid (tile reference)
         if (obj.gid) {
             this.drawObjectTile(ctx, obj);
-        } else {
-            // Draw object background/border if it's a button and has no tile
-            if (obj.type === "button" || this.isObjectInteractive(obj)) {
-                ctx.save();
-
-                // Draw button background
-                // ctx.fillStyle = "rgba(100, 100, 100, 0.3)";
-                // ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-
-                // Draw button border
-                // ctx.strokeStyle = "#666";
-                // ctx.lineWidth = 1;
-                // ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-
-                ctx.restore();
-            }
         }
 
-        // Draw text objects (overlays on top of tile or background)
         if (obj.text) {
-            ctx.save();
-
-            // Set text properties
-            ctx.font = obj.text.fontsize ? `${obj.text.fontsize}px sans-serif` : "12px sans-serif";
-            ctx.fillStyle = obj.text.color || "#FFFFFF";
-            ctx.textAlign = obj.text.halign || "left";
-
-            // Handle vertical alignment
-            let textY = obj.y;
-            if (obj.text.valign === "center") {
-                textY = obj.y + obj.height / 2;
-                ctx.textBaseline = "middle";
-            } else if (obj.text.valign === "bottom") {
-                textY = obj.y + obj.height;
-                ctx.textBaseline = "bottom";
-            } else {
-                ctx.textBaseline = "top";
-            }
-
-            // Draw text with word wrapping if specified
-            if (obj.text.wrap) {
-                this.drawWrappedText(ctx, obj.text.text, obj.x, textY, obj.width);
-            } else {
-                ctx.fillText(obj.text.text, obj.x, textY);
-            }
-
-            ctx.restore();
+            this.drawTextObject(ctx, obj);
         }
     }
 
     drawObjectTile(ctx, obj) {
-        const gid = obj.gid;
-        const rawTileId = gid & 0x1FFFFFFF; // Remove flip flags
+        const rawTileId = obj.gid & 0x1FFFFFFF;
+        if (rawTileId === 0) return;
 
-        // Find the correct tileset for this gid
         const tilesetEntry = [...this.tilesetImages.entries()]
             .reverse()
             .find(([firstgid]) => rawTileId >= firstgid);
 
-        if (!tilesetEntry) {
-            console.warn(`No tileset found for gid: ${gid}`);
-            return;
-        }
+        if (!tilesetEntry) return;
 
         const [firstgid, { image, tileset }] = tilesetEntry;
         const localId = rawTileId - firstgid;
         const columns = tileset.columns;
 
-        // Calculate source position in tileset
         const sx = (localId % columns) * TILE_SIZE;
         const sy = Math.floor(localId / columns) * TILE_SIZE;
-
-        // Handle flip flags (optional - for advanced use)
-        const flipHorizontal = (gid & 0x80000000) !== 0;
-        const flipVertical = (gid & 0x40000000) !== 0;
-        const flipDiagonal = (gid & 0x20000000) !== 0;
+        const adjustedY = obj.y - obj.height;
 
         if (!image.complete || image.naturalWidth === 0) return;
 
-        const adjustedY = obj.y - obj.height;
+        ctx.drawImage(
+            image,
+            sx, sy, TILE_SIZE, TILE_SIZE,
+            obj.x, adjustedY, obj.width, obj.height
+        );
+    }
 
+    drawTextObject(ctx, obj) {
         ctx.save();
 
-        // Handle flipping if needed
-        if (flipHorizontal || flipVertical || flipDiagonal) {
-            const centerX = obj.x + obj.width / 2;
-            const centerY = adjustedY + obj.height / 2;
+        ctx.font = obj.text.fontsize ?
+            `${obj.text.fontsize}px ${obj.text.fontfamily || 'Arial'}` :
+            '16px Arial';
+        ctx.fillStyle = obj.text.color || '#000000';
+        ctx.textAlign = obj.text.halign || 'left';
+        ctx.textBaseline = 'top';
 
-            ctx.translate(centerX, centerY);
+        const text = obj.text.text || '';
+        const maxWidth = obj.width;
 
-            if (flipDiagonal) {
-                // 90-degree rotation + flip
-                ctx.rotate(Math.PI / 2);
-                ctx.scale(-1, 1);
-            } else {
-                if (flipHorizontal) ctx.scale(-1, 1);
-                if (flipVertical) ctx.scale(1, -1);
-            }
-
-            ctx.translate(-centerX, -centerY);
-        }
-
-        // Draw the tile image using adjusted Y coordinate
-        // Handle different scaling modes
-        if (obj.width === TILE_SIZE && obj.height === TILE_SIZE) {
-            // 1:1 tile size - draw normally
-            ctx.drawImage(
-                image,
-                sx, sy, TILE_SIZE, TILE_SIZE,
-                obj.x, adjustedY, TILE_SIZE, TILE_SIZE
-            );
+        if (obj.text.wrap && maxWidth > 0) {
+            this.drawWrappedText(ctx, text, obj.x, obj.y, maxWidth);
         } else {
-            // Object is larger/smaller than tile - stretch or tile the image
-            if (obj.width % TILE_SIZE === 0 && obj.height % TILE_SIZE === 0) {
-                // Object size is multiple of tile size - tile the image
-                const tilesX = obj.width / TILE_SIZE;
-                const tilesY = obj.height / TILE_SIZE;
-
-                for (let ty = 0; ty < tilesY; ty++) {
-                    for (let tx = 0; tx < tilesX; tx++) {
-                        ctx.drawImage(
-                            image,
-                            sx, sy, TILE_SIZE, TILE_SIZE,
-                            obj.x + (tx * TILE_SIZE),
-                            adjustedY + (ty * TILE_SIZE),
-                            TILE_SIZE, TILE_SIZE
-                        );
-                    }
-                }
-            } else {
-                // Stretch the tile to fit the object
-                ctx.drawImage(
-                    image,
-                    sx, sy, TILE_SIZE, TILE_SIZE,
-                    obj.x, adjustedY, obj.width, obj.height
-                );
-            }
+            ctx.fillText(text, obj.x, obj.y);
         }
 
         ctx.restore();
@@ -586,16 +764,6 @@ export class TiledUIMenu extends GameObject {
             }
         }
         ctx.fillText(line, x, currentY);
-    }
-
-    isObjectInteractive(obj) {
-        if (!obj.properties) return false;
-
-        return obj.properties.some(prop =>
-            prop.name === 'navigable' ||
-            prop.name === 'onclick' ||
-            prop.name === 'button'
-        );
     }
 
     drawSelection(ctx) {

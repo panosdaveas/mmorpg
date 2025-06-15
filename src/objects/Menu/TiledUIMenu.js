@@ -304,9 +304,9 @@ export class TiledUIMenu extends GameObject {
             this.hoveredButtonId = hoveredButton;
             if (hoveredButton) {
                 this.setButtonState(hoveredButton, 'hover');
-                this.canvas.style.cursor = 'pointer';
+                // this.canvas.style.cursor = 'pointer';
             } else {
-                this.canvas.style.cursor = 'default';
+                // this.canvas.style.cursor = 'default';
             }
         }
     }
@@ -345,7 +345,7 @@ export class TiledUIMenu extends GameObject {
             this.setButtonState(this.pressedButtonId, 'normal');
             this.pressedButtonId = null;
         }
-        this.canvas.style.cursor = 'default';
+        // this.canvas.style.cursor = 'default';
     }
 
     handleKeyDown(e) {
@@ -416,7 +416,50 @@ export class TiledUIMenu extends GameObject {
         const candidates = this.findNavigationCandidates(currentElement, direction);
 
         if (candidates.length > 0) {
+            // Get the currently selected element before changing
+            const previousElement = this.interactiveTiles[this.selectedTileIndex];
+
+            // Update the selected index
             this.selectedTileIndex = candidates[0].index;
+
+            // Get the newly selected element
+            const newElement = this.interactiveTiles[this.selectedTileIndex];
+
+            // Update button states similar to mouse hover logic
+            this.updateKeyboardButtonStates(previousElement, newElement);
+        }
+    }
+
+    // Add this new method to handle keyboard button state updates:
+    updateKeyboardButtonStates(previousElement, newElement) {
+        let previousButtonId = null;
+        let newButtonId = null;
+
+        // Get button IDs if elements are button components
+        if (previousElement && previousElement.type === 'button_component') {
+            previousButtonId = previousElement.buttonId;
+        }
+
+        if (newElement && newElement.type === 'button_component') {
+            newButtonId = newElement.buttonId;
+        }
+
+        // Update button states only if we're dealing with different buttons
+        if (previousButtonId !== newButtonId) {
+            // Clear previous button hover state
+            if (previousButtonId && this.hoveredButtonId === previousButtonId) {
+                this.setButtonState(previousButtonId, 'normal');
+                this.hoveredButtonId = null;
+            }
+
+            // Set new button hover state
+            if (newButtonId) {
+                this.hoveredButtonId = newButtonId;
+                this.setButtonState(newButtonId, 'hover');
+                this.canvas.style.cursor = 'pointer';
+            } else {
+                this.canvas.style.cursor = 'default';
+            }
         }
     }
 
@@ -501,7 +544,20 @@ export class TiledUIMenu extends GameObject {
         if (selectedElement.type === 'button_component') {
             const component = this.buttonComponents.get(selectedElement.buttonId);
             if (component && component.properties.onclick) {
+                // Set pressed state temporarily
+                this.pressedButtonId = selectedElement.buttonId;
+                this.setButtonState(selectedElement.buttonId, 'pressed');
+
+                // Execute action
                 this.executeAction(component.properties.onclick);
+
+                // Reset to hover state after a brief delay (similar to mouse click)
+                setTimeout(() => {
+                    if (this.pressedButtonId === selectedElement.buttonId) {
+                        this.setButtonState(selectedElement.buttonId, 'hover');
+                        this.pressedButtonId = null;
+                    }
+                }, 100);
             }
         } else if (selectedElement.properties.onclick) {
             this.executeAction(selectedElement.properties.onclick);

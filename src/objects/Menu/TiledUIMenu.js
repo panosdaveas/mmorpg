@@ -456,9 +456,9 @@ export class TiledUIMenu extends GameObject {
             if (newButtonId) {
                 this.hoveredButtonId = newButtonId;
                 this.setButtonState(newButtonId, 'hover');
-                this.canvas.style.cursor = 'pointer';
+                // this.canvas.style.cursor = 'pointer';
             } else {
-                this.canvas.style.cursor = 'default';
+                // this.canvas.style.cursor = 'default';
             }
         }
     }

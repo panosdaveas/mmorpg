@@ -236,9 +236,6 @@ export class TiledUIMenu extends GameObject {
             });
         }
     }
-    
-    
-    
 
     parseRegularObjects(layer) {
         layer.objects.forEach(obj => {
@@ -370,7 +367,6 @@ export class TiledUIMenu extends GameObject {
             }
         }
     }
-    
 
     handleMouseDown(e) {
         if (!this.isVisible || !this.hoveredButtonId) return;
@@ -694,7 +690,7 @@ export class TiledUIMenu extends GameObject {
         console.log(`Updated ${updatedCount} buttons containing "${pattern}"`);
         return updatedCount;
     }
-    
+
 
     findButtonByText(searchText) {
         for (const [buttonId, component] of this.buttonComponents) {
@@ -796,7 +792,7 @@ export class TiledUIMenu extends GameObject {
     drawButtonComponent(ctx, component) {
         // Only draw objects for the current state
         const stateObjects = component.states[component.currentState];
-    
+
         if (stateObjects && stateObjects.length > 0) {
             stateObjects.forEach(obj => {
                 this.drawStateObject(ctx, obj, component); // ← ADDED component parameter
@@ -888,7 +884,7 @@ export class TiledUIMenu extends GameObject {
         ctx.font = `${fontSize}px ${fontFamily}`;
         ctx.fillStyle = obj.text.color || '#000000';
         ctx.textAlign = obj.text.halign || 'left';
-        
+
         //use ctx opacity to dim text if not hovered
         // if (!this.isTextObjectInHoveredButton(obj.id)) {
         //     ctx.globalAlpha = 0.6;
@@ -924,7 +920,6 @@ export class TiledUIMenu extends GameObject {
 
         ctx.restore();
     }
-    
 
     drawWrappedTextButton(ctx, text, x, y, maxWidth) {
         const words = text.split(' ');
@@ -965,8 +960,6 @@ export class TiledUIMenu extends GameObject {
         return x >= bounds.x && x < bounds.x + bounds.width &&
             y >= bounds.y && y < bounds.y + bounds.height;
     }
-    
-    
 
     drawRegularObjects(ctx) {
         if (!this.menuData) return;
@@ -1024,21 +1017,35 @@ export class TiledUIMenu extends GameObject {
     drawTextObject(ctx, obj) {
         ctx.save();
 
-        ctx.font = obj.text.fontsize ?
-            `${obj.text.fontsize}px ${obj.text.fontfamily || 'Arial'}` :
-            '16px Arial';
+        // Set up font
+        const fontSize = obj.text.pixelsize || obj.text.fontsize || 10;
+        const fontFamily = this.getFontFamily(obj.text.fontfamily) || 'Arial';
+
+        ctx.font = `${fontSize}px ${fontFamily}`;
         ctx.fillStyle = obj.text.color || '#000000';
         ctx.textAlign = obj.text.halign || 'left';
-        ctx.textBaseline = 'top';
-        // ctx.textBaseline = obj.text.valign || 'top';
+
+        let textY = obj.y;
+
+        if (obj.text.valign === 'center') {
+            ctx.textBaseline = 'middle';
+            textY = obj.y + (obj.height / 2);
+            //hardcoded fix
+            // textY = obj.position.y + (obj.size.height / 2) + 2;
+        } else if (obj.text.valign === 'bottom') {
+            ctx.textBaseline = 'bottom';
+            textY = obj.y + obj.height;
+        } else {
+            ctx.textBaseline = 'top';
+        }
 
         const text = obj.text.text || '';
         const maxWidth = obj.width;
 
         if (obj.text.wrap && maxWidth > 0) {
-            this.drawWrappedText(ctx, text, obj.x, obj.y, maxWidth);
+            this.drawWrappedTextButton(ctx, text, obj.x, textY, maxWidth);
         } else {
-            ctx.fillText(text, obj.x, obj.y);
+            ctx.fillText(text, obj.x, textY);
         }
 
         ctx.restore();
@@ -1132,9 +1139,6 @@ export class TiledUIMenu extends GameObject {
         ctx.restore();
     }
 
-    // OPTIONAL: Add import for resources at top of TiledUIMenu.js
-    // import { resources } from "../../Resource.js";
-
     // OPTIONAL: Animated corners version
     drawAnimatedSpriteSelection(ctx, x, y, width, height) {
         ctx.save();
@@ -1167,5 +1171,5 @@ export class TiledUIMenu extends GameObject {
 
         ctx.restore();
     }
-    
+
 }

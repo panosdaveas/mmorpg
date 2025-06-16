@@ -32,6 +32,7 @@ export class TiledUIMenu extends GameObject {
             'closeMenu': () => this.hide(),
             'action1': () => console.log("Action 1 triggered!"),
             'action2': () => console.log("Action 2 triggered!"),
+            'setId': () => this.setID(),
         };
 
         this.init();
@@ -385,6 +386,7 @@ export class TiledUIMenu extends GameObject {
             if (component && this.hoveredButtonId === this.pressedButtonId) {
                 // Execute button action
                 if (component.properties.onclick) {
+                    console.log(component);
                     this.executeAction(component.properties.onclick);
                 }
             }
@@ -648,6 +650,11 @@ export class TiledUIMenu extends GameObject {
         events.emit("OPEN_SETTINGS");
     }
 
+    setID() {
+        console.log("Setting ID...");
+        events.emit("SET_ID");
+    }
+
     show() {
         this.isVisible = true;
         this.selectedTileIndex = 0;
@@ -793,9 +800,9 @@ export class TiledUIMenu extends GameObject {
         }
     }
 
-    // 3. Improved text rendering with proper coordinate handling
     drawButtonTextObject(ctx, obj) {
         ctx.save();
+        // console.log("Drawing text object:", obj);
 
         // Set up font
         const fontSize = obj.text.pixelsize || obj.text.fontsize || 10;
@@ -811,8 +818,9 @@ export class TiledUIMenu extends GameObject {
 
         if (obj.text.valign === 'center') {
             ctx.textBaseline = 'middle';
-            ctx.textAlign = 'center'; // Center align for center valign
             textY = obj.position.y + (obj.size.height / 2);
+            //hardcoded fix
+            // textY = obj.position.y + (obj.size.height / 2) + 2;
         } else if (obj.text.valign === 'bottom') {
             ctx.textBaseline = 'bottom';
             textY = obj.position.y + obj.size.height;
@@ -833,44 +841,6 @@ export class TiledUIMenu extends GameObject {
         ctx.restore();
     }
     
-
-    drawButtonTextObject(ctx, obj) {
-        ctx.save();
-
-        // Set up font
-        const fontSize = obj.text.pixelsize || obj.text.fontsize || 10;
-        const fontFamily = this.getFontFamily(obj.text.fontfamily) || 'Arial';
-
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        ctx.fillStyle = obj.text.color || '#000000';
-        ctx.textAlign = obj.text.halign || 'left';
-
-        // Handle vertical alignment properly
-        // Text objects use top-left origin, so no adjustment needed for Y position
-        let textY = obj.position.y;
-
-        if (obj.text.valign === 'center') {
-            ctx.textBaseline = 'middle';
-            textY = obj.position.y + (obj.size.height / 2);
-        } else if (obj.text.valign === 'bottom') {
-            ctx.textBaseline = 'bottom';
-            textY = obj.position.y + obj.size.height;
-        } else {
-            ctx.textBaseline = 'top';
-            // textY already set correctly
-        }
-
-        const text = obj.text.text || '';
-        const maxWidth = obj.size.width;
-
-        if (obj.text.wrap && maxWidth > 0) {
-            this.drawWrappedTextButton(ctx, text, obj.position.x, textY, maxWidth);
-        } else {
-            ctx.fillText(text, obj.position.x, textY);
-        }
-
-        ctx.restore();
-    }
 
     drawWrappedTextButton(ctx, text, x, y, maxWidth) {
         const words = text.split(' ');
@@ -976,6 +946,7 @@ export class TiledUIMenu extends GameObject {
         ctx.fillStyle = obj.text.color || '#000000';
         ctx.textAlign = obj.text.halign || 'left';
         ctx.textBaseline = 'top';
+        // ctx.textBaseline = obj.text.valign || 'top';
 
         const text = obj.text.text || '';
         const maxWidth = obj.width;

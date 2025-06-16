@@ -28,6 +28,10 @@ class Resources {
       interfaceBox: "/sprites/menu.png",
       interface: "/sprites/interface.png",
       testButton: "/sprites/testButton.png",
+      selectionTopLeftCorner: "/sprites/selectionTopLeftCorner.png",
+      selectionTopRightCorner: "/sprites/selectionTopRightCorner.png",
+      selectionBottomLeftCorner: "/sprites/selectionBottomLeftCorner.png",
+      selectionBottomRightCorner: "/sprites/selectionBottomRightCorner.png",
     };
 
     // A bucket to keep all of our images

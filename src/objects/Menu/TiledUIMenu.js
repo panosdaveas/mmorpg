@@ -4,6 +4,7 @@ import { Vector2 } from "../../Vector2.js";
 import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
+import { resources } from "../../Resource.js";
 import menuData from "../../levels/json/menu.json";
 
 export class TiledUIMenu extends GameObject {
@@ -795,16 +796,16 @@ export class TiledUIMenu extends GameObject {
     drawButtonComponent(ctx, component) {
         // Only draw objects for the current state
         const stateObjects = component.states[component.currentState];
-
+    
         if (stateObjects && stateObjects.length > 0) {
             stateObjects.forEach(obj => {
-                this.drawStateObject(ctx, obj);
+                this.drawStateObject(ctx, obj, component); // ← ADDED component parameter
             });
         } else {
             // Fallback to normal state if current state has no objects
             component.states.normal.forEach(obj => {
                 if (obj.visible) {
-                    this.drawStateObject(ctx, obj);
+                    this.drawStateObject(ctx, obj, component); // ← ADDED component parameter
                 }
             });
         }
@@ -861,6 +862,21 @@ export class TiledUIMenu extends GameObject {
         }
     }
 
+    // Method 2: If you want to check by individual object ID
+    isTextObjectInHoveredButton(objectId) {
+        if (!this.hoveredButtonId) return false;
+
+        const hoveredComponent = this.buttonComponents.get(this.hoveredButtonId);
+        if (!hoveredComponent) return false;
+
+        // Check if this object ID exists in any state of the hovered button component
+        for (const stateName of ['normal', 'hover', 'pressed']) {
+            const found = hoveredComponent.states[stateName].find(obj => obj.id === objectId);
+            if (found) return true;
+        }
+        return false;
+    }
+
     drawButtonTextObject(ctx, obj) {
         ctx.save();
         // console.log("Drawing text object:", obj);
@@ -872,6 +888,13 @@ export class TiledUIMenu extends GameObject {
         ctx.font = `${fontSize}px ${fontFamily}`;
         ctx.fillStyle = obj.text.color || '#000000';
         ctx.textAlign = obj.text.halign || 'left';
+        
+        //use ctx opacity to dim text if not hovered
+        // if (!this.isTextObjectInHoveredButton(obj.id)) {
+        //     ctx.globalAlpha = 0.6;
+        // } else {
+        //     ctx.globalAlpha = 1.0;
+        // }
 
         // Handle vertical alignment properly
         // Text objects use top-left origin, so no adjustment needed for Y position
@@ -1049,23 +1072,100 @@ export class TiledUIMenu extends GameObject {
         const selectedElement = this.interactiveTiles[this.selectedTileIndex];
         if (!selectedElement) return;
 
+        const x = selectedElement.position.x;
+        const y = selectedElement.position.y;
+        const width = selectedElement.size.width;
+        const height = selectedElement.size.height;
+
+        // Check if selection sprites are loaded
+        const hasSprites = resources.images.selectionTopLeftCorner?.isLoaded &&
+            resources.images.selectionTopRightCorner?.isLoaded &&
+            resources.images.selectionBottomLeftCorner?.isLoaded &&
+            resources.images.selectionBottomRightCorner?.isLoaded;
+
+        if (hasSprites) {
+            this.drawAnimatedSpriteSelection(ctx, x, y, width, height);
+        } else {
+            this.drawFallbackSelection(ctx, x, y, width, height);
+        }
+    }
+
+    drawSpriteSelection(ctx, x, y, width, height) {
+        ctx.save();
+
+        // Optional: Add subtle background highlight
+        ctx.fillStyle = "rgba(255, 255, 0, 0.0)";
+        ctx.fillRect(x, y, width, height);
+
+        // Get corner sprites from resources
+        const topLeft = resources.images.selectionTopLeftCorner.image;
+        const topRight = resources.images.selectionTopRightCorner.image;
+        const bottomLeft = resources.images.selectionBottomLeftCorner.image;
+        const bottomRight = resources.images.selectionBottomRightCorner.image;
+
+        // Assume all corners are same size (adjust if needed)
+        const cornerSize = topLeft.width;
+        const offset = cornerSize / 2;
+
+        // Draw corner sprites
+        ctx.drawImage(topLeft, x - offset, y - offset);
+        ctx.drawImage(topRight, x + width - offset, y - offset);
+        ctx.drawImage(bottomLeft, x - offset, y + height - offset);
+        ctx.drawImage(bottomRight, x + width - offset, y + height - offset);
+
+        ctx.restore();
+    }
+
+    // STEP 4: Keep fallback for when sprites aren't loaded
+    drawFallbackSelection(ctx, x, y, width, height) {
+        ctx.save();
+
         // Draw selection highlight
-        ctx.fillStyle = "rgba(255, 255, 0, 0.3)";
-        ctx.fillRect(
-            selectedElement.position.x,
-            selectedElement.position.y,
-            selectedElement.size.width,
-            selectedElement.size.height
-        );
+        ctx.fillStyle = "rgba(255, 255, 0, 0.0)";
+        ctx.fillRect(x, y, width, height);
 
         // Draw selection border
         ctx.strokeStyle = "#FFD700";
         ctx.lineWidth = 2;
-        ctx.strokeRect(
-            selectedElement.position.x,
-            selectedElement.position.y,
-            selectedElement.size.width,
-            selectedElement.size.height
-        );
+        ctx.strokeRect(x, y, width, height);
+
+        ctx.restore();
     }
+
+    // OPTIONAL: Add import for resources at top of TiledUIMenu.js
+    // import { resources } from "../../Resource.js";
+
+    // OPTIONAL: Animated corners version
+    drawAnimatedSpriteSelection(ctx, x, y, width, height) {
+        ctx.save();
+
+        // Simple pulse animation
+        const time = Date.now() / 1000;
+        const pulse = Math.sin(time * 3) * 0.1 + 1; // 0.9 to 1.1
+
+        // Background with pulse
+        ctx.globalAlpha = 0.1 + Math.sin(time * 2) * 0.05;
+        // ctx.fillStyle = "#FFD700";
+        ctx.fillStyle = "rgba(255, 255, 0, 0.0)";
+        ctx.fillRect(x, y, width, height);
+        ctx.globalAlpha = 1;
+
+        // Get sprites
+        const topLeft = resources.images.selectionTopLeftCorner.image;
+        const topRight = resources.images.selectionTopRightCorner.image;
+        const bottomLeft = resources.images.selectionBottomLeftCorner.image;
+        const bottomRight = resources.images.selectionBottomRightCorner.image;
+
+        const cornerSize = topLeft.width * pulse;
+        const offset = cornerSize / 2;
+
+        // Draw animated corners
+        ctx.drawImage(topLeft, x - offset, y - offset, cornerSize, cornerSize);
+        ctx.drawImage(topRight, x + width - offset, y - offset, cornerSize, cornerSize);
+        ctx.drawImage(bottomLeft, x - offset, y + height - offset, cornerSize, cornerSize);
+        ctx.drawImage(bottomRight, x + width - offset, y + height - offset, cornerSize, cornerSize);
+
+        ctx.restore();
+    }
+    
 }

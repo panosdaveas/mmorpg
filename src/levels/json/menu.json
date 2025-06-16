@@ -391,6 +391,128 @@
          "y":0
         }, 
         {
+         "class":"Button",
+         "draworder":"topdown",
+         "id":26,
+         "name":"MenuItem",
+         "objects":[
+                {
+                 "height":16,
+                 "id":273,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"navigable",
+                         "type":"bool",
+                         "value":true
+                        }],
+                 "rotation":0,
+                 "type":"button",
+                 "visible":true,
+                 "width":80,
+                 "x":16,
+                 "y":128
+                }, 
+                {
+                 "height":16,
+                 "id":274,
+                 "name":"Text",
+                 "properties":[
+                        {
+                         "name":"value",
+                         "type":"string",
+                         "value":""
+                        }],
+                 "rotation":0,
+                 "text":
+                    {
+                     "color":"#7d000000",
+                     "fontfamily":"pixelFont-7-8x14-sproutLands",
+                     "pixelsize":12,
+                     "text":"PLAYERS",
+                     "valign":"center",
+                     "wrap":true
+                    },
+                 "type":"ButtonNormal",
+                 "visible":true,
+                 "width":64,
+                 "x":32,
+                 "y":128
+                }, 
+                {
+                 "gid":250,
+                 "height":16,
+                 "id":275,
+                 "name":"",
+                 "rotation":0,
+                 "type":"ButtonNormal",
+                 "visible":true,
+                 "width":16,
+                 "x":16,
+                 "y":144
+                }, 
+                {
+                 "gid":140,
+                 "height":16,
+                 "id":276,
+                 "name":"",
+                 "rotation":0,
+                 "type":"ButtonHover",
+                 "visible":true,
+                 "width":16,
+                 "x":16,
+                 "y":144
+                }, 
+                {
+                 "gid":139,
+                 "height":16,
+                 "id":277,
+                 "name":"",
+                 "rotation":0,
+                 "type":"ButtonPressed",
+                 "visible":true,
+                 "width":16,
+                 "x":16,
+                 "y":144
+                }, 
+                {
+                 "height":16,
+                 "id":278,
+                 "name":"Text",
+                 "properties":[
+                        {
+                         "name":"value",
+                         "type":"string",
+                         "value":""
+                        }],
+                 "rotation":0,
+                 "text":
+                    {
+                     "fontfamily":"pixelFont-7-8x14-sproutLands",
+                     "pixelsize":12,
+                     "text":"PLAYERS",
+                     "valign":"center",
+                     "wrap":true
+                    },
+                 "type":"ButtonHover",
+                 "visible":true,
+                 "width":64,
+                 "x":32,
+                 "y":128
+                }],
+         "opacity":1,
+         "properties":[
+                {
+                 "name":"navigable",
+                 "type":"bool",
+                 "value":true
+                }],
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 527, 528, 529, 0, 0, 0, 0, 0, 0,
@@ -778,8 +900,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":26,
- "nextobjectid":273,
+ "nextlayerid":27,
+ "nextobjectid":279,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

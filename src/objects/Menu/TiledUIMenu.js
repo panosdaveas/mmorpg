@@ -649,9 +649,71 @@ export class TiledUIMenu extends GameObject {
         events.emit("OPEN_SETTINGS");
     }
 
-    setID() {
-        console.log("Setting ID...");
-        events.emit("SET_ID");
+    updateButtonText(buttonId, newText) {
+        const component = this.buttonComponents.get(buttonId);
+        if (!component) {
+            console.warn(`Button component ${buttonId} not found`);
+            return false;
+        }
+
+        let textUpdated = false;
+
+        // Update text in all states (normal, hover, pressed)
+        Object.keys(component.states).forEach(stateName => {
+            component.states[stateName].forEach(obj => {
+                if (obj.text) {
+                    obj.text.text = newText;
+                    textUpdated = true;
+                }
+            });
+        });
+
+        if (textUpdated) {
+            console.log(`Updated text in button ${buttonId} to: "${newText}"`);
+            return true;
+        } else {
+            console.warn(`No text objects found in button component ${buttonId}`);
+            return false;
+        }
+    }
+
+    updateAllButtonsWithPattern(pattern, newText) {
+        let updatedCount = 0;
+
+        for (const [buttonId, component] of this.buttonComponents) {
+            for (const obj of component.states.normal) {
+                if (obj.text && obj.text.text.includes(pattern)) {
+                    this.updateButtonText(buttonId, newText);
+                    updatedCount++;
+                    break; // Only update once per button component
+                }
+            }
+        }
+
+        console.log(`Updated ${updatedCount} buttons containing "${pattern}"`);
+        return updatedCount;
+    }
+    
+
+    findButtonByText(searchText) {
+        for (const [buttonId, component] of this.buttonComponents) {
+            for (const obj of component.states.normal) {
+                if (obj.text && obj.text.text === searchText) {
+                    return buttonId;
+                }
+            }
+        }
+        return null;
+    }
+
+    setID(newId = "1234") {
+        // Test value for now...pass the socket Id in the future
+        const dynamicValue = newId;
+
+        const buttonId = this.findButtonByText("PlayerID");
+        if (buttonId) {
+            this.updateButtonText(buttonId, dynamicValue);
+        }
     }
 
     show() {

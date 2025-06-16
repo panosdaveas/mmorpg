@@ -108,14 +108,79 @@ export class TiledUIMenu extends GameObject {
                 pressed: []
             },
             currentState: 'normal',
-            bounds: null // Will be calculated from normal state objects
+            bounds: null
         };
 
-        // Group objects by their button state
-        layer.objects.forEach(obj => {
-            const objProperties = this.convertPropertiesToObject(obj.properties);
-            const buttonState = this.getButtonStateFromType(obj.type);
+        // Separate objects by type for proper handling
+        const buttonObjects = []; // Objects that define the interactive area
+        const tileObjects = [];   // Visual tile objects with states
+        const textObjects = [];   // Text objects (no state, always visible)
 
+        layer.objects.forEach(obj => {
+            if (obj.type === "button") {
+                buttonObjects.push(obj);
+            } else if (obj.gid && this.getButtonStateFromType(obj.type)) {
+                tileObjects.push(obj);
+            } else if (obj.text || obj.type === "") {
+                textObjects.push(obj);
+            }
+        });
+
+        // Calculate bounds from button objects, or fallback to layer properties if no button objects
+        if (buttonObjects.length > 0) {
+            // Calculate bounds ONLY from button objects (not tiles)
+            buttonObjects.forEach(obj => {
+                if (!buttonComponent.bounds) {
+                    buttonComponent.bounds = {
+                        x: obj.x,
+                        y: obj.y,
+                        width: obj.width,
+                        height: obj.height
+                    };
+                } else {
+                    // Expand bounds to include this button object
+                    const left = Math.min(buttonComponent.bounds.x, obj.x);
+                    const top = Math.min(buttonComponent.bounds.y, obj.y);
+                    const right = Math.max(buttonComponent.bounds.x + buttonComponent.bounds.width, obj.x + obj.width);
+                    const bottom = Math.max(buttonComponent.bounds.y + buttonComponent.bounds.height, obj.y + obj.height);
+
+                    buttonComponent.bounds = {
+                        x: left,
+                        y: top,
+                        width: right - left,
+                        height: bottom - top
+                    };
+                }
+            });
+        } else if (tileObjects.length > 0) {
+            // Fallback: use the first tile object for bounds if no button objects exist
+            const firstTile = tileObjects[0];
+            buttonComponent.bounds = {
+                x: firstTile.x,
+                y: firstTile.y,
+                width: firstTile.width,
+                height: firstTile.height
+            };
+            console.warn(`Button component ${buttonId} has no button objects, using tile bounds as fallback`);
+        } else if (textObjects.length > 0) {
+            // Last resort: use text objects for bounds
+            const firstText = textObjects[0];
+            buttonComponent.bounds = {
+                x: firstText.x,
+                y: firstText.y,
+                width: firstText.width,
+                height: firstText.height
+            };
+            console.warn(`Button component ${buttonId} has no button or tile objects, using text bounds as fallback`);
+        } else {
+            console.error(`Button component ${buttonId} has no objects to calculate bounds from`);
+            // Set a default bounds to prevent null errors
+            buttonComponent.bounds = { x: 0, y: 0, width: 16, height: 16 };
+        }
+
+        // Add tile objects to their respective states
+        tileObjects.forEach(obj => {
+            const buttonState = this.getButtonStateFromType(obj.type);
             if (buttonState) {
                 const stateObject = {
                     id: obj.id,
@@ -124,46 +189,39 @@ export class TiledUIMenu extends GameObject {
                     position: { x: obj.x, y: obj.y },
                     size: { width: obj.width, height: obj.height },
                     visible: obj.visible,
-                    properties: objProperties,
+                    properties: this.convertPropertiesToObject(obj.properties),
                     type: obj.type,
                     rotation: obj.rotation || 0
                 };
 
                 buttonComponent.states[buttonState].push(stateObject);
-
-                // Calculate bounds from normal state objects (they define the interactive area)
-                if (buttonState === 'normal') {
-                    // Use the same Y coordinate as stored in object (no adjustment for bounds)
-                    // The adjustment only happens during rendering, not for mouse interaction
-                    if (!buttonComponent.bounds) {
-                        buttonComponent.bounds = {
-                            x: obj.x,
-                            y: obj.y,
-                            width: obj.width,
-                            height: obj.height
-                        };
-                    } else {
-                        // Expand bounds to include this object
-                        const left = Math.min(buttonComponent.bounds.x, obj.x);
-                        const top = Math.min(buttonComponent.bounds.y, obj.y);
-                        const right = Math.max(buttonComponent.bounds.x + buttonComponent.bounds.width, obj.x + obj.width);
-                        const bottom = Math.max(buttonComponent.bounds.y + buttonComponent.bounds.height, obj.y + obj.height);
-
-                        buttonComponent.bounds = {
-                            x: left,
-                            y: top,
-                            width: right - left,
-                            height: bottom - top
-                        };
-                    }
-                }
             }
+        });
+
+        // Add text objects to ALL states (so they follow the button states)
+        textObjects.forEach(obj => {
+            const textObject = {
+                id: obj.id,
+                name: obj.name,
+                position: { x: obj.x, y: obj.y },
+                size: { width: obj.width, height: obj.height },
+                visible: obj.visible,
+                properties: this.convertPropertiesToObject(obj.properties),
+                type: obj.type,
+                rotation: obj.rotation || 0,
+                text: obj.text
+            };
+
+            // Add text to all states so it follows the button
+            buttonComponent.states.normal.push(textObject);
+            buttonComponent.states.hover.push(textObject);
+            buttonComponent.states.pressed.push(textObject);
         });
 
         // Add to button components
         this.buttonComponents.set(buttonId, buttonComponent);
 
-        // Add to interactive tiles for navigation
+        // Add to interactive tiles for navigation (use button bounds, not tile bounds)
         if (buttonComponent.bounds && layerProperties.navigable) {
             this.interactiveTiles.push({
                 type: 'button_component',
@@ -176,6 +234,9 @@ export class TiledUIMenu extends GameObject {
             });
         }
     }
+    
+    
+    
 
     parseRegularObjects(layer) {
         layer.objects.forEach(obj => {
@@ -272,9 +333,9 @@ export class TiledUIMenu extends GameObject {
         let hoveredButton = null;
         let hoveredElementIndex = -1;
 
-        // Check button components for hover states
+        // Check button components for hover states - with bounds safety check
         for (const [buttonId, component] of this.buttonComponents) {
-            if (this.isPointInBounds(mouseX, mouseY, component.bounds)) {
+            if (component.bounds && this.isPointInBounds(mouseX, mouseY, component.bounds)) {
                 hoveredButton = buttonId;
                 break;
             }
@@ -304,12 +365,10 @@ export class TiledUIMenu extends GameObject {
             this.hoveredButtonId = hoveredButton;
             if (hoveredButton) {
                 this.setButtonState(hoveredButton, 'hover');
-                // this.canvas.style.cursor = 'pointer';
-            } else {
-                // this.canvas.style.cursor = 'default';
             }
         }
     }
+    
 
     handleMouseDown(e) {
         if (!this.isVisible || !this.hoveredButtonId) return;
@@ -684,46 +743,176 @@ export class TiledUIMenu extends GameObject {
     }
 
     drawStateObject(ctx, obj) {
-        if (!obj.gid) return;
+        // Draw tile if it has gid
+        if (obj.gid) {
+            const rawTileId = obj.gid & 0x1FFFFFFF;
+            if (rawTileId === 0) return;
 
-        const rawTileId = obj.gid & 0x1FFFFFFF;
-        if (rawTileId === 0) return;
+            // Find the correct tileset
+            const tilesetEntry = [...this.tilesetImages.entries()]
+                .reverse()
+                .find(([firstgid]) => rawTileId >= firstgid);
 
-        // Find the correct tileset
-        const tilesetEntry = [...this.tilesetImages.entries()]
-            .reverse()
-            .find(([firstgid]) => rawTileId >= firstgid);
+            if (!tilesetEntry) return;
 
-        if (!tilesetEntry) return;
+            const [firstgid, { image, tileset }] = tilesetEntry;
+            const localId = rawTileId - firstgid;
+            const columns = tileset.columns;
 
-        const [firstgid, { image, tileset }] = tilesetEntry;
-        const localId = rawTileId - firstgid;
-        const columns = tileset.columns;
+            const sx = (localId % columns) * TILE_SIZE;
+            const sy = Math.floor(localId / columns) * TILE_SIZE;
 
-        const sx = (localId % columns) * TILE_SIZE;
-        const sy = Math.floor(localId / columns) * TILE_SIZE;
+            if (!image.complete || image.naturalWidth === 0) return;
 
-        if (!image.complete || image.naturalWidth === 0) return;
+            ctx.save();
 
-        ctx.save();
+            // Handle rotation if needed
+            if (obj.rotation && obj.rotation !== 0) {
+                const centerX = obj.position.x + obj.size.width / 2;
+                const centerY = obj.position.y + obj.size.height / 2;
+                ctx.translate(centerX, centerY);
+                ctx.rotate(obj.rotation * Math.PI / 180);
+                ctx.translate(-centerX, -centerY);
+            }
 
-        // Handle rotation if needed
-        if (obj.rotation && obj.rotation !== 0) {
-            const centerX = obj.position.x + obj.size.width / 2;
-            const centerY = obj.position.y + obj.size.height / 2;
-            ctx.translate(centerX, centerY);
-            ctx.rotate(obj.rotation * Math.PI / 180);
-            ctx.translate(-centerX, -centerY);
+            // IMPORTANT: Adjust Y for tile objects (bottom-left origin)
+            const adjustedY = obj.position.y - obj.size.height;
+
+            ctx.drawImage(
+                image,
+                sx, sy, TILE_SIZE, TILE_SIZE,
+                obj.position.x, adjustedY, obj.size.width, obj.size.height
+            );
+
+            ctx.restore();
         }
 
-        ctx.drawImage(
-            image,
-            sx, sy, TILE_SIZE, TILE_SIZE,
-            obj.position.x, obj.position.y, obj.size.width, obj.size.height
-        );
+        // Draw text if it has text property
+        if (obj.text) {
+            this.drawButtonTextObject(ctx, obj);
+        }
+    }
+
+    // 3. Improved text rendering with proper coordinate handling
+    drawButtonTextObject(ctx, obj) {
+        ctx.save();
+
+        // Set up font
+        const fontSize = obj.text.pixelsize || obj.text.fontsize || 10;
+        const fontFamily = this.getFontFamily(obj.text.fontfamily) || 'Arial';
+
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = obj.text.color || '#000000';
+        ctx.textAlign = obj.text.halign || 'left';
+
+        // Handle vertical alignment properly
+        // Text objects use top-left origin, so no adjustment needed for Y position
+        let textY = obj.position.y;
+
+        if (obj.text.valign === 'center') {
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; // Center align for center valign
+            textY = obj.position.y + (obj.size.height / 2);
+        } else if (obj.text.valign === 'bottom') {
+            ctx.textBaseline = 'bottom';
+            textY = obj.position.y + obj.size.height;
+        } else {
+            ctx.textBaseline = 'top';
+            // textY already set correctly
+        }
+
+        const text = obj.text.text || '';
+        const maxWidth = obj.size.width;
+
+        if (obj.text.wrap && maxWidth > 0) {
+            this.drawWrappedTextButton(ctx, text, obj.position.x, textY, maxWidth);
+        } else {
+            ctx.fillText(text, obj.position.x, textY);
+        }
 
         ctx.restore();
     }
+    
+
+    drawButtonTextObject(ctx, obj) {
+        ctx.save();
+
+        // Set up font
+        const fontSize = obj.text.pixelsize || obj.text.fontsize || 10;
+        const fontFamily = this.getFontFamily(obj.text.fontfamily) || 'Arial';
+
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = obj.text.color || '#000000';
+        ctx.textAlign = obj.text.halign || 'left';
+
+        // Handle vertical alignment properly
+        // Text objects use top-left origin, so no adjustment needed for Y position
+        let textY = obj.position.y;
+
+        if (obj.text.valign === 'center') {
+            ctx.textBaseline = 'middle';
+            textY = obj.position.y + (obj.size.height / 2);
+        } else if (obj.text.valign === 'bottom') {
+            ctx.textBaseline = 'bottom';
+            textY = obj.position.y + obj.size.height;
+        } else {
+            ctx.textBaseline = 'top';
+            // textY already set correctly
+        }
+
+        const text = obj.text.text || '';
+        const maxWidth = obj.size.width;
+
+        if (obj.text.wrap && maxWidth > 0) {
+            this.drawWrappedTextButton(ctx, text, obj.position.x, textY, maxWidth);
+        } else {
+            ctx.fillText(text, obj.position.x, textY);
+        }
+
+        ctx.restore();
+    }
+
+    drawWrappedTextButton(ctx, text, x, y, maxWidth) {
+        const words = text.split(' ');
+        let line = '';
+        let currentY = y;
+        const lineHeight = parseInt(ctx.font) * 1.2;
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, currentY);
+    }
+
+    getFontFamily(fontName) {
+        const fontMap = {
+            'pixelFont-7-8x14-sproutLands': 'fontRetroGaming',
+            // Add other font mappings as needed
+        };
+
+        return fontMap[fontName] || fontName || 'Arial';
+    }
+
+    isPointInBounds(x, y, bounds) {
+        if (!bounds) {
+            console.warn('isPointInBounds called with null bounds');
+            return false;
+        }
+        return x >= bounds.x && x < bounds.x + bounds.width &&
+            y >= bounds.y && y < bounds.y + bounds.height;
+    }
+    
+    
 
     drawRegularObjects(ctx) {
         if (!this.menuData) return;

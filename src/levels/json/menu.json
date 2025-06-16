@@ -267,6 +267,8 @@
                  "rotation":0,
                  "text":
                     {
+                     "fontfamily":"pixelFont-7-8x14-sproutLands",
+                     "pixelsize":10,
                      "text":"Profile",
                      "valign":"center",
                      "wrap":true
@@ -669,6 +671,107 @@
         {
          "class":"Button",
          "draworder":"topdown",
+         "id":15,
+         "name":"MenuItem",
+         "objects":[
+                {
+                 "height":16,
+                 "id":162,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"navigable",
+                         "type":"bool",
+                         "value":true
+                        }],
+                 "rotation":0,
+                 "type":"button",
+                 "visible":true,
+                 "width":80,
+                 "x":64,
+                 "y":64
+                }, 
+                {
+                 "height":16,
+                 "id":163,
+                 "name":"Text",
+                 "properties":[
+                        {
+                         "name":"value",
+                         "type":"string",
+                         "value":""
+                        }],
+                 "rotation":0,
+                 "text":
+                    {
+                     "fontfamily":"pixelFont-7-8x14-sproutLands",
+                     "pixelsize":10,
+                     "text":"PLAYERID",
+                     "valign":"center",
+                     "wrap":true
+                    },
+                 "type":"ButtonNormal",
+                 "visible":true,
+                 "width":64,
+                 "x":80,
+                 "y":64
+                }, 
+                {
+                 "gid":250,
+                 "height":16,
+                 "id":165,
+                 "name":"",
+                 "rotation":0,
+                 "type":"ButtonNormal",
+                 "visible":true,
+                 "width":16,
+                 "x":64,
+                 "y":80
+                }, 
+                {
+                 "gid":140,
+                 "height":16,
+                 "id":167,
+                 "name":"",
+                 "rotation":0,
+                 "type":"ButtonHover",
+                 "visible":true,
+                 "width":16,
+                 "x":64,
+                 "y":80
+                }, 
+                {
+                 "gid":139,
+                 "height":16,
+                 "id":168,
+                 "name":"",
+                 "rotation":0,
+                 "type":"ButtonPressed",
+                 "visible":true,
+                 "width":16,
+                 "x":64,
+                 "y":80
+                }],
+         "opacity":1,
+         "properties":[
+                {
+                 "name":"navigable",
+                 "type":"bool",
+                 "value":true
+                }, 
+                {
+                 "name":"onclick",
+                 "type":"string",
+                 "value":"setId"
+                }],
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "class":"Button",
+         "draworder":"topdown",
          "id":11,
          "name":"Button",
          "objects":[
@@ -765,9 +868,43 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":18,
+         "name":"Test",
+         "objects":[],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 527, 528, 529, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         "height":12,
+         "id":19,
+         "name":"Decorative",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":10,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":15,
- "nextobjectid":162,
+ "nextlayerid":20,
+ "nextobjectid":191,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

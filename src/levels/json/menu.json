@@ -59,7 +59,7 @@
                  "text":
                     {
                      "fontfamily":"pixelFont-7-8x14-sproutLands",
-                     "pixelsize":10,
+                     "pixelsize":12,
                      "text":"Profile",
                      "valign":"center",
                      "wrap":true
@@ -124,7 +124,7 @@
                  "text":
                     {
                      "fontfamily":"pixelFont-7-8x14-sproutLands",
-                     "pixelsize":10,
+                     "pixelsize":12,
                      "text":"PlayerID",
                      "valign":"center",
                      "wrap":true
@@ -225,7 +225,7 @@
                  "text":
                     {
                      "fontfamily":"pixelFont-7-8x14-sproutLands",
-                     "pixelsize":10,
+                     "pixelsize":12,
                      "text":"PROFILE",
                      "valign":"center",
                      "wrap":true
@@ -326,7 +326,7 @@
                  "text":
                     {
                      "fontfamily":"pixelFont-7-8x14-sproutLands",
-                     "pixelsize":10,
+                     "pixelsize":12,
                      "text":"PLAYERS",
                      "valign":"center",
                      "wrap":true
@@ -605,7 +605,7 @@
          "name":"Button",
          "objects":[
                 {
-                 "height":32,
+                 "height":16,
                  "id":253,
                  "name":"",
                  "properties":[
@@ -617,154 +617,154 @@
                  "rotation":0,
                  "type":"button",
                  "visible":true,
-                 "width":64,
-                 "x":80,
-                 "y":128
+                 "width":32,
+                 "x":112,
+                 "y":160
                 }, 
                 {
                  "gid":548,
-                 "height":16,
+                 "height":8,
                  "id":254,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonNormal",
                  "visible":true,
-                 "width":16,
-                 "x":112,
-                 "y":160
+                 "width":8,
+                 "x":128,
+                 "y":176
                 }, 
                 {
                  "gid":492,
-                 "height":16,
+                 "height":8,
                  "id":255,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonNormal",
                  "visible":true,
-                 "width":16,
-                 "x":112,
-                 "y":144
+                 "width":8,
+                 "x":128,
+                 "y":168
                 }, 
                 {
                  "gid":491,
-                 "height":16,
+                 "height":8,
                  "id":256,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonNormal",
                  "visible":true,
-                 "width":16,
-                 "x":96,
-                 "y":144
+                 "width":8,
+                 "x":120,
+                 "y":168
                 }, 
                 {
                  "gid":547,
-                 "height":16,
+                 "height":8,
                  "id":257,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonNormal",
                  "visible":true,
-                 "width":16,
-                 "x":96,
-                 "y":160
+                 "width":8,
+                 "x":120,
+                 "y":176
                 }, 
                 {
                  "gid":548,
-                 "height":16,
+                 "height":8,
                  "id":258,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonHover",
                  "visible":true,
-                 "width":16,
-                 "x":112,
-                 "y":160
+                 "width":8,
+                 "x":128,
+                 "y":176
                 }, 
                 {
                  "gid":492,
-                 "height":16,
+                 "height":8,
                  "id":259,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonHover",
                  "visible":true,
-                 "width":16,
-                 "x":112,
-                 "y":144
+                 "width":8,
+                 "x":128,
+                 "y":168
                 }, 
                 {
                  "gid":491,
-                 "height":16,
+                 "height":8,
                  "id":260,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonHover",
                  "visible":true,
-                 "width":16,
-                 "x":96,
-                 "y":144
+                 "width":8,
+                 "x":120,
+                 "y":168
                 }, 
                 {
                  "gid":547,
-                 "height":16,
+                 "height":8,
                  "id":261,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonHover",
                  "visible":true,
-                 "width":16,
-                 "x":96,
-                 "y":160
+                 "width":8,
+                 "x":120,
+                 "y":176
                 }, 
                 {
                  "gid":603,
-                 "height":16,
+                 "height":8,
                  "id":269,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonPressed",
                  "visible":true,
-                 "width":16,
-                 "x":96,
-                 "y":144
+                 "width":8,
+                 "x":120,
+                 "y":168
                 },
             
                 {
                  "gid":659,
-                 "height":16,
+                 "height":8,
                  "id":270,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonPressed",
                  "visible":true,
-                 "width":16,
-                 "x":96,
-                 "y":160
+                 "width":8,
+                 "x":120,
+                 "y":176
                 }, 
                 {
                  "gid":604,
-                 "height":16,
+                 "height":8,
                  "id":271,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonPressed",
                  "visible":true,
-                 "width":16,
-                 "x":112,
-                 "y":144
+                 "width":8,
+                 "x":128,
+                 "y":168
                 }, 
                 {
                  "gid":660,
-                 "height":16,
+                 "height":8,
                  "id":272,
                  "name":"",
                  "rotation":0,
                  "type":"ButtonPressed",
                  "visible":true,
-                 "width":16,
-                 "x":112,
-                 "y":160
+                 "width":8,
+                 "x":128,
+                 "y":176
                 }],
          "opacity":1,
          "properties":[

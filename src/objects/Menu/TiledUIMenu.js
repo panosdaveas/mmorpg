@@ -386,7 +386,6 @@ export class TiledUIMenu extends GameObject {
             if (component && this.hoveredButtonId === this.pressedButtonId) {
                 // Execute button action
                 if (component.properties.onclick) {
-                    console.log(component);
                     this.executeAction(component.properties.onclick);
                 }
             }

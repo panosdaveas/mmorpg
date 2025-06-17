@@ -797,7 +797,7 @@ export class TiledUIMenu extends GameObject {
         return null;
     }
 
-    setID(newId = "1234") {
+    setID(newId) {
         // Test value for now...pass the socket Id in the future
         const dynamicValue = newId;
 

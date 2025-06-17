@@ -150,6 +150,9 @@ export class TabManager extends GameObject {
             tabMenu.hide();
 
             console.log(`TabManager: Tab menu '${tabName}' loaded successfully`);
+            if (tabName === 'players') {
+                tabMenu.setID("1234");
+            }
             return tabMenu;
 
         } catch (error) {

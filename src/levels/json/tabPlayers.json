@@ -200,9 +200,58 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "class":"Button",
+         "draworder":"topdown",
+         "id":39,
+         "name":"Button",
+         "objects":[
+                {
+                 "height":16,
+                 "id":292,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":208,
+                 "x":224,
+                 "y":128
+                }, 
+                {
+                 "height":16,
+                 "id":293,
+                 "name":"Text",
+                 "rotation":0,
+                 "text":
+                    {
+                     "color":"#ffffff",
+                     "fontfamily":"pixelFont-7-8x14-sproutLands",
+                     "pixelsize":12,
+                     "text":"PlayerID",
+                     "valign":"center",
+                     "wrap":true
+                    },
+                 "type":"ButtonNormal",
+                 "visible":true,
+                 "width":208,
+                 "x":224,
+                 "y":128
+                }],
+         "opacity":1,
+         "properties":[
+                {
+                 "name":"navigable",
+                 "type":"bool",
+                 "value":true
+                }],
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":39,
- "nextobjectid":292,
+ "nextlayerid":40,
+ "nextobjectid":294,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

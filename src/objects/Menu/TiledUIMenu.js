@@ -1077,6 +1077,7 @@ export class TiledUIMenu extends GameObject {
         if (this.interactiveTiles.length === 0) return;
 
         const selectedElement = this.interactiveTiles[this.selectedTileIndex];
+        // console.log("Selected element:", selectedElement.layer);
         if (!selectedElement) return;
 
         const x = selectedElement.position.x;
@@ -1090,7 +1091,11 @@ export class TiledUIMenu extends GameObject {
             resources.images.selectionBottomLeftCorner?.isLoaded &&
             resources.images.selectionBottomRightCorner?.isLoaded;
 
-        if (hasSprites) {
+        if (selectedElement.layer === "MenuItem") {
+            this.drawFallbackSelection(ctx, x, y, width, height);
+            return;
+        }
+        if (hasSprites ) {
             this.drawAnimatedSpriteSelection(ctx, x, y, width, height);
         } else {
             this.drawFallbackSelection(ctx, x, y, width, height);

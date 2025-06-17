@@ -91,22 +91,22 @@ mainScene.setLevel(mainMap);
 // Set the current level in multiplayer manager
 multiplayerManager.setLevel(mainMap);
 
-const uiManager = new UIManager(canvas);
+// const uiManager = new UIManager(canvas);
 
-const playersInterface = new UIPlayersInterface({ multiplayerManager });
-const profileInterface = new UIProfileInterface({ hero });
-uiManager.registerComponent(playersInterface);
-uiManager.registerComponent(profileInterface);
+// const playersInterface = new UIPlayersInterface({ multiplayerManager });
+// const profileInterface = new UIProfileInterface({ hero });
+// uiManager.registerComponent(playersInterface);
+// uiManager.registerComponent(profileInterface);
 
-const menu = new UIMenu({
-  multiplayerManager,
-  interfaces: { players: playersInterface, profile: profileInterface }
-});
-uiManager.registerComponent(menu);
+// const menu = new UIMenu({
+//   multiplayerManager,
+//   interfaces: { players: playersInterface, profile: profileInterface }
+// });
+// uiManager.registerComponent(menu);
 
 // Add UIManager to your scene (it's a GameObject now)
 // mainScene.addChild(uiManager);
-mainScene.setUIManager(uiManager);
+// mainScene.setUIManager(uiManager);
 
 // Add TiledUIMenu for tiled menu support
 const tiledMenu = new TiledUIMenu({ canvas });

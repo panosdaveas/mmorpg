@@ -20,7 +20,7 @@ export class TiledUIMenu extends GameObject {
         this.interactiveTiles = [];
         this.buttonComponents = new Map(); // Store button component groups
         this.selectedTileIndex = 0;
-        this.isVisible = true;
+        this.isVisible = false;
         this.drawLayer = "HUD";
         this.hoveredButtonId = null;
         this.pressedButtonId = null;
@@ -54,6 +54,21 @@ export class TiledUIMenu extends GameObject {
 
         // Setup event listeners
         this.setupEventListeners();
+    }
+
+    step(delta, root) {
+        // if (!this.visible) {
+            if (root.input.getActionJustPressed("Enter")) {
+                this.show();
+            }
+            // return;
+        // }
+        // if (this.visible) {
+            if (root.input.getActionJustPressed("Escape")) {
+                this.hide();
+            }
+            // return;
+        // }
     }
 
     parseClassBasedComponents() {
@@ -716,12 +731,12 @@ export class TiledUIMenu extends GameObject {
     show() {
         this.isVisible = true;
         this.selectedTileIndex = 0;
-        events.emit("UI_MENU_OPEN");
+        events.emit("MENU_OPEN");
     }
 
     hide() {
         this.isVisible = false;
-        events.emit("UI_MENU_CLOSE");
+        events.emit("MENU_CLOSE");
     }
 
     // Enhanced drawing methods

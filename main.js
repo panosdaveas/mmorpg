@@ -57,10 +57,10 @@ const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 const hero = new Hero(DEFAULT_HERO_POSITION.x, DEFAULT_HERO_POSITION.y);
 
 // Create multiplayer manager instance
-const multiplayerManager = new MultiplayerManager();
+// const multiplayerManager = new MultiplayerManager();
 
 // Connect to multiplayer server
-multiplayerManager.connect('http://localhost:3000');
+// multiplayerManager.connect('http://localhost:3000');
 
 // Establish the root scene
 const mainScene = new Main({
@@ -69,14 +69,14 @@ const mainScene = new Main({
 
 // Set up the level with multiplayer support
 const mainMap = new MainMap({
-  multiplayerManager,
+  // multiplayerManager,
   hero,
   heroPosition: DEFAULT_HERO_POSITION
 });
 mainScene.setLevel(mainMap);
 
 // Set the current level in multiplayer manager
-multiplayerManager.setLevel(mainMap);
+// mainScene.multiplayerManager.setLevel(mainMap);
 
 const tabManager = new TabManager({ canvas });
 mainScene.addChild(tabManager);
@@ -94,7 +94,7 @@ const update = (delta) => {
   }
 
   // Update remote players through multiplayer manager
-  multiplayerManager.updateRemotePlayers(delta);
+  // mainScene.multiplayerManager.updateRemotePlayers(delta);
 
 };
 
@@ -138,7 +138,8 @@ const draw = () => {
 
 // Handle cleanup on page unload
 window.addEventListener('beforeunload', () => {
-  multiplayerManager.disconnect();
+  // multiplayerManager.disconnect();
+  mainScene.cleanup();
 });
 
 // ✅ Wait for the map to fully load before starting game loop

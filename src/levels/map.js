@@ -68,12 +68,6 @@ export class MainMap extends Level {
     })
     this.addChild(npc2);
 
-    // In your main map class constructor
-    // const tradingModal = new TradeModal({
-    //   position: new Vector2(0, 0),
-    //   multiplayerManager: this.multiplayerManager
-    // });
-    // this.addChild(tradingModal);
   }
 
   setupMultiplayerEvents() {

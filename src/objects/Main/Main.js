@@ -5,31 +5,93 @@ import {Inventory} from "../Inventory/Inventory.js";
 import {events} from "../../Events.js";
 import {SpriteTextString} from "../SpriteTextString/SpriteTextString.js";
 import {storyFlags} from "../../StoryFlags.js";
+import { MultiplayerManager } from "../../client/multiplayerManager.js";
 
 export class Main extends GameObject {
-  constructor() {
-    super({});
+  constructor(params = {}) {
+    super(params);
+
+    // Core game systems
     this.level = null;
-    this.input = new Input()
-    this.camera = new Camera()
-    this.menu = null; 
+    this.input = new Input();
+    this.camera = new Camera();
+    this.menu = null;
     this.uiManager = null;
+
+    // Initialize multiplayer manager
+    this.multiplayerManager = new MultiplayerManager();
+    this.multiplayerEnabled = params.multiplayerEnabled !== false; // Default to true
+    this.serverUrl = params.serverUrl || 'http://localhost:3000';
+
+    // Connect to multiplayer if enabled
+    if (this.multiplayerEnabled) {
+      this.connectToMultiplayer();
+    }
+  }
+
+  // Initialize multiplayer connection
+  connectToMultiplayer() {
+    if (!this.multiplayerManager) return;
+
+    try {
+      console.log('Connecting to multiplayer server...');
+      this.multiplayerManager.connect(this.serverUrl);
+
+      // Setup global multiplayer event handlers
+      this.setupGlobalMultiplayerEvents();
+    } catch (error) {
+      console.error('Failed to connect to multiplayer:', error);
+      this.multiplayerEnabled = false;
+    }
+  }
+
+  // Setup multiplayer events that affect the entire game
+  setupGlobalMultiplayerEvents() {
+    if (!this.multiplayerManager) return;
+
+    this.multiplayerManager.on('onConnect', (data) => {
+      console.log('Main: Connected to multiplayer server');
+      // Notify current level if it exists
+      if (this.level && this.level.onMultiplayerConnect) {
+        this.level.onMultiplayerConnect(data);
+      }
+    });
+
+    this.multiplayerManager.on('onDisconnect', (data) => {
+      console.log('Main: Disconnected from multiplayer server');
+      // Notify current level if it exists
+      if (this.level && this.level.onMultiplayerDisconnect) {
+        this.level.onMultiplayerDisconnect(data);
+      }
+    });
+
+    this.multiplayerManager.on('onError', (data) => {
+      console.error('Main: Multiplayer error:', data.error);
+      // Could show a global error notification here
+    });
+  }
+
+  // Public getter for multiplayer manager
+  getMultiplayerManager() {
+    return this.multiplayerManager;
+  }
+
+  // Check if multiplayer is connected
+  isMultiplayerConnected() {
+    return this.multiplayerManager && this.multiplayerManager.isSocketConnected();
   }
 
   ready() {
-
-    const inventory = new Inventory()
+    const inventory = new Inventory();
     this.addChild(inventory);
 
     // Change Level handler
     events.on("CHANGE_LEVEL", this, newLevelInstance => {
-      this.setLevel(newLevelInstance)
-    })
+      this.setLevel(newLevelInstance);
+    });
 
     // Launch Text Box handler
     events.on("HERO_REQUESTS_ACTION", this, (withObject) => {
-
-
       if (typeof withObject.getContent === "function") {
         const content = withObject.getContent();
 
@@ -37,10 +99,11 @@ export class Main extends GameObject {
           return;
         }
 
-        console.log(content)
+        console.log(content);
+
         // Potentially add a story flag
         if (content.addsFlag) {
-          console.log("ADD FLAG", content.addsFlag)
+          console.log("ADD FLAG", content.addsFlag);
           storyFlags.add(content.addsFlag);
         }
 
@@ -55,81 +118,113 @@ export class Main extends GameObject {
         // Unsubscribe from this text box after it's destroyed
         const endingSub = events.on("END_TEXT_BOX", this, () => {
           textbox.destroy();
-          events.off(endingSub)
-        })
+          events.off(endingSub);
+        });
       }
-
-    })
-    
-    // Wait for the level to fully initialize
+    });
   }
 
-  setMenu(menuInstance) {
-    // Clean up old menu
-    if (this.menu) {
-      this.menu.destroy();
-    }
+  // Override stepEntry to include multiplayer updates
+  stepEntry(delta, root) {
+    // Call parent stepEntry first
+    super.stepEntry(delta, root);
 
-    // Set new menu
-    this.menu = menuInstance;
-    this.addChild(this.menu);
-
-    // Reset input state when changing menus
-    if (this.input) {
-      this.input.reset();
-      console.log('Input reset during menu change');
-    }
-  }
-
-  setUIManager(uiManagerInstance) {
-    // Clean up old UIManager
-    if (this.uiManager) {
-      this.uiManager.destroy();
-    }
-
-    // Set new UIManager
-    this.uiManager = uiManagerInstance;
-    this.addChild(this.uiManager);
-
-    // Reset input state when changing UI managers
-    if (this.input) {
-      this.input.reset();
-      console.log('Input reset during UI manager change');
+    // Update multiplayer if enabled
+    if (this.multiplayerEnabled && this.multiplayerManager) {
+      this.multiplayerManager.updateRemotePlayers(delta);
     }
   }
 
   setLevel(newLevelInstance) {
     // Clean up old level
     if (this.level) {
-      
-      
       // Cleanup the old level properly
       if (this.level.cleanup) {
-        
         this.level.cleanup();
       }
 
       // Remove old level from scene
-      this.level.destroy();
+      this.removeChild(this.level);
     }
 
-    // 🚨 CRITICAL FIX: Reset input state when changing levels
-    if (this.input) {
-      this.input.reset();
-      console.log('Input reset during level change');
-    }
-
-    // Set new level
+    // Set the new level
     this.level = newLevelInstance;
     this.addChild(this.level);
 
-    // 🚨 Additional fix: Ensure camera is properly initialized for new level
-    if (this.camera && this.level.heroStartPosition) {
-      // Force camera to immediately center on the new position
-      this.camera.position = null;
-      this.camera.lastCenteredPosition = null;
-      this.camera.targetPosition = this.level.heroStartPosition;
+    // Pass multiplayer manager to the new level
+    if (this.level && this.multiplayerManager) {
+      // Set multiplayer manager on the level
+      this.level.multiplayerManager = this.multiplayerManager;
+
+      // Notify multiplayer manager about level change
+      this.multiplayerManager.setLevel(this.level);
+
+      // Setup multiplayer events for the new level
+      if (this.level.setupMultiplayerEvents) {
+        this.level.setupMultiplayerEvents();
+      }
     }
+
+    // Trigger camera bounds update for new level
+    if (this.level.mapData) {
+      const { width, height, tilewidth, tileheight } = this.level.mapData;
+      events.emit("SET_CAMERA_MAP_BOUNDS", {
+        width: width * tilewidth,
+        height: height * tileheight,
+      });
+    }
+  }
+
+  // Method to disconnect multiplayer (useful for testing or settings)
+  disconnectMultiplayer() {
+    if (this.multiplayerManager) {
+      this.multiplayerManager.disconnect();
+      this.multiplayerEnabled = false;
+      console.log('Multiplayer disconnected manually');
+    }
+  }
+
+  // Method to reconnect multiplayer
+  reconnectMultiplayer() {
+    if (!this.multiplayerEnabled && this.multiplayerManager) {
+      this.multiplayerEnabled = true;
+      this.connectToMultiplayer();
+    }
+  }
+
+  // Cleanup method for proper resource management
+  cleanup() {
+    console.log('Main cleanup called');
+
+    // Cleanup current level
+    if (this.level && this.level.cleanup) {
+      this.level.cleanup();
+    }
+
+    // Disconnect multiplayer
+    if (this.multiplayerManager) {
+      this.multiplayerManager.disconnect();
+    }
+
+    // Cleanup UI elements
+    if (this.menu && this.menu.destroy) {
+      this.menu.destroy();
+    }
+
+    if (this.uiManager && this.uiManager.destroy) {
+      this.uiManager.destroy();
+    }
+
+    // Call parent cleanup
+    if (super.cleanup) {
+      super.cleanup();
+    }
+  }
+
+  // Override destroy to include cleanup
+  destroy() {
+    this.cleanup();
+    super.destroy();
   }
 
   drawBackground(ctx) {
@@ -158,6 +253,10 @@ export class Main extends GameObject {
         child.draw(ctx, 0, 0);
       }
     })
+  }
+
+  cleanup() {
+    this.multiplayerManager.disconnect();
   }
 
 }

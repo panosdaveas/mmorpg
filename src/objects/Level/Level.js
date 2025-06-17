@@ -22,7 +22,7 @@ export class Level extends GameObject {
     this.animatedTiles = this.propertyHandler.parseAnimatedTiles(this.mapData.tilesets);
 
     // Multiplayer support
-    this.multiplayerManager = params.multiplayerManager || null;
+    // this.multiplayerManager = params.multiplayerManager || null;
     // Level state
     this.isReady = false;
     this.levelName = params.levelName || "Unknown Level";
@@ -35,13 +35,13 @@ export class Level extends GameObject {
 
   // Set the local player for this level
   setLocalPlayer(player) {
+    if (!player) return;
+
     this.localPlayer = player;
     this.localPlayer.addAttribute("currentLevel", this.levelName);
 
-    // If multiplayer is enabled, notify the manager about the level change
-    if (this.multiplayerManager) {
-      this.multiplayerManager.setLevel(this);
-    }
+  // Note: Multiplayer setup is handled by Main class in setLevel() 
+  // and by Level.ready() method
   }
 
   // Setup multiplayer events (override in child classes)

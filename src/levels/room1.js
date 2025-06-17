@@ -33,7 +33,7 @@ export class Room1 extends Level {
     // Store player setup info (don't set position here)
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
     this.localPlayer = params.hero;
-    this.multiplayerManager = params.multiplayerManager;
+    // this.multiplayerManager = params.multiplayerManager;
     this.setLocalPlayer(this.localPlayer);
 
     // Only add player to scene graph in constructor

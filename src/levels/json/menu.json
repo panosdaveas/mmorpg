@@ -154,7 +154,7 @@
                  "id":167,
                  "name":"",
                  "rotation":0,
-                 "type":"ButtonPressed",
+                 "type":"ButtonHover",
                  "visible":true,
                  "width":16,
                  "x":32,
@@ -166,7 +166,7 @@
                  "id":168,
                  "name":"",
                  "rotation":0,
-                 "type":"ButtonHover",
+                 "type":"ButtonPressed",
                  "visible":true,
                  "width":16,
                  "x":32,
@@ -204,6 +204,11 @@
                          "name":"navigable",
                          "type":"bool",
                          "value":true
+                        }, 
+                        {
+                         "name":"onclick",
+                         "type":"string",
+                         "value":"openProfile"
                         }],
                  "rotation":0,
                  "type":"button",
@@ -283,7 +288,7 @@
                 {
                  "name":"onclick",
                  "type":"string",
-                 "value":"setId"
+                 "value":"openProfile"
                 }],
          "type":"objectgroup",
          "visible":true,
@@ -305,6 +310,11 @@
                          "name":"navigable",
                          "type":"bool",
                          "value":true
+                        }, 
+                        {
+                         "name":"onclick",
+                         "type":"string",
+                         "value":"openPlayers"
                         }],
                  "rotation":0,
                  "type":"button",
@@ -384,7 +394,7 @@
                 {
                  "name":"onclick",
                  "type":"string",
-                 "value":"setId"
+                 "value":"openPlayers"
                 }],
          "type":"objectgroup",
          "visible":true,
@@ -593,11 +603,6 @@
                  "name":"navigable",
                  "type":"bool",
                  "value":true
-                }, 
-                {
-                 "name":"onclick",
-                 "type":"string",
-                 "value":"openProfile"
                 }],
          "type":"objectgroup",
          "visible":true,

@@ -6,12 +6,7 @@ import { MainMap } from './src/levels/map.js';
 import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
-import { Menu } from './src/objects/Menu/Menu.js';
-import { UIManager } from './src/objects/Menu/UIManager.js';
-import { UIMenu } from './src/objects/Menu/UIMenu.js';
-import { UIPlayersInterface } from './src/objects/Menu/UIPlayersInterface.js';
-import { UIProfileInterface } from './src/objects/Menu/UIProfileInterface.js';
-import { TiledUIMenu } from './src/objects/Menu/TiledUIMenu.js';
+import { TabManager } from "./src/objects/Menu/TabManager.js";
 
 
 // Add this to main.js for pixel-perfect scaling
@@ -72,14 +67,6 @@ const mainScene = new Main({
   position: new Vector2(0, 0)
 })
 
-// const menu = new Menu({
-//   multiplayerManager: multiplayerManager
-// });
-
-// mainScene.setMenu(menu);
-
-
-
 // Set up the level with multiplayer support
 const mainMap = new MainMap({
   multiplayerManager,
@@ -91,27 +78,8 @@ mainScene.setLevel(mainMap);
 // Set the current level in multiplayer manager
 multiplayerManager.setLevel(mainMap);
 
-// const uiManager = new UIManager(canvas);
-
-// const playersInterface = new UIPlayersInterface({ multiplayerManager });
-// const profileInterface = new UIProfileInterface({ hero });
-// uiManager.registerComponent(playersInterface);
-// uiManager.registerComponent(profileInterface);
-
-// const menu = new UIMenu({
-//   multiplayerManager,
-//   interfaces: { players: playersInterface, profile: profileInterface }
-// });
-// uiManager.registerComponent(menu);
-
-// Add UIManager to your scene (it's a GameObject now)
-// mainScene.addChild(uiManager);
-// mainScene.setUIManager(uiManager);
-
-// Add TiledUIMenu for tiled menu support
-const tiledMenu = new TiledUIMenu({ canvas });
-
-mainScene.addChild(tiledMenu);
+const tabManager = new TabManager({ canvas });
+mainScene.addChild(tabManager);
 
 // Establish update and draw loops
 const update = (delta) => {
@@ -177,7 +145,6 @@ window.addEventListener('beforeunload', () => {
 (async () => {
   const level = mainScene?.level;
   await level.ready();
-  // await mainMap.ready();              // Wait for map tiles & tilesets to load
 
   const gameLoop = new GameLoop(update, draw);
   gameLoop.start();                  // Start game only when safe

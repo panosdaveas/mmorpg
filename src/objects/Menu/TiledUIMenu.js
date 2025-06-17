@@ -5,55 +5,108 @@ import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { resources } from "../../Resource.js";
-import menuData from "../../levels/json/menu.json";
+// import menuData from "../../levels/json/menu.json";
 
 export class TiledUIMenu extends GameObject {
-    constructor({ canvas }) {
+    constructor({ canvas, menuData, active = true }) { // ← Accept menuData as parameter
         super({
             position: new Vector2(0, 0)
         });
 
         this.canvas = canvas;
-        this.menuData = menuData;
+        this.menuData = menuData; // ← Use passed menuData
         this.propertyHandler = null;
         this.tilesetImages = new Map();
         this.interactiveTiles = [];
-        this.buttonComponents = new Map(); // Store button component groups
+        this.buttonComponents = new Map();
         this.selectedTileIndex = 0;
         this.isVisible = false;
         this.drawLayer = "HUD";
         this.hoveredButtonId = null;
         this.pressedButtonId = null;
+        this.active = active; // ← Store active state
 
-        // Action handlers mapping
+        // Make action handlers configurable (will be set by TabManager)
         this.actionHandlers = {
-            'openProfile': () => this.openProfile(),
-            'openPlayers': () => this.openPlayers(),
-            'openSettings': () => this.openSettings(),
+            // Default handlers that every menu should have
             'closeMenu': () => this.hide(),
-            'action1': () => console.log("Action 1 triggered!"),
-            'action2': () => console.log("Action 2 triggered!"),
             'setId': () => this.setID(),
+            // 'openProfile': () => this.actionHandlers()
         };
 
         this.init();
+
+        this.handleMouseMove = this.handleMouseMove.bind(this);
+        this.handleMouseDown = this.handleMouseDown.bind(this);
+        this.handleMouseUp = this.handleMouseUp.bind(this);
+        this.handleMouseLeave = this.handleMouseLeave.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
-    async init() {
-        // Initialize property handler
-        this.propertyHandler = new TiledPropertyHandler(this.menuData);
+    setActive(active) {
+        this.active = active;
+        console.log(`TiledUIMenu: Set active to ${active}`);
 
-        // Load tileset images
-        this.tilesetImages = await this.propertyHandler.loadTilesetImages(
-            this.menuData.tilesets,
-            "../assets/maps/"
-        );
-
-        // Parse class-based interactive components
-        this.parseClassBasedComponents();
-
-        // Setup event listeners
+        // Re-setup event listeners based on new active state
         this.setupEventListeners();
+    }
+
+    setActionHandlers(handlers) {
+        // Merge new handlers with existing ones
+        this.actionHandlers = { ...this.actionHandlers, ...handlers };
+        console.log(`TiledUIMenu: Set ${Object.keys(handlers).length} action handlers`);
+    }
+
+    
+
+    async init() {
+        // Validate menuData
+        if (!this.menuData) {
+            console.error("TiledUIMenu: No menuData provided!");
+            return;
+        }
+
+        try {
+            // Initialize property handler
+            this.propertyHandler = new TiledPropertyHandler(this.menuData);
+
+            // Load tileset images
+            this.tilesetImages = await this.propertyHandler.loadTilesetImages(
+                this.menuData.tilesets,
+                "../assets/maps/"
+            );
+
+            // Parse class-based interactive components
+            this.parseClassBasedComponents();
+
+            // Setup event listeners
+            this.setupEventListeners();
+
+            console.log("TiledUIMenu: Initialization complete");
+
+        } catch (error) {
+            console.error("TiledUIMenu: Initialization failed:", error);
+        }
+    }
+
+    destroy() {
+        this.removeEventListeners();
+        super.destroy();
+    }
+
+    // 7. ADD METHOD TO CHECK IF MENU IS READY (needed by TabManager)
+    isReady() {
+        return this.tilesetImages && this.tilesetImages.size > 0 && this.propertyHandler;
+    }
+
+    getMenuInfo() {
+        return {
+            isReady: this.isReady(),
+            isVisible: this.isVisible,
+            interactiveTilesCount: this.interactiveTiles.length,
+            buttonComponentsCount: this.buttonComponents.size,
+            tilesetsLoaded: this.tilesetImages.size
+        };
     }
 
     step(delta, root) {
@@ -325,14 +378,35 @@ export class TiledUIMenu extends GameObject {
     setupEventListeners() {
         if (!this.canvas) return;
 
-        // Mouse events for hover and click
-        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
-        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-        this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
+        // Remove existing listeners first
+        this.removeEventListeners();
 
-        // Keyboard events
-        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        // Mouse events are always active (for visual feedback)
+        this.canvas.addEventListener('mousemove', this.handleMouseMove);
+        this.canvas.addEventListener('mousedown', this.handleMouseDown);
+        this.canvas.addEventListener('mouseup', this.handleMouseUp);
+        this.canvas.addEventListener('mouseleave', this.handleMouseLeave);
+
+        // Keyboard events only if active
+        if (this.active) {
+            document.addEventListener('keydown', this.handleKeyDown);
+            console.log("TiledUIMenu: Keyboard events enabled");
+        } else {
+            console.log("TiledUIMenu: Keyboard events disabled");
+        }
+    }
+
+    removeEventListeners() {
+        if (!this.canvas) return;
+
+        // Remove mouse listeners
+        this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+        this.canvas.removeEventListener('mousedown', this.handleMouseDown);
+        this.canvas.removeEventListener('mouseup', this.handleMouseUp);
+        this.canvas.removeEventListener('mouseleave', this.handleMouseLeave);
+
+        // Remove keyboard listeners
+        document.removeEventListener('keydown', this.handleKeyDown);
     }
 
     handleMouseMove(e) {
@@ -638,28 +712,33 @@ export class TiledUIMenu extends GameObject {
 
     executeAction(actionName) {
         if (this.actionHandlers[actionName]) {
-            this.actionHandlers[actionName]();
+            try {
+                this.actionHandlers[actionName]();
+            } catch (error) {
+                console.error(`Error executing action '${actionName}':`, error);
+            }
         } else {
             console.warn(`No handler found for action: ${actionName}`);
-            events.emit("UI_ACTION", { action: actionName });
+            // Emit event as fallback
+            events.emit("UI_ACTION", { action: actionName, source: 'TiledUIMenu' });
         }
     }
 
     // Action handler methods
-    openProfile() {
-        console.log("Opening profile...");
-        events.emit("OPEN_PROFILE");
-    }
+    // openProfile() {
+    //     console.log("Opening profile...");
+    //     events.emit("OPEN_PROFILE");
+    // }
 
-    openPlayers() {
-        console.log("Opening players list...");
-        events.emit("OPEN_PLAYERS");
-    }
+    // openPlayers() {
+    //     console.log("Opening players list...");
+    //     events.emit("OPEN_PLAYERS");
+    // }
 
-    openSettings() {
-        console.log("Opening settings...");
-        events.emit("OPEN_SETTINGS");
-    }
+    // openSettings() {
+    //     console.log("Opening settings...");
+    //     events.emit("OPEN_SETTINGS");
+    // }
 
     updateButtonText(buttonId, newText) {
         const component = this.buttonComponents.get(buttonId);

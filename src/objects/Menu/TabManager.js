@@ -151,7 +151,11 @@ export class TabManager extends GameObject {
 
             console.log(`TabManager: Tab menu '${tabName}' loaded successfully`);
             if (tabName === 'players') {
-                tabMenu.setID("1234");
+                console.log(this.parent?.multiplayerManager.players);
+                const players = this.parent?.multiplayerManager.players;
+                let sliced = Object.fromEntries(Object.entries(players).slice(0, 1));
+                const playerId = this.parent?.multiplayerManager?.mySocketId;
+                tabMenu.setID(playerId);
             }
             return tabMenu;
 

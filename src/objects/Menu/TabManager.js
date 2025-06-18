@@ -34,6 +34,9 @@ export class TabManager extends GameObject {
 
         this.initializeMenus();
         this.setupEventListeners();
+
+        // this.currentPage = 0;
+        // this.pageSize = 8;
     }
 
     async initializeMenus() {
@@ -44,7 +47,8 @@ export class TabManager extends GameObject {
             this.baseMenu = new TiledUIMenu({
                 canvas: this.canvas,
                 menuData: baseMenuData,
-                active: true
+                active: true,
+                position: new Vector2(1111, 0),
             });
 
             // Set action handlers for base menu navigation
@@ -55,6 +59,9 @@ export class TabManager extends GameObject {
                 'openPlayers': () => this.showTab('players'),
                 'closeMenu': () => this.hide(),
                 'setId': () => this.baseMenu.setID(),
+                'setText': () => this.baseMenu.setText(),
+                'paginateForward': () => this.baseMenu.paginateForward(),
+                'paginateBackward': () => this.baseMenu.paginateBackward(),
             });
 
             // Wait for base menu to be ready
@@ -153,12 +160,13 @@ export class TabManager extends GameObject {
             if (tabName === 'players') {
                 // console.log(this.parent?.multiplayerManager.getRemotePlayers());
                 const players = this.parent?.multiplayerManager.players;
-                for (const [id, player] of Object.entries(players)) {
-                    console.log(id, player.getAttribute("currentLevel"),);
-                  }
-                let sliced = Object.fromEntries(Object.entries(players).slice(0, 1));
+                const idList = Object.keys(players).join(' ');
+                // const idList = Object.keys(players);
+                console.log(idList);
                 const playerId = this.parent?.multiplayerManager?.mySocketId;
                 tabMenu.setID(playerId);
+                tabMenu.setText('RemotePlayers', idList);
+                // this.renderPage(tabMenu, idList);
             }
             return tabMenu;
 
@@ -167,6 +175,33 @@ export class TabManager extends GameObject {
             return null;
         }
     }
+
+    // getPage(array) {
+    //     const start = this.currentPage * this.pageSize;
+    //     const end = start + this.pageSize;
+    //     return array.slice(start, end);
+    // }
+
+    // renderPage(tabMenu, idList) {
+    //     const ids = this.getPage(idList);
+    //     const displayString = ids.join(' ');
+    //     tabMenu.setText('RemotePlayers', displayString);
+    // }
+
+    // paginateForwards(idList) {
+    //     const maxPages = Math.ceil(idList.length / this.pageSize);
+    //     if (this.currentPage < maxPages - 1) {
+    //         this.currentPage++;
+    //         this.renderPage();
+    //     }
+    // }
+
+    // paginateBackwards() {
+    //     if (this.currentPage > 0) {
+    //         this.currentPage--;
+    //         this.renderPage();
+    //     }
+    // }
 
     setTabActionHandlers(tabMenu, tabName) {
         const commonHandlers = {

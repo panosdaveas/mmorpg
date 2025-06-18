@@ -807,6 +807,16 @@ export class TiledUIMenu extends GameObject {
         }
     }
 
+    setText(target, value) {
+        const dynamicValue = value;
+
+        const objectId = this.findButtonByText(target);
+        if (objectId) {
+            this.updateButtonText(objectId, dynamicValue);
+        }
+    }
+
+
     show() {
         this.isVisible = true;
         this.selectedTileIndex = 0;

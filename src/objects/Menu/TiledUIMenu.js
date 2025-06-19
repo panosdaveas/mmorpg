@@ -533,7 +533,7 @@ export class TiledUIMenu extends GameObject {
             this.pressedButtonId = null;
         }
     }
-    
+
 
     handleMouseLeave() {
         if (this.hoveredButtonId) {
@@ -984,6 +984,7 @@ export class TiledUIMenu extends GameObject {
         if (!this.isVisible) return;
 
         ctx.save();
+        
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.mozImageSmoothingEnabled = false;
@@ -1037,7 +1038,7 @@ export class TiledUIMenu extends GameObject {
                 const dy = Math.floor(index / width) * TILE_SIZE;
 
                 if (!image.complete || image.naturalWidth === 0) return;
-
+                
                 ctx.drawImage(
                     image,
                     sx, sy, TILE_SIZE, TILE_SIZE,

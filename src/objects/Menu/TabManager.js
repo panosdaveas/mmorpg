@@ -3,7 +3,7 @@ import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
 import { TiledUIMenu } from "./TiledUIMenu.js";
 import { events } from "../../Events.js";
-import { TILE_SIZE } from "../../constants/worldConstants.js";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, TILE_SIZE } from "../../constants/worldConstants.js";
 
 // Static imports for all menu data
 import baseMenuData from "../../levels/json/menu.json";
@@ -325,6 +325,9 @@ export class TabManager extends GameObject {
         if (!this.isVisible) return;
 
         ctx.save();
+        // fill canvas with shadow
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         // Always draw base menu first (background and navigation)
         if (this.baseMenu) {

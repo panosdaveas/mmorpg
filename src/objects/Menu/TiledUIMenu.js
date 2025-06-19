@@ -199,17 +199,22 @@ export class TiledUIMenu extends GameObject {
         const layerProperties = this.convertPropertiesToObject(layer.properties);
         const buttonId = layer.id || layer.name;
 
+        // Check if button is enabled (default to true if not specified)
+        const isEnabled = layerProperties.enabled !== false;
+
         // Create button component
         const buttonComponent = {
             id: buttonId,
             layerName: layer.name,
             properties: layerProperties,
+            enabled: isEnabled, // Store enabled state
             states: {
                 normal: [],
                 hover: [],
                 pressed: []
             },
-            currentState: 'normal',
+            // If disabled, start in hover state; if enabled, start in normal state
+            currentState: isEnabled ? 'normal' : 'hover',
             bounds: null
         };
 
@@ -324,7 +329,7 @@ export class TiledUIMenu extends GameObject {
         this.buttonComponents.set(buttonId, buttonComponent);
 
         // Add to interactive tiles for navigation (use button bounds, not tile bounds)
-        if (buttonComponent.bounds && layerProperties.navigable) {
+        if (buttonComponent.bounds && layerProperties.navigable && isEnabled) {
             this.interactiveTiles.push({
                 type: 'button_component',
                 buttonId: buttonId,
@@ -456,12 +461,15 @@ export class TiledUIMenu extends GameObject {
         // Check button components for hover states - with bounds safety check
         for (const [buttonId, component] of this.buttonComponents) {
             if (component.bounds && this.isPointInBounds(mouseX, mouseY, component.bounds)) {
-                hoveredButton = buttonId;
+                // Only allow hover interaction if button is enabled
+                if (component.enabled) {
+                    hoveredButton = buttonId;
+                }
                 break;
             }
         }
 
-        // Find hovered interactive element for selection rectangle
+        // Find hovered interactive element for selection rectangle (only enabled buttons)
         hoveredElementIndex = this.interactiveTiles.findIndex(element => {
             return mouseX >= element.position.x &&
                 mouseX < element.position.x + element.size.width &&
@@ -474,17 +482,23 @@ export class TiledUIMenu extends GameObject {
             this.selectedTileIndex = hoveredElementIndex;
         }
 
-        // Update button hover state
+        // Update button hover state (only for enabled buttons)
         if (hoveredButton !== this.hoveredButtonId) {
             // Clear previous hover
             if (this.hoveredButtonId) {
-                this.setButtonState(this.hoveredButtonId, 'normal');
+                const prevComponent = this.buttonComponents.get(this.hoveredButtonId);
+                if (prevComponent && prevComponent.enabled) {
+                    this.setButtonState(this.hoveredButtonId, 'normal');
+                }
             }
 
-            // Set new hover
+            // Set new hover (only for enabled buttons)
             this.hoveredButtonId = hoveredButton;
             if (hoveredButton) {
-                this.setButtonState(hoveredButton, 'hover');
+                const component = this.buttonComponents.get(hoveredButton);
+                if (component && component.enabled) {
+                    this.setButtonState(hoveredButton, 'hover');
+                }
             }
         }
     }
@@ -492,8 +506,12 @@ export class TiledUIMenu extends GameObject {
     handleMouseDown(e) {
         if (!this.isVisible || !this.hoveredButtonId) return;
 
-        this.pressedButtonId = this.hoveredButtonId;
-        this.setButtonState(this.pressedButtonId, 'pressed');
+        // Only allow press if button is enabled
+        const component = this.buttonComponents.get(this.hoveredButtonId);
+        if (component && component.enabled) {
+            this.pressedButtonId = this.hoveredButtonId;
+            this.setButtonState(this.pressedButtonId, 'pressed');
+        }
     }
 
     handleMouseUp(e) {
@@ -501,18 +519,21 @@ export class TiledUIMenu extends GameObject {
 
         if (this.pressedButtonId) {
             const component = this.buttonComponents.get(this.pressedButtonId);
-            if (component && this.hoveredButtonId === this.pressedButtonId) {
-                // Execute button action
+            if (component && component.enabled && this.hoveredButtonId === this.pressedButtonId) {
+                // Execute button action only if enabled
                 if (component.properties.onclick) {
                     this.executeAction(component.properties.onclick);
                 }
             }
 
-            // Reset to hover state if still hovering, normal otherwise
-            this.setButtonState(this.pressedButtonId, this.hoveredButtonId === this.pressedButtonId ? 'hover' : 'normal');
+            // Reset to hover state if still hovering and enabled, normal otherwise
+            if (component && component.enabled) {
+                this.setButtonState(this.pressedButtonId, this.hoveredButtonId === this.pressedButtonId ? 'hover' : 'normal');
+            }
             this.pressedButtonId = null;
         }
     }
+    
 
     handleMouseLeave() {
         if (this.hoveredButtonId) {
@@ -721,7 +742,8 @@ export class TiledUIMenu extends GameObject {
 
         if (selectedElement.type === 'button_component') {
             const component = this.buttonComponents.get(selectedElement.buttonId);
-            if (component && component.properties.onclick) {
+            // Only activate if component exists, is enabled, and has onclick action
+            if (component && component.enabled && component.properties.onclick) {
                 // Set pressed state temporarily
                 this.pressedButtonId = selectedElement.buttonId;
                 this.setButtonState(selectedElement.buttonId, 'pressed');
@@ -729,7 +751,7 @@ export class TiledUIMenu extends GameObject {
                 // Execute action
                 this.executeAction(component.properties.onclick);
 
-                // Reset to hover state after a brief delay (similar to mouse click)
+                // Reset to hover state after a brief delay
                 setTimeout(() => {
                     if (this.pressedButtonId === selectedElement.buttonId) {
                         this.setButtonState(selectedElement.buttonId, 'hover');
@@ -754,6 +776,93 @@ export class TiledUIMenu extends GameObject {
             // Emit event as fallback
             events.emit("UI_ACTION", { action: actionName, source: 'TiledUIMenu' });
         }
+    }
+
+    setButtonEnabled(buttonId, enabled) {
+        const component = this.buttonComponents.get(buttonId);
+        if (!component) {
+            console.warn(`Button component ${buttonId} not found`);
+            return false;
+        }
+
+        const wasEnabled = component.enabled;
+        component.enabled = enabled;
+
+        if (enabled && !wasEnabled) {
+            // Button was disabled, now enabled - reset to normal state
+            component.currentState = 'normal';
+            this.setButtonState(buttonId, 'normal');
+
+            // Add back to interactive tiles if it has navigable property
+            if (component.bounds && component.properties.navigable) {
+                const existingIndex = this.interactiveTiles.findIndex(tile =>
+                    tile.type === 'button_component' && tile.buttonId === buttonId
+                );
+
+                if (existingIndex === -1) {
+                    this.interactiveTiles.push({
+                        type: 'button_component',
+                        buttonId: buttonId,
+                        properties: component.properties,
+                        position: { x: component.bounds.x, y: component.bounds.y },
+                        size: { width: component.bounds.width, height: component.bounds.height },
+                        index: this.interactiveTiles.length,
+                        layer: component.layerName
+                    });
+
+                    // Re-sort interactive tiles
+                    this.interactiveTiles.sort((a, b) => {
+                        if (a.position.y !== b.position.y) {
+                            return a.position.y - b.position.y;
+                        }
+                        return a.position.x - b.position.x;
+                    });
+
+                    // Update indices
+                    this.interactiveTiles.forEach((tile, index) => {
+                        tile.index = index;
+                    });
+                }
+            }
+
+        } else if (!enabled && wasEnabled) {
+            // Button was enabled, now disabled - set to hover state and remove from navigation
+            component.currentState = 'hover';
+            this.setButtonState(buttonId, 'hover');
+
+            // Remove from interactive tiles
+            const index = this.interactiveTiles.findIndex(tile =>
+                tile.type === 'button_component' && tile.buttonId === buttonId
+            );
+
+            if (index !== -1) {
+                this.interactiveTiles.splice(index, 1);
+
+                // Update indices for remaining tiles
+                this.interactiveTiles.forEach((tile, idx) => {
+                    tile.index = idx;
+                });
+
+                // Adjust selected index if necessary
+                if (this.selectedTileIndex >= index) {
+                    this.selectedTileIndex = Math.max(0, this.selectedTileIndex - 1);
+                    if (this.selectedTileIndex >= this.interactiveTiles.length) {
+                        this.selectedTileIndex = Math.max(0, this.interactiveTiles.length - 1);
+                    }
+                }
+            }
+
+            // Clear any hover/press states for this button
+            if (this.hoveredButtonId === buttonId) {
+                this.hoveredButtonId = null;
+            }
+            if (this.pressedButtonId === buttonId) {
+                this.pressedButtonId = null;
+            }
+        }
+
+        console.log(`Button ${buttonId} enabled state changed to: ${enabled}`);
+        return true;
     }
 
     // Action handler methods
@@ -825,6 +934,15 @@ export class TiledUIMenu extends GameObject {
                 if (obj.name === searchText) {
                     return buttonId;
                 }
+            }
+        }
+        return null;
+    }
+
+    findObjectByName(searchText) {
+        for (const [buttonId, component] of this.buttonComponents) {
+            if (component.layerName === searchText) {
+                return buttonId;
             }
         }
         return null;

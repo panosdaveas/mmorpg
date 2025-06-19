@@ -194,6 +194,12 @@ export class TabManager extends GameObject {
                 tabMenu.setText("PlayerId", playerId);
                 // tabMenu.setID(playerId);
                 this.renderPage();
+                if (this.idList.length <= this.pageSize) {
+                    const paginateForwardButton = tabMenu.findObjectByName('Button_Paginate_Forward')
+                    const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
+                    tabMenu.setButtonEnabled(paginateForwardButton, false);
+                    tabMenu.setButtonEnabled(paginateBackwardButton, false);
+                }
             }
             return tabMenu;
 

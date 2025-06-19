@@ -8,13 +8,14 @@ import { resources } from "../../Resource.js";
 // import menuData from "../../levels/json/menu.json";
 
 export class TiledUIMenu extends GameObject {
-    constructor({ canvas, menuData, active = true, scale = 1 }) { // ← Accept menuData as parameter
+    constructor({ canvas, menuData, active = true, scale = 1, zIndex = 1 }) { // ← Accept menuData as parameter
         super({
             position: new Vector2(0, 0)
         });
 
         this.scale = scale;
         this.canvas = canvas;
+        this.zIndex = zIndex;
         this.menuData = menuData; // ← Use passed menuData
         this.propertyHandler = null;
         this.tilesetImages = new Map();

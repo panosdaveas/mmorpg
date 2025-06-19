@@ -237,7 +237,7 @@ export class Main extends GameObject {
     const currentLevelName = this.level?.levelName;
 
     this.children.forEach(child => {
-      if (child.drawLayer !== "HUD") {
+      if (child.drawLayer !== "HUD" && child.drawLayer != "UI") {
           if (child.isRemote && child.currentLevelName !== currentLevelName) {
             // console.log(child.currentLevelName);
             return; // ⛔ Don't draw remote players not in same level
@@ -248,11 +248,19 @@ export class Main extends GameObject {
   }
 
   drawForeground(ctx) {
+    // First pass: Draw HUD layer
     this.children.forEach(child => {
-      if (child.drawLayer === "HUD" || child.drawLayer === "UI") {
+      if (child.drawLayer === "HUD") {
         child.draw(ctx, 0, 0);
       }
-    })
+    });
+
+    // Second pass: Draw UI layer (on top of HUD)
+    this.children.forEach(child => {
+      if (child.drawLayer === "UI") {
+        child.draw(ctx, 0, 0);
+      }
+    });
   }
 
   cleanup() {

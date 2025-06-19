@@ -55,6 +55,14 @@ export class GameObject {
         return 1;
       }
 
+      // For UI and HUD layers, sort by z-index
+      if ((a.drawLayer === "UI" || a.drawLayer === "HUD") &&
+        (b.drawLayer === "UI" || b.drawLayer === "HUD")) {
+        const aZIndex = a.zIndex || 0;
+        const bZIndex = b.zIndex || 0;
+        return aZIndex - bZIndex; // Lower z-index draws first
+      }
+
       return a.position.y > b.position.y ? 1 : -1
     })
   }

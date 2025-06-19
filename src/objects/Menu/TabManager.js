@@ -19,7 +19,7 @@ export class TabManager extends GameObject {
         this.canvas = canvas;
         this.currentActiveTab = null;
         this.isVisible = false;
-        this.drawLayer = "HUD";
+        this.drawLayer = "UI";
 
         // Store menu instances
         this.baseMenu = null;
@@ -58,6 +58,7 @@ export class TabManager extends GameObject {
                 active: true,
                 position: new Vector2(0, 0),
                 scale: menuScale,
+                zIndex: 2,
             });
 
             // Set action handlers for base menu navigation
@@ -170,6 +171,7 @@ export class TabManager extends GameObject {
                 menuData: tabData,
                 active: true,
                 scale: menuScale,
+                zIndex: 1,
             });
 
             // Set tab-specific action handlers

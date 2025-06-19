@@ -35,6 +35,11 @@ export class TabManager extends GameObject {
         this.initializeMenus();
         this.setupEventListeners();
 
+        this.currentPage = 0;
+        this.pageSize = 8;
+
+        this.idList = null;
+
         // this.currentPage = 0;
         // this.pageSize = 8;
     }
@@ -60,8 +65,8 @@ export class TabManager extends GameObject {
                 'closeMenu': () => this.hide(),
                 'setId': () => this.baseMenu.setID(),
                 'setText': () => this.baseMenu.setText(),
-                'paginateForward': () => this.baseMenu.paginateForward(),
-                'paginateBackward': () => this.baseMenu.paginateBackward(),
+                // 'paginateForward': () => this.paginateForward(),
+                // 'paginateBackward': () => this.paginateBackward(),
             });
 
             // Wait for base menu to be ready
@@ -158,21 +163,45 @@ export class TabManager extends GameObject {
 
             console.log(`TabManager: Tab menu '${tabName}' loaded successfully`);
             if (tabName === 'players') {
-                // console.log(this.parent?.multiplayerManager.getRemotePlayers());
                 const players = this.parent?.multiplayerManager.players;
-                const idList = Object.keys(players).join(' ');
-                // const idList = Object.keys(players);
-                console.log(idList);
+                this.idList = Object.keys(players);
                 const playerId = this.parent?.multiplayerManager?.mySocketId;
                 tabMenu.setID(playerId);
-                tabMenu.setText('RemotePlayers', idList);
-                // this.renderPage(tabMenu, idList);
+                this.renderPage();
             }
             return tabMenu;
 
         } catch (error) {
             console.error(`TabManager: Error creating tab menu '${tabName}':`, error);
             return null;
+        }
+    }
+
+    getPage(array, page, size) {
+        const start = page * size;
+        const end = start + size;
+        return array.slice(start, end);
+    }
+
+    renderPage() {
+        const ids = this.getPage(this.idList, this.currentPage, this.pageSize);
+        const displayString = ids.join(' ');
+        const currentMenu = this.tabMenus.get(this.currentActiveTab || 'players');
+        currentMenu.setText('RemotePlayers', displayString);
+    }
+
+    paginateForward() {
+        const maxPages = Math.ceil(this.idList.length / this.pageSize);
+        if (this.currentPage < maxPages - 1) {
+            this.currentPage++;
+            this.renderPage();
+        }
+    }
+
+    paginateBackward() {
+        if (this.currentPage > 0) {
+            this.currentPage--;
+            this.renderPage();
         }
     }
 
@@ -218,6 +247,8 @@ export class TabManager extends GameObject {
                 'invitePlayer': () => this.handlePlayerInvite(),
                 'kickPlayer': () => this.handlePlayerKick(),
                 'refreshPlayers': () => this.handlePlayersRefresh(),
+                'paginateForward': () => this.paginateForward(),
+                'paginateBackward': () => this.paginateBackward(),
             }
         };
 
@@ -335,6 +366,8 @@ export class TabManager extends GameObject {
 
     handlePlayersRefresh() {
         console.log("TabManager: Refreshing players list");
+        const players = this.parent?.multiplayerManager.players;
+        this.idList = Object.keys(players);
         events.emit("PLAYERS_REFRESH_REQUESTED");
     }
 

@@ -33,6 +33,7 @@ export class TiledUIMenu extends GameObject {
             // Default handlers that every menu should have
             'closeMenu': () => this.hide(),
             'setId': () => this.setID(),
+            'setText': () => this.setText(),
             // 'openProfile': () => this.actionHandlers()
         };
 
@@ -818,7 +819,8 @@ export class TiledUIMenu extends GameObject {
     findButtonByText(searchText) {
         for (const [buttonId, component] of this.buttonComponents) {
             for (const obj of component.states.normal) {
-                if (obj.text && obj.text.text === searchText) {
+                // if (obj.text && obj.text.text === searchText) {
+                if (obj.name === searchText) {
                     return buttonId;
                 }
             }

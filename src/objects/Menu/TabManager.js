@@ -3,6 +3,7 @@ import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
 import { TiledUIMenu } from "./TiledUIMenu.js";
 import { events } from "../../Events.js";
+import { TILE_SIZE } from "../../constants/worldConstants.js";
 
 // Static imports for all menu data
 import baseMenuData from "../../levels/json/menu.json";
@@ -48,12 +49,15 @@ export class TabManager extends GameObject {
         console.log("TabManager: Initializing menus...");
 
         try {
+
+            const menuScale = this.calculateMenuScale();
             // Create base menu (starts active - keyboard enabled)
             this.baseMenu = new TiledUIMenu({
                 canvas: this.canvas,
                 menuData: baseMenuData,
                 active: true,
-                position: new Vector2(1111, 0),
+                position: new Vector2(0, 0),
+                scale: menuScale,
             });
 
             // Set action handlers for base menu navigation
@@ -77,6 +81,23 @@ export class TabManager extends GameObject {
         } catch (error) {
             console.error("TabManager: Failed to initialize base menu:", error);
         }
+    }
+
+    calculateMenuScale() {
+        if (!this.canvas || !baseMenuData) return 1;
+
+        // Get the original menu dimensions from the map data
+        const originalWidth = baseMenuData.width * TILE_SIZE;  // Assuming TILE_SIZE from constants
+        const originalHeight = baseMenuData.height * TILE_SIZE;
+
+        // Calculate scale to fit canvas height
+        const scaleToFitHeight = this.canvas.height / originalHeight;
+
+        // Optionally, also consider width to maintain aspect ratio
+        const scaleToFitWidth = this.canvas.width / originalWidth;
+
+        // Use the smaller scale to ensure it fits both dimensions
+        return Math.min(scaleToFitHeight, scaleToFitWidth);
     }
 
     async showTab(tabName) {
@@ -142,11 +163,13 @@ export class TabManager extends GameObject {
         console.log(`TabManager: Creating new menu for tab '${tabName}'`);
 
         try {
+            const menuScale = this.calculateMenuScale();
             // Create tab menu instance (always active)
             const tabMenu = new TiledUIMenu({
                 canvas: this.canvas,
                 menuData: tabData,
-                active: true
+                active: true,
+                scale: menuScale,
             });
 
             // Set tab-specific action handlers

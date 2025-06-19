@@ -8,11 +8,12 @@ import { resources } from "../../Resource.js";
 // import menuData from "../../levels/json/menu.json";
 
 export class TiledUIMenu extends GameObject {
-    constructor({ canvas, menuData, active = true }) { // ← Accept menuData as parameter
+    constructor({ canvas, menuData, active = true, scale = 1 }) { // ← Accept menuData as parameter
         super({
             position: new Vector2(0, 0)
         });
 
+        this.scale = scale;
         this.canvas = canvas;
         this.menuData = menuData; // ← Use passed menuData
         this.propertyHandler = null;
@@ -445,8 +446,8 @@ export class TiledUIMenu extends GameObject {
         const rect = this.canvas.getBoundingClientRect();
         const scaleX = this.canvas.width / rect.width;
         const scaleY = this.canvas.height / rect.height;
-        const mouseX = (e.clientX - rect.left) * scaleX;
-        const mouseY = (e.clientY - rect.top) * scaleY;
+        const mouseX = ((e.clientX - rect.left) * scaleX - this.position.x) / this.scale;
+        const mouseY = ((e.clientY - rect.top) * scaleY - this.position.y) / this.scale;
 
         let hoveredButton = null;
         let hoveredElementIndex = -1;
@@ -864,6 +865,13 @@ export class TiledUIMenu extends GameObject {
         if (!this.isVisible) return;
 
         ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        // Apply position and scale transforms
+        ctx.translate(this.position.x, this.position.y);
+        ctx.scale(this.scale, this.scale);  // Apply scaling
 
         // Draw background tiles
         this.drawBackground(ctx);

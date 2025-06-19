@@ -23,7 +23,7 @@ export class TiledUIMenu extends GameObject {
         this.buttonComponents = new Map();
         this.selectedTileIndex = 0;
         this.isVisible = false;
-        this.drawLayer = "HUD";
+        // this.drawLayer = "UI";
         this.hoveredButtonId = null;
         this.pressedButtonId = null;
         this.active = active; // ← Store active state

@@ -229,33 +229,6 @@ export class TabManager extends GameObject {
         }
     }
 
-    // getPage(array) {
-    //     const start = this.currentPage * this.pageSize;
-    //     const end = start + this.pageSize;
-    //     return array.slice(start, end);
-    // }
-
-    // renderPage(tabMenu, idList) {
-    //     const ids = this.getPage(idList);
-    //     const displayString = ids.join(' ');
-    //     tabMenu.setText('RemotePlayers', displayString);
-    // }
-
-    // paginateForwards(idList) {
-    //     const maxPages = Math.ceil(idList.length / this.pageSize);
-    //     if (this.currentPage < maxPages - 1) {
-    //         this.currentPage++;
-    //         this.renderPage();
-    //     }
-    // }
-
-    // paginateBackwards() {
-    //     if (this.currentPage > 0) {
-    //         this.currentPage--;
-    //         this.renderPage();
-    //     }
-    // }
-
     setTabActionHandlers(tabMenu, tabName) {
         const commonHandlers = {
             'closeTab': () => this.hideCurrentTab(),

@@ -404,4 +404,5 @@ export class TabManager extends GameObject {
             console.log(`TabManager: No handler found for '${actionName}'`);
         }
     }
+
 }

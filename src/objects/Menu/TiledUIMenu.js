@@ -17,6 +17,7 @@ export class TiledUIMenu extends GameObject {
         this.menuData = menuData; // ← Use passed menuData
         this.propertyHandler = null;
         this.tilesetImages = new Map();
+        this.animatedTiles = null;
         this.interactiveTiles = [];
         this.buttonComponents = new Map();
         this.selectedTileIndex = 0;
@@ -25,6 +26,7 @@ export class TiledUIMenu extends GameObject {
         this.hoveredButtonId = null;
         this.pressedButtonId = null;
         this.active = active; // ← Store active state
+
 
         // Make action handlers configurable (will be set by TabManager)
         this.actionHandlers = {
@@ -70,6 +72,8 @@ export class TiledUIMenu extends GameObject {
             // Initialize property handler
             this.propertyHandler = new TiledPropertyHandler(this.menuData);
 
+            this.animatedTiles = this.propertyHandler.parseAnimatedTiles(this.menuData.tilesets);
+
             // Load tileset images
             this.tilesetImages = await this.propertyHandler.loadTilesetImages(
                 this.menuData.tilesets,
@@ -110,6 +114,9 @@ export class TiledUIMenu extends GameObject {
     }
 
     step(delta, root) {
+
+        this.updateAnimatedTiles(delta);
+
         // if (!this.visible) {
             if (root.input.getActionJustPressed("Enter")) {
                 this.show();
@@ -122,6 +129,28 @@ export class TiledUIMenu extends GameObject {
             }
             // return;
         // }
+    }
+
+    // Add animation update method
+    updateAnimatedTiles(delta) {
+        if (!this.animatedTiles) return;
+
+        for (const [tileId, anim] of this.animatedTiles.entries()) {
+            anim.elapsedTime += delta;
+            let currentFrame = anim.frames[anim.currentFrameIndex];
+
+            while (anim.elapsedTime > currentFrame.duration) {
+                anim.elapsedTime -= currentFrame.duration;
+                anim.currentFrameIndex = (anim.currentFrameIndex + 1) % anim.frames.length;
+                currentFrame = anim.frames[anim.currentFrameIndex];
+            }
+        }
+    }
+
+    // Add method to get current animated tile ID
+    getAnimatedTileId(originalTileId) {
+        const anim = this.animatedTiles?.get(originalTileId);
+        return anim ? anim.frames[anim.currentFrameIndex].tileid : originalTileId;
     }
 
     parseClassBasedComponents() {
@@ -861,14 +890,16 @@ export class TiledUIMenu extends GameObject {
                 const rawTileId = tileId & 0x1FFFFFFF;
                 if (rawTileId === 0) return;
 
+                const drawTileId = this.getAnimatedTileId(rawTileId);
+
                 const tilesetEntry = [...this.tilesetImages.entries()]
                     .reverse()
-                    .find(([firstgid]) => rawTileId >= firstgid);
+                    .find(([firstgid]) => drawTileId >= firstgid);
 
                 if (!tilesetEntry) return;
 
                 const [firstgid, { image, tileset }] = tilesetEntry;
-                const localId = rawTileId - firstgid;
+                const localId = drawTileId - firstgid;
                 const columns = tileset.columns;
 
                 const sx = (localId % columns) * TILE_SIZE;

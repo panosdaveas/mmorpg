@@ -62,7 +62,7 @@ export class SpriteTextString extends GameObject {
     const words = this.fullText.split(' ');
     const allLines = [];
     let currentLine = '';
-    const maxCharsPerLine = 28; // Approximate characters per line for 12px font
+    const maxCharsPerLine = 36; // Approximate characters per line for 12px font
 
     for (let word of words) {
       const testLine = currentLine + (currentLine ? ' ' : '') + word;

@@ -168,7 +168,6 @@ export class MainMap extends Level {
       width: mapData.width * TILE_SIZE,
       height: mapData.height * TILE_SIZE,
     });
-
     this.updateDebugText();
   }
 

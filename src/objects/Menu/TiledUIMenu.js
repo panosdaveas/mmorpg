@@ -33,7 +33,7 @@ export class TiledUIMenu extends GameObject {
         this.actionHandlers = {
             // Default handlers that every menu should have
             'closeMenu': () => this.hide(),
-            'setId': () => this.setID(),
+            // 'setId': () => this.setID(),
             'setText': () => this.setText(),
             // 'openProfile': () => this.actionHandlers()
         };

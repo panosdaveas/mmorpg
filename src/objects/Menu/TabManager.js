@@ -189,7 +189,8 @@ export class TabManager extends GameObject {
                 const players = this.parent?.multiplayerManager.players;
                 this.idList = Object.keys(players);
                 const playerId = this.parent?.multiplayerManager?.mySocketId;
-                tabMenu.setID(playerId);
+                tabMenu.setText("PlayerId", playerId);
+                // tabMenu.setID(playerId);
                 this.renderPage();
             }
             return tabMenu;

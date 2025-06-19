@@ -454,7 +454,7 @@
          "class":"Button",
          "draworder":"topdown",
          "id":11,
-         "name":"Text_PLAYERID",
+         "name":"PLAYERID",
          "objects":[
                 {
                  "height":16,
@@ -470,7 +470,7 @@
                 {
                  "height":16,
                  "id":21,
-                 "name":"Text",
+                 "name":"PlayerId",
                  "rotation":0,
                  "text":
                     {

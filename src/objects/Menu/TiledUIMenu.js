@@ -51,6 +51,7 @@ export class TiledUIMenu extends GameObject {
     setActive(active) {
         this.active = active;
         console.log(`TiledUIMenu: Set active to ${active}`);
+        events.emit('MENU_OPEN');
 
         // Re-setup event listeners based on new active state
         this.setupEventListeners();

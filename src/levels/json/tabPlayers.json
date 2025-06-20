@@ -470,14 +470,14 @@
                 {
                  "height":16,
                  "id":21,
-                 "name":"Text",
+                 "name":"PlayerId",
                  "rotation":0,
                  "text":
                     {
                      "color":"#ffffff",
                      "fontfamily":"pixelFont-7-8x14-sproutLands",
                      "pixelsize":12,
-                     "text":"PlayerID",
+                     "text":"PlayerId",
                      "valign":"center",
                      "wrap":true
                     },

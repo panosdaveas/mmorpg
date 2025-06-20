@@ -2,7 +2,7 @@ export class FrameIndexPattern {
   constructor(animationConfig) {
     this.currentTime = 0;
     this.animationConfig = animationConfig;
-    this.duration = animationConfig.duration ?? 500;
+    this.duration = animationConfig.duration ?? 400;
   }
 
   get frame() {

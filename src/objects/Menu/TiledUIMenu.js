@@ -203,18 +203,24 @@ export class TiledUIMenu extends GameObject {
         // Check if button is enabled (default to true if not specified)
         const isEnabled = layerProperties.enabled !== false;
 
+        // Check if this is a switch button
+        const isSwitch = layerProperties.isSwitch === true;
+
         // Create button component
         const buttonComponent = {
             id: buttonId,
             layerName: layer.name,
             properties: layerProperties,
-            enabled: isEnabled, // Store enabled state
+            enabled: isEnabled,
+            isSwitch: isSwitch,           // NEW: Track if this is a switch
+            toggleState: false,           // NEW: Track switch on/off state (false = off, true = on)
             states: {
                 normal: [],
                 hover: [],
                 pressed: []
             },
             // If disabled, start in hover state; if enabled, start in normal state
+            // For switches, start in normal state regardless (off position)
             currentState: isEnabled ? 'normal' : 'hover',
             bounds: null
         };
@@ -489,7 +495,12 @@ export class TiledUIMenu extends GameObject {
             if (this.hoveredButtonId) {
                 const prevComponent = this.buttonComponents.get(this.hoveredButtonId);
                 if (prevComponent && prevComponent.enabled) {
-                    this.setButtonState(this.hoveredButtonId, 'normal');
+                    // For switches that are ON, keep them in pressed state
+                    if (prevComponent.isSwitch && prevComponent.toggleState) {
+                        this.setButtonState(this.hoveredButtonId, 'pressed');
+                    } else {
+                        this.setButtonState(this.hoveredButtonId, 'normal');
+                    }
                 }
             }
 
@@ -498,7 +509,12 @@ export class TiledUIMenu extends GameObject {
             if (hoveredButton) {
                 const component = this.buttonComponents.get(hoveredButton);
                 if (component && component.enabled) {
-                    this.setButtonState(hoveredButton, 'hover');
+                    // For switches that are ON, keep them in pressed state (don't show hover)
+                    if (component.isSwitch && component.toggleState) {
+                        this.setButtonState(hoveredButton, 'pressed');
+                    } else {
+                        this.setButtonState(hoveredButton, 'hover');
+                    }
                 }
             }
         }
@@ -521,32 +537,76 @@ export class TiledUIMenu extends GameObject {
         if (this.pressedButtonId) {
             const component = this.buttonComponents.get(this.pressedButtonId);
             if (component && component.enabled && this.hoveredButtonId === this.pressedButtonId) {
-                // Execute button action only if enabled
-                if (component.properties.onclick) {
-                    this.executeAction(component.properties.onclick);
+
+                // Handle switch toggle logic
+                if (component.isSwitch) {
+                    // Toggle the switch state
+                    component.toggleState = !component.toggleState;
+
+                    // Set visual state based on toggle state
+                    if (component.toggleState) {
+                        // Switch is ON - stay in pressed state
+                        this.setButtonState(this.pressedButtonId, 'pressed');
+                    } else {
+                        // Switch is OFF - return to normal state  
+                        this.setButtonState(this.pressedButtonId, 'normal');
+                    }
+
+                    // Execute action with toggle state info
+                    if (component.properties.onclick) {
+                        this.executeAction(component.properties.onclick, {
+                            isSwitch: true,
+                            toggleState: component.toggleState,
+                            buttonId: this.pressedButtonId
+                        });
+                    }
+                } else {
+                    // Regular button behavior
+                    if (component.properties.onclick) {
+                        this.executeAction(component.properties.onclick);
+                    }
+
+                    // Reset to hover state if still hovering, normal otherwise
+                    this.setButtonState(this.pressedButtonId,
+                        this.hoveredButtonId === this.pressedButtonId ? 'hover' : 'normal');
                 }
             }
 
-            // Reset to hover state if still hovering and enabled, normal otherwise
-            if (component && component.enabled) {
-                this.setButtonState(this.pressedButtonId, this.hoveredButtonId === this.pressedButtonId ? 'hover' : 'normal');
+            // Only clear pressedButtonId for regular buttons, not switches in ON state
+            if (!component || !component.isSwitch || !component.toggleState) {
+                this.pressedButtonId = null;
             }
-            this.pressedButtonId = null;
         }
     }
 
 
     handleMouseLeave() {
         if (this.hoveredButtonId) {
-            this.setButtonState(this.hoveredButtonId, 'normal');
+            const component = this.buttonComponents.get(this.hoveredButtonId);
+
+            // For switches that are ON, keep them in pressed state even when mouse leaves
+            if (component && component.isSwitch && component.toggleState) {
+                this.setButtonState(this.hoveredButtonId, 'pressed');
+            } else {
+                // Regular buttons or switches that are OFF go to normal state
+                this.setButtonState(this.hoveredButtonId, 'normal');
+            }
+
             this.hoveredButtonId = null;
         }
+
         if (this.pressedButtonId) {
-            this.setButtonState(this.pressedButtonId, 'normal');
-            this.pressedButtonId = null;
+            const component = this.buttonComponents.get(this.pressedButtonId);
+
+            // Only reset pressed buttons that are NOT switches in ON state
+            if (!component || !component.isSwitch || !component.toggleState) {
+                this.setButtonState(this.pressedButtonId, 'normal');
+                this.pressedButtonId = null;
+            }
+            // Switches that are ON keep their pressed state and pressedButtonId
         }
-        // this.canvas.style.cursor = 'default';
     }
+    
 
     handleKeyDown(e) {
         if (!this.isVisible) return;
@@ -644,21 +704,31 @@ export class TiledUIMenu extends GameObject {
             newButtonId = newElement.buttonId;
         }
 
-        // Update button states only if we're dealing with different buttons
-        if (previousButtonId !== newButtonId) {
-            // Clear previous button hover state
-            if (previousButtonId && this.hoveredButtonId === previousButtonId) {
-                this.setButtonState(previousButtonId, 'normal');
-                this.hoveredButtonId = null;
+        // Clear previous button hover state
+        if (previousButtonId && this.hoveredButtonId === previousButtonId) {
+            const prevComponent = this.buttonComponents.get(previousButtonId);
+            if (prevComponent && prevComponent.enabled) {
+                // For switches that are ON, keep them in pressed state
+                if (prevComponent.isSwitch && prevComponent.toggleState) {
+                    this.setButtonState(previousButtonId, 'pressed');
+                } else {
+                    this.setButtonState(previousButtonId, 'normal');
+                }
             }
+            this.hoveredButtonId = null;
+        }
 
-            // Set new button hover state
-            if (newButtonId) {
+        // Set new button hover state
+        if (newButtonId) {
+            const newComponent = this.buttonComponents.get(newButtonId);
+            if (newComponent && newComponent.enabled) {
                 this.hoveredButtonId = newButtonId;
-                this.setButtonState(newButtonId, 'hover');
-                // this.canvas.style.cursor = 'pointer';
-            } else {
-                // this.canvas.style.cursor = 'default';
+                // For switches that are ON, keep them in pressed state (don't show hover)
+                if (newComponent.isSwitch && newComponent.toggleState) {
+                    this.setButtonState(newButtonId, 'pressed');
+                } else {
+                    this.setButtonState(newButtonId, 'hover');
+                }
             }
         }
     }
@@ -737,6 +807,52 @@ export class TiledUIMenu extends GameObject {
         return false;
     }
 
+    a// REPLACE these methods in your TiledUIMenu.js file:
+
+    // 1. REPLACE the updateKeyboardButtonStates method
+    updateKeyboardButtonStates(previousElement, newElement) {
+        let previousButtonId = null;
+        let newButtonId = null;
+
+        // Get button IDs if elements are button components
+        if (previousElement && previousElement.type === 'button_component') {
+            previousButtonId = previousElement.buttonId;
+        }
+
+        if (newElement && newElement.type === 'button_component') {
+            newButtonId = newElement.buttonId;
+        }
+
+        // Clear previous button hover state
+        if (previousButtonId && this.hoveredButtonId === previousButtonId) {
+            const prevComponent = this.buttonComponents.get(previousButtonId);
+            if (prevComponent && prevComponent.enabled) {
+                // For switches that are ON, keep them in pressed state
+                if (prevComponent.isSwitch && prevComponent.toggleState) {
+                    this.setButtonState(previousButtonId, 'pressed');
+                } else {
+                    this.setButtonState(previousButtonId, 'normal');
+                }
+            }
+            this.hoveredButtonId = null;
+        }
+
+        // Set new button hover state
+        if (newButtonId) {
+            const newComponent = this.buttonComponents.get(newButtonId);
+            if (newComponent && newComponent.enabled) {
+                this.hoveredButtonId = newButtonId;
+                // For switches that are ON, keep them in pressed state (don't show hover)
+                if (newComponent.isSwitch && newComponent.toggleState) {
+                    this.setButtonState(newButtonId, 'pressed');
+                } else {
+                    this.setButtonState(newButtonId, 'hover');
+                }
+            }
+        }
+    }
+
+    // 2. REPLACE the activateSelectedTile method
     activateSelectedTile() {
         const selectedElement = this.interactiveTiles[this.selectedTileIndex];
         if (!selectedElement) return;
@@ -745,37 +861,67 @@ export class TiledUIMenu extends GameObject {
             const component = this.buttonComponents.get(selectedElement.buttonId);
             // Only activate if component exists, is enabled, and has onclick action
             if (component && component.enabled && component.properties.onclick) {
-                // Set pressed state temporarily
-                this.pressedButtonId = selectedElement.buttonId;
-                this.setButtonState(selectedElement.buttonId, 'pressed');
 
-                // Execute action
-                this.executeAction(component.properties.onclick);
+                if (component.isSwitch) {
+                    // Handle switch toggle for keyboard activation
+                    component.toggleState = !component.toggleState;
 
-                // Reset to hover state after a brief delay
-                setTimeout(() => {
-                    if (this.pressedButtonId === selectedElement.buttonId) {
+                    // Set visual state based on toggle state
+                    if (component.toggleState) {
+                        // Switch is ON - set to pressed state
+                        this.setButtonState(selectedElement.buttonId, 'pressed');
+                    } else {
+                        // Switch is OFF - set to hover state (since it's selected)
                         this.setButtonState(selectedElement.buttonId, 'hover');
-                        this.pressedButtonId = null;
                     }
-                }, 100);
+
+                    // Execute action with toggle state info
+                    this.executeAction(component.properties.onclick, {
+                        isSwitch: true,
+                        toggleState: component.toggleState,
+                        buttonId: selectedElement.buttonId
+                    });
+
+                    // For switches, don't do the temporary press animation
+
+                } else {
+                    // Regular button behavior with temporary press animation
+                    this.pressedButtonId = selectedElement.buttonId;
+                    this.setButtonState(selectedElement.buttonId, 'pressed');
+
+                    // Execute action
+                    this.executeAction(component.properties.onclick);
+
+                    // Reset to hover state after a brief delay
+                    setTimeout(() => {
+                        if (this.pressedButtonId === selectedElement.buttonId) {
+                            this.setButtonState(selectedElement.buttonId, 'hover');
+                            this.pressedButtonId = null;
+                        }
+                    }, 100);
+                }
             }
         } else if (selectedElement.properties.onclick) {
             this.executeAction(selectedElement.properties.onclick);
         }
     }
 
-    executeAction(actionName) {
+    executeAction(actionName, additionalData = null) {
         if (this.actionHandlers[actionName]) {
             try {
-                this.actionHandlers[actionName]();
+                // Pass additional data (like switch state) to action handlers
+                this.actionHandlers[actionName](additionalData);
             } catch (error) {
                 console.error(`Error executing action '${actionName}':`, error);
             }
         } else {
             console.warn(`No handler found for action: ${actionName}`);
-            // Emit event as fallback
-            events.emit("UI_ACTION", { action: actionName, source: 'TiledUIMenu' });
+            // Emit event as fallback with additional data
+            events.emit("UI_ACTION", {
+                action: actionName,
+                source: 'TiledUIMenu',
+                ...additionalData
+            });
         }
     }
 
@@ -966,6 +1112,101 @@ export class TiledUIMenu extends GameObject {
         if (objectId) {
             this.updateButtonText(objectId, dynamicValue);
         }
+    }
+
+    setSwitchState(buttonId, state) {
+        const component = this.buttonComponents.get(buttonId);
+        if (!component) {
+            console.warn(`Button component ${buttonId} not found`);
+            return false;
+        }
+
+        if (!component.isSwitch) {
+            console.warn(`Button ${buttonId} is not a switch`);
+            return false;
+        }
+
+        component.toggleState = state;
+
+        // Update visual state
+        if (state) {
+            this.setButtonState(buttonId, 'pressed');
+        } else {
+            this.setButtonState(buttonId, 'normal');
+        }
+
+        console.log(`Switch ${buttonId} set to ${state ? 'ON' : 'OFF'}`);
+        return true;
+    }
+
+    /**
+     * Get a switch button's current toggle state
+     * @param {string} buttonId - The button component ID
+     * @returns {boolean|null} - true if ON, false if OFF, null if not found or not a switch
+     */
+    getSwitchState(buttonId) {
+        const component = this.buttonComponents.get(buttonId);
+        if (!component) {
+            console.warn(`Button component ${buttonId} not found`);
+            return null;
+        }
+
+        if (!component.isSwitch) {
+            console.warn(`Button ${buttonId} is not a switch`);
+            return null;
+        }
+
+        return component.toggleState;
+    }
+
+    /**
+     * Toggle a switch button's state programmatically
+     * @param {string} buttonId - The button component ID
+     * @returns {boolean|null} - new state if successful, null if failed
+     */
+    toggleSwitch(buttonId) {
+        const component = this.buttonComponents.get(buttonId);
+        if (!component) {
+            console.warn(`Button component ${buttonId} not found`);
+            return null;
+        }
+
+        if (!component.isSwitch) {
+            console.warn(`Button ${buttonId} is not a switch`);
+            return null;
+        }
+
+        const newState = !component.toggleState;
+        this.setSwitchState(buttonId, newState);
+        return newState;
+    }
+
+    /**
+     * Get all switch buttons and their states
+     * @returns {Object} - Object with buttonId as key and state as value
+     */
+    getAllSwitchStates() {
+        const switchStates = {};
+
+        for (const [buttonId, component] of this.buttonComponents) {
+            if (component.isSwitch) {
+                switchStates[buttonId] = component.toggleState;
+            }
+        }
+
+        return switchStates;
+    }
+
+    /**
+     * Reset all switches to OFF state
+     */
+    resetAllSwitches() {
+        for (const [buttonId, component] of this.buttonComponents) {
+            if (component.isSwitch) {
+                this.setSwitchState(buttonId, false);
+            }
+        }
+        console.log('All switches reset to OFF state');
     }
 
 

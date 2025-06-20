@@ -155,8 +155,8 @@ window.addEventListener('beforeunload', () => {
   setTimeout(() => {
     if (mainScene.multiplayerManager?.isSocketConnected()) {
       createTestRemotePlayers(mainScene.multiplayerManager, 1, {
-        spawnX: 320,
-        spawnY: 240,
+        // spawnX: 320,
+        // spawnY: 240,
       });
     }
   }, 1000); // Give multiplayer 1 second to connect

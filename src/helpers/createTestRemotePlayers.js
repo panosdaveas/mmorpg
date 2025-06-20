@@ -19,8 +19,8 @@ export function createTestRemotePlayers(multiplayerManager, count = 3, options =
         const radius = Math.random() * spawnRadius;
         // const x = spawnX + Math.cos(angle) * radius;
         // const y = spawnY + Math.sin(angle) * radius;
-        const x = 560;
-        const y = 320;
+        const x = 576;
+        const y = 336;
 
         // Create player data
         const playerData = {

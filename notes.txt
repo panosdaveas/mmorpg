@@ -1,0 +1,20 @@
+Practical Security Approaches (Simple -> Advanced)
+
+Level 1: Basic Protection
+
+Limit connections per IP (3-5 max)
+Basic rate limiting on actions
+Validate incoming data sizes
+This stops 90% of basic attacks
+
+Level 2: Smart Monitoring
+
+Log suspicious activity patterns
+Auto-ban IPs that violate rules repeatedly
+Monitor server load and adjust limits
+
+Level 3: Advanced Detection
+
+Analyze player behavior for bot patterns
+Use CAPTCHAs for suspicious connections
+Implement progressive penalties

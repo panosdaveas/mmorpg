@@ -219,6 +219,15 @@ export class Hero extends GameObject {
       events.on("MENU_CLOSE", this, () => {
         this.isLocked = false;
       }),
+      this.parent?.multiplayerManager.on('onChatMessage', (messageData) => {
+        console.log(`Chat from ${messageData.senderName}: ${messageData.message}`);
+        // Show chat bubble or add to chat log
+      }),
+      this.parent?.multiplayerManager.on('onTradeRequest', (tradeData) => {
+        console.log(`Trade request from ${tradeData.senderName}`);
+        // Show trade request UI
+        showTradeRequestDialog(tradeData);
+      }),
     ];
   }
 
@@ -398,6 +407,11 @@ export class Hero extends GameObject {
         console.log(interactiveObject.getAttribute("chainId"));
 
         const remotePlayer = interactiveObject;
+        const targetId = remotePlayer.getAttribute("id");
+        const multiplayerManager = this.parent?.multiplayerManager;
+        if (multiplayerManager) {
+          multiplayerManager.sendChatMessage(targetId, 'Hello there!');
+        }
 
         // Trigger trade to remote player
       }

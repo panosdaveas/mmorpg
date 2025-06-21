@@ -28,6 +28,8 @@ export class MultiplayerManager {
             onError: [],
             onTradeRequest: [],
             onTradeAccepted: [],
+            onPrivateMessage: [],
+            onChatMessage: [], 
         };
     }
 
@@ -215,6 +217,37 @@ export class MultiplayerManager {
         socket.on('TRADE_ACCEPTED', data => {
             this.emit("onTradeAccepted", data); // triggers handleTradeAccepted()
         });
+
+        socket.on('PRIVATE_MESSAGE', (data) => {
+            console.log('[Client] Received private message:', data);
+            this.emit('onPrivateMessage', {
+                from: data.from,
+                type: data.type,
+                payload: data,
+                timestamp: data.timestamp
+            });
+        });
+
+        // Handle incoming trade requests  
+        socket.on('TRADE_REQUEST', (data) => {
+            console.log('[Client] Received trade request:', data);
+            this.emit('onTradeRequest', {
+                from: data.from,
+                tradeData: data.tradeData,
+                senderName: data.senderName,
+                timestamp: data.timestamp
+            });
+        });
+
+        socket.on('CHAT_MESSAGE', (data) => {
+            console.log('[Client] Received chat message:', data);
+            this.emit('onChatMessage', {
+                from: data.from,
+                message: data.message,
+                senderName: data.senderName,
+                timestamp: data.timestamp
+            });
+        });
     }
 
     // Handle receiving current players list
@@ -347,6 +380,67 @@ export class MultiplayerManager {
 
         console.log(`[Client] Sending level change to server: ${levelName}`);
         this.socket.emit("changeLevel", { levelName });
+    }
+
+    /**
+ * Send a private message to another player
+ * @param {string} targetPlayerId - Socket ID of the target player
+ * @param {string} messageType - Type of message ('CHAT', 'TRADE_REQUEST', 'GAME_INVITE', etc.)
+ * @param {object} payload - The message data
+ */
+    sendPrivateMessage(targetPlayerId, messageType, payload = {}) {
+        if (!this.socket || !this.isConnected) {
+            console.warn('Cannot send private message: Not connected to server');
+            return false;
+        }
+
+        if (!targetPlayerId) {
+            console.warn('Cannot send private message: No target player specified');
+            return false;
+        }
+
+        const messageData = {
+            to: targetPlayerId,
+            type: messageType,
+            ...payload,
+            timestamp: Date.now()
+        };
+
+        console.log(`[Client] Sending private message:`, messageData);
+        this.socket.emit('privateMessage', messageData);
+        return true;
+    }
+
+    // 3. CONVENIENCE METHODS - Add these helper methods for common message types:
+
+    /**
+     * Send a chat message to another player
+     */
+    sendChatMessage(targetPlayerId, message) {
+        return this.sendPrivateMessage(targetPlayerId, 'CHAT_MESSAGE', {
+            message: message,
+            senderName: this.mySocketId,
+        });
+    }
+
+    /**
+     * Send a trade request to another player
+     */
+    sendTradeRequest(targetPlayerId, tradeData) {
+        return this.sendPrivateMessage(targetPlayerId, 'TRADE_REQUEST', {
+            tradeData: tradeData,
+            senderName: this.mySocketId,
+        });
+    }
+
+    /**
+     * Send a game invite to another player
+     */
+    sendGameInvite(targetPlayerId, gameType) {
+        return this.sendPrivateMessage(targetPlayerId, 'GAME_INVITE', {
+            gameType: gameType,
+            senderName: this.mySocketId,
+        });
     }
 
     // Update all remote players

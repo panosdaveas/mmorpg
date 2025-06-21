@@ -41,6 +41,7 @@ export class Hero extends GameObject {
     this.isSolid = true;
     this.signer = null;
     this.eventSubscriptions = [];
+    this.messages = [];
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -221,6 +222,7 @@ export class Hero extends GameObject {
       }),
       this.parent?.multiplayerManager.on('onChatMessage', (messageData) => {
         console.log(`Chat from ${messageData.senderName}: ${messageData.message}`);
+        this.messages.push(messageData);
         // Show chat bubble or add to chat log
       }),
       this.parent?.multiplayerManager.on('onTradeRequest', (tradeData) => {
@@ -507,6 +509,7 @@ export class Hero extends GameObject {
         value: properties.action,
         position: new Vector2(actionTile.x * 16, actionTile.y * 16)
       });
+      console.log(this.messages);
       // this.setAttribute("hp", 50);
     }
 

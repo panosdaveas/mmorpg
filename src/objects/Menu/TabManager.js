@@ -43,6 +43,7 @@ export class TabManager extends GameObject {
 
         // this.currentPage = 0;
         // this.pageSize = 8;
+    
     }
 
     async initializeMenus() {
@@ -70,8 +71,7 @@ export class TabManager extends GameObject {
                 'closeMenu': () => this.hide(),
                 'setId': () => this.baseMenu.setID(),
                 'setText': () => this.baseMenu.setText(),
-                // 'paginateForward': () => this.paginateForward(),
-                // 'paginateBackward': () => this.paginateBackward(),
+                'refreshPlayers': () => this.handlePlayersRefresh(),
             });
 
             // Wait for base menu to be ready
@@ -123,6 +123,22 @@ export class TabManager extends GameObject {
             console.log(`TabManager: Tab '${tabName}' active, base menu keyboard disabled`);
         } else {
             console.error(`TabManager: Failed to show tab '${tabName}'`);
+        }
+
+        if (tabName === 'players') {
+            // const players = this.parent?.multiplayerManager.players;
+            this.handlePlayersRefresh();
+            // this.idList = Object.keys(players);
+            const playerId = this.parent?.multiplayerManager?.mySocketId;
+            tabMenu.setText("PlayerId", playerId);
+            // tabMenu.setID(playerId);
+            this.renderPage();
+            if (this.idList.length <= this.pageSize) {
+                const paginateForwardButton = tabMenu.findObjectByName('Button_Paginate_Forward')
+                const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
+                tabMenu.setButtonEnabled(paginateForwardButton, false);
+                tabMenu.setButtonEnabled(paginateBackwardButton, false);
+            }
         }
     }
 
@@ -187,20 +203,7 @@ export class TabManager extends GameObject {
             tabMenu.hide();
 
             console.log(`TabManager: Tab menu '${tabName}' loaded successfully`);
-            if (tabName === 'players') {
-                const players = this.parent?.multiplayerManager.players;
-                this.idList = Object.keys(players);
-                const playerId = this.parent?.multiplayerManager?.mySocketId;
-                tabMenu.setText("PlayerId", playerId);
-                // tabMenu.setID(playerId);
-                this.renderPage();
-                if (this.idList.length <= this.pageSize) {
-                    const paginateForwardButton = tabMenu.findObjectByName('Button_Paginate_Forward')
-                    const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
-                    tabMenu.setButtonEnabled(paginateForwardButton, false);
-                    tabMenu.setButtonEnabled(paginateBackwardButton, false);
-                }
-            }
+            
             return tabMenu;
 
         } catch (error) {
@@ -374,8 +377,13 @@ export class TabManager extends GameObject {
 
     handlePlayersRefresh() {
         console.log("TabManager: Refreshing players list");
-        const players = this.parent?.multiplayerManager.players;
-        this.idList = Object.keys(players);
+        if (this.parent?.multiplayerManager.isSocketConnected()) {
+            const players = this.parent?.multiplayerManager.players;
+            this.idList = Object.keys(players);
+            return;
+        }
+        this.idList = [];
+        return;
         events.emit("PLAYERS_REFRESH_REQUESTED");
     }
 

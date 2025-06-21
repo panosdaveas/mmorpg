@@ -7,7 +7,7 @@ import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
 import { TabManager } from "./src/objects/Menu/TabManager.js";
-import { createTestRemotePlayers} from './src/helpers/createTestRemotePlayers.js'
+import { createTestRemotePlayers, removeTestPlayers } from './src/helpers/createTestRemotePlayers.js'
 
 
 // Add this to main.js for pixel-perfect scaling
@@ -152,12 +152,16 @@ window.addEventListener('beforeunload', () => {
   const gameLoop = new GameLoop(update, draw);
   gameLoop.start();                  // Start game only when safe
 
-  setTimeout(() => {
-    if (mainScene.multiplayerManager?.isSocketConnected()) {
-      createTestRemotePlayers(mainScene.multiplayerManager, 1, {
-        // spawnX: 320,
-        // spawnY: 240,
-      });
-    }
-  }, 1000); // Give multiplayer 1 second to connect
+  // setTimeout(() => {
+  //   if (mainScene.multiplayerManager?.isSocketConnected()) {
+  //     createTestRemotePlayers(mainScene.multiplayerManager, 1, {
+  //       // spawnX: 320,
+  //       // spawnY: 240,
+  //     });
+  //   }
+  // }, 1000); // Give multiplayer 1 second to connect
+
+  // if(!mainScene.multiplayerManager.isSocketConnected()) {
+  //   removeTestPlayers(mainScene.multiplayerManager);
+  // }
 })();

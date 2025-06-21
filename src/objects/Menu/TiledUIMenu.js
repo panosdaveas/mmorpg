@@ -36,6 +36,7 @@ export class TiledUIMenu extends GameObject {
             'closeMenu': () => this.hide(),
             // 'setId': () => this.setID(),
             'setText': () => this.setText(),
+            'toggleMultiplayer': (data) => this.toggleMultiplayer(data),
             // 'openProfile': () => this.actionHandlers()
         };
 
@@ -1112,6 +1113,22 @@ export class TiledUIMenu extends GameObject {
         if (objectId) {
             this.updateButtonText(objectId, dynamicValue);
         }
+    }
+
+    toggleMultiplayer(data) {
+        // data = buttonId, isSwitch, toggleState
+        console.log("Toggle Multiplayer Switch");
+        const isSwitchOn = data?.toggleState;
+        if (isSwitchOn) {
+            console.log("Stopping Multiplayer")
+            // start multiplayer
+            events.emit('TOGGLE_MULTIPLAYER_OFF');
+            return;
+        }
+        console.log("Starting Multiplayer")
+        // stop multiplayer
+        events.emit('TOGGLE_MULTIPLAYER_ON');
+        return;
     }
 
     setSwitchState(buttonId, state) {

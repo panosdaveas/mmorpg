@@ -6,6 +6,7 @@ import {events} from "../../Events.js";
 import {SpriteTextString} from "../SpriteTextString/SpriteTextString.js";
 import {storyFlags} from "../../StoryFlags.js";
 import { MultiplayerManager } from "../../client/multiplayerManager.js";
+import { createTestRemotePlayers, removeTestPlayers } from "../../helpers/createTestRemotePlayers.js";
 
 export class Main extends GameObject {
   constructor(params = {}) {
@@ -39,6 +40,13 @@ export class Main extends GameObject {
 
       // Setup global multiplayer event handlers
       this.setupGlobalMultiplayerEvents();
+
+      setTimeout(() => {
+        if (this.multiplayerManager?.isSocketConnected()) {
+          createTestRemotePlayers(this.multiplayerManager, 1, {
+          });
+        }
+      }, 1000); // Give multiplayer 1 second to connect
     } catch (error) {
       console.error('Failed to connect to multiplayer:', error);
       this.multiplayerEnabled = false;
@@ -88,6 +96,16 @@ export class Main extends GameObject {
     // Change Level handler
     events.on("CHANGE_LEVEL", this, newLevelInstance => {
       this.setLevel(newLevelInstance);
+    });
+
+    // Connect To Multiplayer
+    events.on("TOGGLE_MULTIPLAYER_ON", this, () => {
+      this.connectToMultiplayer();
+    });
+
+    // Disconnect from Multiplayer
+    events.on("TOGGLE_MULTIPLAYER_OFF", this, () => {
+      this.disconnectMultiplayer();
     });
 
     // Launch Text Box handler
@@ -178,6 +196,7 @@ export class Main extends GameObject {
   // Method to disconnect multiplayer (useful for testing or settings)
   disconnectMultiplayer() {
     if (this.multiplayerManager) {
+      removeTestPlayers(this.multiplayerManager);
       this.multiplayerManager.disconnect();
       this.multiplayerEnabled = false;
       console.log('Multiplayer disconnected manually');

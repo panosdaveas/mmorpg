@@ -41,12 +41,12 @@ export class Main extends GameObject {
       // Setup global multiplayer event handlers
       this.setupGlobalMultiplayerEvents();
 
-      setTimeout(() => {
-        if (this.multiplayerManager?.isSocketConnected()) {
-          createTestRemotePlayers(this.multiplayerManager, 1, {
-          });
-        }
-      }, 1000); // Give multiplayer 1 second to connect
+      // setTimeout(() => {
+      //   if (this.multiplayerManager?.isSocketConnected()) {
+      //     createTestRemotePlayers(this.multiplayerManager, 1, {
+      //     });
+      //   }
+      // }, 1000); // Give multiplayer 1 second to connect
     } catch (error) {
       console.error('Failed to connect to multiplayer:', error);
       this.multiplayerEnabled = false;
@@ -100,7 +100,8 @@ export class Main extends GameObject {
 
     // Connect To Multiplayer
     events.on("TOGGLE_MULTIPLAYER_ON", this, () => {
-      this.connectToMultiplayer();
+      // this.connectToMultiplayer();
+      this.reconnectMultiplayer();
     });
 
     // Disconnect from Multiplayer
@@ -196,7 +197,7 @@ export class Main extends GameObject {
   // Method to disconnect multiplayer (useful for testing or settings)
   disconnectMultiplayer() {
     if (this.multiplayerManager) {
-      removeTestPlayers(this.multiplayerManager);
+      // removeTestPlayers(this.multiplayerManager);
       this.multiplayerManager.disconnect();
       this.multiplayerEnabled = false;
       console.log('Multiplayer disconnected manually');
@@ -208,6 +209,17 @@ export class Main extends GameObject {
     if (!this.multiplayerEnabled && this.multiplayerManager) {
       this.multiplayerEnabled = true;
       this.connectToMultiplayer();
+
+      // ✅ Re-associate the current level with multiplayer manager
+      if (this.level) {
+        this.level.multiplayerManager = this.multiplayerManager;
+        this.multiplayerManager.setLevel(this.level);
+
+        // Setup multiplayer events for the current level
+        if (this.level.setupMultiplayerEvents) {
+          this.level.setupMultiplayerEvents();
+        }
+      }
     }
   }
 

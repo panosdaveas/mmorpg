@@ -47,16 +47,30 @@ export class MultiplayerManager {
         this.setupSocketEvents();
     }
 
-    // Disconnect and cleanup
     disconnect() {
+        // ✅ Clean up all remote players from the scene before disconnecting
+        if (this.currentLevel) {
+            for (const id in this.players) {
+                if (id !== this.mySocketId && this.players[id]) {
+                    console.log(`Removing remote player ${id} during disconnect`);
+                    this.currentLevel.removeChild(this.players[id]);
+                }
+            }
+        }
+
+        // Disconnect socket
         if (this.socket) {
             this.socket.disconnect();
             this.socket = null;
         }
+
+        // Reset state
         this.isConnected = false;
         this.mySocketId = null;
-        this.players = {};
+        this.players = {}; // Now safe to clear since players are removed from scene
         this.currentLevel = null;
+
+        console.log('Multiplayer disconnected and all remote players cleaned up');
     }
 
     // Set the current level (for adding/removing players)

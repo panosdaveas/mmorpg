@@ -1,7 +1,7 @@
 import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
 import { DOWN, LEFT, RIGHT, UP } from "../../Input.js";
-import { gridCells, isSpaceFree } from "../../helpers/grid.js";
+import { isSpaceFree } from "../../helpers/grid.js";
 import { Sprite } from "../../Sprite.js";
 import { resources } from "../../Resource.js";
 import { Animations } from "../../Animations.js";
@@ -337,7 +337,7 @@ export class Hero extends GameObject {
 
     let nextX = this.destinationPosition.x;
     let nextY = this.destinationPosition.y;
-    const gridSize = 16;
+    const gridSize = TILE_SIZE;
 
     if (movementDirection === DOWN) {
       nextY += gridSize;
@@ -488,7 +488,7 @@ export class Hero extends GameObject {
     if (properties.interactable) {
       events.emit("INTERACT_WITH_OBJECT", {
         objectId: properties.interactable,
-        position: new Vector2(actionTile.x * 16, actionTile.y * 16)
+        position: new Vector2(actionTile.x * TILE_SIZE, actionTile.y * TILE_SIZE)
       });
     }
 
@@ -509,10 +509,9 @@ export class Hero extends GameObject {
       events.emit("TRIGGER_ACTION", {
         type: "action",
         value: properties.action,
-        position: new Vector2(actionTile.x * 16, actionTile.y * 16)
+        position: new Vector2(actionTile.x * TILE_SIZE, actionTile.y * TILE_SIZE)
       });
-      console.log(this.messages);
-      // this.setAttribute("hp", 50);
+      // console.log(this.messages);
     }
 
     // Handle action-2 (custom action type 2)
@@ -520,7 +519,7 @@ export class Hero extends GameObject {
       events.emit("TRIGGER_ACTION", {
         type: "action-2",
         value: properties["action-2"],
-        position: new Vector2(actionTile.x * 16, actionTile.y * 16)
+        position: new Vector2(actionTile.x * TILE_SIZE, actionTile.y * TILE_SIZE)
       });
     }
 
@@ -535,8 +534,8 @@ export class Hero extends GameObject {
 
         // Teleport after a short delay
         setTimeout(() => {
-          this.position.x = destX * 16;
-          this.position.y = destY * 16;
+          this.position.x = destX * TILE_SIZE;
+          this.position.y = destY * TILE_SIZE;
           this.destinationPosition = this.position.duplicate();
           this.isLocked = false;
 

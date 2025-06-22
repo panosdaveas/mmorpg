@@ -18,3 +18,5 @@ Level 3: Advanced Detection
 Analyze player behavior for bot patterns
 Use CAPTCHAs for suspicious connections
 Implement progressive penalties
+
+// CHAT Message max length = 390 chars!!!

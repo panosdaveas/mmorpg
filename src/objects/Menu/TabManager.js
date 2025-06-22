@@ -9,6 +9,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, TILE_SIZE } from "../../constants/worldCon
 import baseMenuData from "../../levels/json/menu.json";
 import tabProfileData from "../../levels/json/tabProfile.json";
 import tabPlayersData from "../../levels/json/tabPlayers.json";
+import tabMessagesData from "../../levels/json/tabMessages.json";
 
 export class TabManager extends GameObject {
     constructor({ canvas }) {
@@ -29,6 +30,7 @@ export class TabManager extends GameObject {
         this.tabDataMap = new Map([
             ['profile', tabProfileData],
             ['players', tabPlayersData],
+            ['messages', tabMessagesData],
         ]);
 
         console.log("TabManager: Available tabs:", Array.from(this.tabDataMap.keys()));
@@ -40,6 +42,8 @@ export class TabManager extends GameObject {
         this.pageSize = 8;
 
         this.idList = null;
+
+        this.currentMessage = 0;
 
         // this.currentPage = 0;
         // this.pageSize = 8;
@@ -68,6 +72,7 @@ export class TabManager extends GameObject {
                 'openTabPlayers': () => this.showTab('players'),
                 'openProfile': () => this.showTab('profile'),
                 'openPlayers': () => this.showTab('players'),
+                'openMessages': () => this.showTab('messages'),
                 'closeMenu': () => this.hide(),
                 'setId': () => this.baseMenu.setID(),
                 'setText': () => this.baseMenu.setText(),
@@ -138,6 +143,27 @@ export class TabManager extends GameObject {
                 const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
                 tabMenu.setButtonEnabled(paginateForwardButton, false);
                 tabMenu.setButtonEnabled(paginateBackwardButton, false);
+            }
+        } else if (tabName === 'messages') {
+            // Initialize messages display
+            const messages = this.parent?.level?.localPlayer?.messages;
+            if (!messages || messages.length === 0) {
+                this.currentMessage = 0;
+            } else {
+                // Ensure currentMessage is within bounds
+                if (this.currentMessage >= messages.length) {
+                    this.currentMessage = messages.length - 1;
+                }
+            }
+            this.updateMessageDisplay();
+            const nextMessageButton = tabMenu.findObjectByName('Button_Item_Next');
+            const previousMessageButton = tabMenu.findObjectByName('Button_Item_Previous');
+            if (messages.length < 2) {
+                tabMenu.setButtonEnabled(nextMessageButton, false);
+                tabMenu.setButtonEnabled(previousMessageButton, false);
+            } else {
+                tabMenu.setButtonEnabled(nextMessageButton, true);
+                tabMenu.setButtonEnabled(previousMessageButton, true); 
             }
         }
     }
@@ -240,6 +266,83 @@ export class TabManager extends GameObject {
         }
     }
 
+    nextMessage(data) {
+        const messages = this.parent?.level?.localPlayer?.messages;
+
+        if (!messages || messages.length === 0) {
+            console.log("TabManager: No messages available");
+            return;
+        }
+
+        // Move to next message (with wraparound)
+        this.currentMessage = (this.currentMessage + 1) % messages.length;
+
+        console.log(`TabManager: Moving to next message (${this.currentMessage + 1}/${messages.length})`);
+
+        // Update the display
+        this.updateMessageDisplay();
+    }
+
+    previousMessage(data) {
+        const messages = this.parent?.level?.localPlayer?.messages;
+
+        if (!messages || messages.length === 0) {
+            console.log("TabManager: No messages available");
+            return;
+        }
+
+        // Move to previous message (with wraparound)
+        this.currentMessage = this.currentMessage === 0
+            ? messages.length - 1
+            : this.currentMessage - 1;
+
+        console.log(`TabManager: Moving to previous message (${this.currentMessage + 1}/${messages.length})`);
+
+        // Update the display
+        this.updateMessageDisplay();
+    }
+
+    updateMessageDisplay() {
+        if (this.currentActiveTab !== 'messages') {
+            return; // Only update if messages tab is active
+        }
+
+        const tabMenu = this.tabMenus.get('messages');
+        if (!tabMenu) {
+            console.warn("TabManager: Messages tab menu not found");
+            return;
+        }
+
+        const messages = this.parent?.level?.localPlayer?.messages;
+        if (!messages || messages.length === 0) {
+            // Handle empty messages case
+            tabMenu.setText("MessageCount", "0");
+            tabMenu.setText("Timestamp", "");
+            tabMenu.setText("FromPlayerId", "");
+            tabMenu.setText("Message", "No messages");
+            return;
+        }
+
+        // Ensure currentMessage index is valid
+        if (this.currentMessage >= messages.length) {
+            this.currentMessage = 0;
+        }
+
+        const currentMessage = messages[this.currentMessage];
+        const messageCount = messages.length;
+
+        const timestamp = currentMessage.timestamp;
+        const date = new Date(timestamp);
+        const localString = date.toLocaleString();
+
+        // Update all the text fields
+        tabMenu.setText("MessageCount", `${this.currentMessage + 1}/${messageCount}`);
+        tabMenu.setText("Timestamp", localString || "");
+        tabMenu.setText("FromPlayerId", currentMessage.from?.toString() || "");
+        tabMenu.setText("Message", currentMessage.message || "");
+    }
+    
+
     setTabActionHandlers(tabMenu, tabName) {
         const commonHandlers = {
             'closeTab': () => this.hideCurrentTab(),
@@ -257,6 +360,10 @@ export class TabManager extends GameObject {
                 'refreshPlayers': () => this.handlePlayersRefresh(),
                 'paginateForward': () => this.paginateForward(),
                 'paginateBackward': () => this.paginateBackward(),
+            },
+            'messages': {
+                'nextItem': () => this.nextMessage(),
+                'previousItem': () => this.previousMessage(),
             }
         };
 

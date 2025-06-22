@@ -207,6 +207,11 @@
                          "name":"navigable",
                          "type":"bool",
                          "value":true
+                        }, 
+                        {
+                         "name":"onclick",
+                         "type":"string",
+                         "value":"openMessages"
                         }],
                  "rotation":0,
                  "type":"button",
@@ -230,7 +235,7 @@
                     {
                      "fontfamily":"pixelFont-7-8x14-sproutLands",
                      "pixelsize":12,
-                     "text":"SETTINGS",
+                     "text":"MESSAGES",
                      "valign":"center",
                      "wrap":true
                     },
@@ -282,6 +287,11 @@
                  "name":"navigable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"onclick",
+                 "type":"string",
+                 "value":"openMessages"
                 }],
          "type":"objectgroup",
          "visible":true,

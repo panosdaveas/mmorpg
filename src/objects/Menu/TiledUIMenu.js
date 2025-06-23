@@ -35,7 +35,6 @@ export class TiledUIMenu extends GameObject {
             // 'setId': () => this.setID(),
             'setText': () => this.setText(),
             'toggleMultiplayer': (data) => this.toggleMultiplayer(data),
-            'sendChatMessage': () => this.sendChatMessage(),
             // 'openProfile': () => this.actionHandlers()
         };
 

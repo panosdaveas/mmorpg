@@ -44,6 +44,7 @@ export class Hero extends GameObject {
     this.signer = null;
     this.eventSubscriptions = [];
     this.messages = [];
+    this.targetPlayerId = null;
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -415,7 +416,7 @@ export class Hero extends GameObject {
         console.log(interactiveObject.getAttribute("chainId"));
 
         const remotePlayer = interactiveObject;
-        const targetId = remotePlayer.getAttribute("id");
+        this.targetPlayerId = remotePlayer.getAttribute("id");
 
         this.interactiveMenu = new TiledUIMenu({
           menuData: tabData,
@@ -424,16 +425,11 @@ export class Hero extends GameObject {
           scale: 1,
           zIndex: 10,
         });
+        this.interactiveMenu.setActionHandlers({
+          'sendChatMessage': () => this.handleChatAction(),
+        });
         this.addChild(this.interactiveMenu);
         this.interactiveMenu.show();
-        console.log(this.interactiveMenu.actionHandlers);
-
-        // const multiplayerManager = this.parent?.multiplayerManager;
-        // if (multiplayerManager) {
-        //   multiplayerManager.sendChatMessage(targetId, 
-        //     'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.'
-        //   );
-        // }
 
         // Trigger trade to remote player
       }
@@ -529,7 +525,7 @@ export class Hero extends GameObject {
         value: properties.action,
         position: new Vector2(actionTile.x * TILE_SIZE, actionTile.y * TILE_SIZE)
       });
-      // console.log(this.messages);
+      console.log(this.messages);
     }
 
     // Handle action-2 (custom action type 2)
@@ -592,6 +588,15 @@ export class Hero extends GameObject {
     // Remove the item being held overhead
     if (this.itemPickupTime <= 0) {
       this.itemPickupShell.destroy();
+    }
+  }
+
+  handleChatAction() {
+    const multiplayerManager = this.parent?.multiplayerManager;
+    if (multiplayerManager) {
+      multiplayerManager.sendChatMessage(this.targetPlayerId,
+        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.'
+      );
     }
   }
 

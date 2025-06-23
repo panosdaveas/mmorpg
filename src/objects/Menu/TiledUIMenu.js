@@ -1228,12 +1228,45 @@ export class TiledUIMenu extends GameObject {
     async show() {
         this.isVisible = true;
         this.selectedTileIndex = 0;
+        this.preselectFirstItem();
         events.emit("MENU_OPEN");
     }
 
     hide() {
         this.isVisible = false;
         events.emit("MENU_CLOSE");
+    }
+
+    preselectFirstItem() {
+        if (this.interactiveTiles.length === 0) {
+            return;
+        }
+
+        // Clear any existing hover states
+        this.hoveredButtonId = null;
+        this.pressedButtonId = null;
+
+        // Get the first interactive element
+        const firstElement = this.interactiveTiles[0];
+
+        if (firstElement && firstElement.type === 'button_component') {
+            const buttonId = firstElement.buttonId;
+            const component = this.buttonComponents.get(buttonId);
+
+            if (component && component.enabled) {
+                // Set this button as hovered (selected)
+                this.hoveredButtonId = buttonId;
+
+                // Apply visual state - for switches that are ON, keep pressed state
+                if (component.isSwitch && component.toggleState) {
+                    this.setButtonState(buttonId, 'pressed');
+                } else {
+                    this.setButtonState(buttonId, 'hover');
+                }
+
+                console.log(`TiledUIMenu: Preselected first item: ${buttonId}`);
+            }
+        }
     }
 
     // Enhanced drawing methods

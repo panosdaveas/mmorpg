@@ -5,16 +5,15 @@ import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { resources } from "../../Resource.js";
-// import menuData from "../../levels/json/menu.json";
 
 export class TiledUIMenu extends GameObject {
-    constructor({ canvas, menuData, active = true, scale = 1, zIndex = 1 }) { // ← Accept menuData as parameter
+    constructor({ canvas, menuData, active = true, scale = 1, zIndex = 1, position }) { // <- Accept menuData as parameter
         super({
-            position: new Vector2(0, 0)
+            position: position ?? new Vector2(0, 0)
         });
 
         this.scale = scale;
-        this.canvas = canvas;
+        this.canvas = canvas ?? document.querySelector("#game-canvas");
         this.zIndex = zIndex;
         this.menuData = menuData; // ← Use passed menuData
         this.propertyHandler = null;
@@ -24,11 +23,10 @@ export class TiledUIMenu extends GameObject {
         this.buttonComponents = new Map();
         this.selectedTileIndex = 0;
         this.isVisible = false;
-        // this.drawLayer = "UI";
+        this.drawLayer = "UI";
         this.hoveredButtonId = null;
         this.pressedButtonId = null;
         this.active = active; // ← Store active state
-
 
         // Make action handlers configurable (will be set by TabManager)
         this.actionHandlers = {
@@ -37,6 +35,7 @@ export class TiledUIMenu extends GameObject {
             // 'setId': () => this.setID(),
             'setText': () => this.setText(),
             'toggleMultiplayer': (data) => this.toggleMultiplayer(data),
+            'sendChatMessage': () => this.sendChatMessage(),
             // 'openProfile': () => this.actionHandlers()
         };
 
@@ -1227,7 +1226,7 @@ export class TiledUIMenu extends GameObject {
     }
 
 
-    show() {
+    async show() {
         this.isVisible = true;
         this.selectedTileIndex = 0;
         events.emit("MENU_OPEN");

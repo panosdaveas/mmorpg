@@ -1,24 +1,22 @@
 { "compressionlevel":-1,
- "height":9,
+ "height":7,
  "infinite":false,
  "layers":[
         {
-         "data":[169, 170, 170, 170, 170, 170, 170, 171,
-            225, 232, 232, 232, 232, 232, 232, 227,
-            225, 232, 232, 232, 232, 232, 232, 227,
-            225, 232, 232, 232, 232, 232, 232, 227,
-            225, 232, 232, 232, 232, 232, 232, 227,
-            225, 232, 232, 232, 232, 232, 232, 227,
-            225, 232, 232, 232, 232, 232, 232, 227,
-            761, 232, 232, 232, 232, 232, 232, 227,
-            281, 282, 282, 282, 282, 282, 282, 283],
-         "height":9,
+         "data":[169, 170, 170, 170, 170, 171,
+            225, 232, 232, 232, 232, 227,
+            225, 232, 232, 232, 232, 227,
+            225, 232, 232, 232, 232, 227,
+            225, 232, 232, 232, 232, 227,
+            761, 232, 232, 232, 232, 227,
+            281, 282, 282, 282, 282, 283],
+         "height":7,
          "id":1,
          "name":"Background",
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
-         "width":8,
+         "width":6,
          "x":0,
          "y":0
         }, 
@@ -47,8 +45,8 @@
                  "type":"button",
                  "visible":true,
                  "width":64,
-                 "x":32,
-                 "y":96
+                 "x":16,
+                 "y":80
                 }, 
                 {
                  "height":16,
@@ -72,8 +70,8 @@
                  "type":"ButtonNormal",
                  "visible":true,
                  "width":48,
-                 "x":48,
-                 "y":96
+                 "x":32,
+                 "y":80
                 }, 
                 {
                  "gid":250,
@@ -84,8 +82,8 @@
                  "type":"ButtonNormal",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":112
+                 "x":16,
+                 "y":96
                 }, 
                 {
                  "gid":140,
@@ -96,8 +94,8 @@
                  "type":"ButtonHover",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":112
+                 "x":16,
+                 "y":96
                 }, 
                 {
                  "gid":139,
@@ -108,8 +106,8 @@
                  "type":"ButtonPressed",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":112
+                 "x":16,
+                 "y":96
                 }],
          "opacity":1,
          "properties":[
@@ -121,7 +119,7 @@
                 {
                  "name":"onclick",
                  "type":"string",
-                 "value":"openMessages"
+                 "value":"socialInteraction"
                 }],
          "type":"objectgroup",
          "visible":true,
@@ -153,8 +151,8 @@
                  "type":"button",
                  "visible":true,
                  "width":64,
-                 "x":32,
-                 "y":64
+                 "x":16,
+                 "y":48
                 }, 
                 {
                  "height":16,
@@ -178,8 +176,8 @@
                  "type":"ButtonNormal",
                  "visible":true,
                  "width":48,
-                 "x":48,
-                 "y":64
+                 "x":32,
+                 "y":48
                 }, 
                 {
                  "gid":250,
@@ -190,8 +188,8 @@
                  "type":"ButtonNormal",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":80
+                 "x":16,
+                 "y":64
                 }, 
                 {
                  "gid":140,
@@ -202,8 +200,8 @@
                  "type":"ButtonHover",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":80
+                 "x":16,
+                 "y":64
                 }, 
                 {
                  "gid":139,
@@ -214,8 +212,8 @@
                  "type":"ButtonPressed",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":80
+                 "x":16,
+                 "y":64
                 }],
          "opacity":1,
          "properties":[
@@ -227,7 +225,7 @@
                 {
                  "name":"onclick",
                  "type":"string",
-                 "value":"openPlayers"
+                 "value":"tradeRequest"
                 }],
          "type":"objectgroup",
          "visible":true,
@@ -259,8 +257,8 @@
                  "type":"button",
                  "visible":true,
                  "width":64,
-                 "x":32,
-                 "y":32
+                 "x":16,
+                 "y":16
                 }, 
                 {
                  "height":16,
@@ -284,8 +282,8 @@
                  "type":"ButtonNormal",
                  "visible":true,
                  "width":48,
-                 "x":48,
-                 "y":32
+                 "x":32,
+                 "y":16
                 }, 
                 {
                  "gid":250,
@@ -296,8 +294,8 @@
                  "type":"ButtonNormal",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":48
+                 "x":16,
+                 "y":32
                 }, 
                 {
                  "gid":140,
@@ -308,8 +306,8 @@
                  "type":"ButtonHover",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":48
+                 "x":16,
+                 "y":32
                 }, 
                 {
                  "gid":139,
@@ -320,8 +318,8 @@
                  "type":"ButtonPressed",
                  "visible":true,
                  "width":16,
-                 "x":32,
-                 "y":48
+                 "x":16,
+                 "y":32
                 }],
          "opacity":1,
          "properties":[
@@ -333,7 +331,7 @@
                 {
                  "name":"onclick",
                  "type":"string",
-                 "value":"openProfile"
+                 "value":"sendChatMessage"
                 }],
          "type":"objectgroup",
          "visible":true,
@@ -470,5 +468,5 @@
  "tilewidth":16,
  "type":"map",
  "version":"1.10",
- "width":8
+ "width":6
 }

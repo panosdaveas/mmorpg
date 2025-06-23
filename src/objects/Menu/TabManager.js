@@ -10,6 +10,7 @@ import baseMenuData from "../../levels/json/menu.json";
 import tabProfileData from "../../levels/json/tabProfile.json";
 import tabPlayersData from "../../levels/json/tabPlayers.json";
 import tabMessagesData from "../../levels/json/tabMessages.json";
+// import tabInteractiveMenu from "../../levels/json/interactiveMenu.json";
 
 export class TabManager extends GameObject {
     constructor({ canvas }) {
@@ -31,6 +32,7 @@ export class TabManager extends GameObject {
             ['profile', tabProfileData],
             ['players', tabPlayersData],
             ['messages', tabMessagesData],
+            // ['interactiveMenu', tabInteractiveMenu],
         ]);
 
         console.log("TabManager: Available tabs:", Array.from(this.tabDataMap.keys()));

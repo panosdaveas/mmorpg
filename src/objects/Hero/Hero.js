@@ -22,6 +22,8 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { WalletConnector } from "../../web3/Wallet.js";
+import { TiledUIMenu } from "../Menu/TiledUIMenu.js";
+import tabData from '../../levels/json/interactiveMenu.json';
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -410,6 +412,18 @@ export class Hero extends GameObject {
 
         const remotePlayer = interactiveObject;
         const targetId = remotePlayer.getAttribute("id");
+        const canvas = document.querySelector("#game-canvas");
+        
+        // const interactiveMenu = new TiledUIMenu({
+        //   canvas: canvas,
+        //   menuData: tabData,
+        //   position: new Vector2(0, 0),
+        //   active: true,
+        //   scale: 1,
+        //   zIndex: 10,
+        // });
+        // this.addChild(interactiveMenu);
+        // interactiveMenu.show();
         const multiplayerManager = this.parent?.multiplayerManager;
         if (multiplayerManager) {
           multiplayerManager.sendChatMessage(targetId, 

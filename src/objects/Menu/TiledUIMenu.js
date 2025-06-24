@@ -116,6 +116,10 @@ export class TiledUIMenu extends GameObject {
         };
     }
 
+    ready() {
+
+    }
+
     step(delta, root) {
 
         this.updateAnimatedTiles(delta);
@@ -1225,11 +1229,11 @@ export class TiledUIMenu extends GameObject {
     }
 
 
-    async show() {
+    show() {
         this.isVisible = true;
         this.selectedTileIndex = 0;
         this.preselectFirstItem();
-        events.emit("MENU_OPEN");
+        // events.emit("MENU_OPEN");
     }
 
     hide() {

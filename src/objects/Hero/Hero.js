@@ -227,6 +227,9 @@ export class Hero extends GameObject {
       events.on("MENU_CLOSE", this, () => {
         this.isLocked = false;
       }),
+      events.on("INTERACTIVE_MENU", this, () => {
+        this.isLocked = true;
+      }),
       this.parent?.multiplayerManager.on('onChatMessage', (messageData) => {
         console.log(`Chat from ${messageData.senderName}: ${messageData.message}`);
         this.messages.push(messageData);
@@ -418,18 +421,23 @@ export class Hero extends GameObject {
         const remotePlayer = interactiveObject;
         this.targetPlayerId = remotePlayer.getAttribute("id");
 
-        this.interactiveMenu = new TiledUIMenu({
-          menuData: tabData,
-          position: new Vector2(this.position.x, this.position.y - 118),
-          active: true,
-          scale: 1,
-          zIndex: 10,
-        });
-        this.interactiveMenu.setActionHandlers({
-          'sendChatMessage': () => this.handleChatAction(),
-        });
-        this.addChild(this.interactiveMenu);
-        this.interactiveMenu.show();
+        // this.interactiveMenu = new TiledUIMenu({
+        //   menuData: tabData,
+        //   position: new Vector2(this.position.x, this.position.y - 118),
+        //   active: true,
+        //   scale: 1,
+        //   zIndex: 10,
+        // });
+        // this.interactiveMenu.setActionHandlers({
+        //   'sendChatMessage': () => this.handleChatAction(),
+        // });
+        // this.addChild(this.interactiveMenu);
+        // this.interactiveMenu.show();
+        const data = {
+          position: this.position,
+          targetPlayerId: this.targetPlayerId,
+        }
+        events.emit("INTERACTIVE_MENU", data);
 
         // Trigger trade to remote player
       }

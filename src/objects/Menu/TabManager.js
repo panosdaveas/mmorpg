@@ -10,7 +10,7 @@ import baseMenuData from "../../levels/json/menu.json";
 import tabProfileData from "../../levels/json/tabProfile.json";
 import tabPlayersData from "../../levels/json/tabPlayers.json";
 import tabMessagesData from "../../levels/json/tabMessages.json";
-// import tabInteractiveMenu from "../../levels/json/interactiveMenu.json";
+import tabInteractiveMenu from "../../levels/json/interactiveMenu.json";
 
 export class TabManager extends GameObject {
     constructor({ canvas }) {
@@ -32,7 +32,7 @@ export class TabManager extends GameObject {
             ['profile', tabProfileData],
             ['players', tabPlayersData],
             ['messages', tabMessagesData],
-            // ['interactiveMenu', tabInteractiveMenu],
+            ['interactiveMenu', tabInteractiveMenu],
         ]);
 
         console.log("TabManager: Available tabs:", Array.from(this.tabDataMap.keys()));
@@ -46,6 +46,8 @@ export class TabManager extends GameObject {
         this.idList = null;
 
         this.currentMessage = 0;
+
+        this.isReady = false;
 
         // this.currentPage = 0;
         // this.pageSize = 8;
@@ -398,10 +400,52 @@ export class TabManager extends GameObject {
         events.emit("MENU_CLOSE");
     }
 
+    
+
+    handleChatAction(targetPlayerId) {
+        const multiplayerManager = this.parent?.multiplayerManager;
+        if (multiplayerManager) {
+            multiplayerManager.sendChatMessage(targetPlayerId,
+                'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.'
+            );
+        }
+      }
+
+    ready() {
+        events.on("INTERACTIVE_MENU", this, (data) => {
+            this.baseMenu = new TiledUIMenu({
+                canvas: this.canvas,
+                menuData: tabInteractiveMenu,
+                active: true,
+                // position: new Vector2(0, 0),
+                position: new Vector2(data.position.x, data.position.y),
+                scale: 1,
+                zIndex: 2,
+            });
+            this.baseMenu.setActionHandlers({
+                'sendChatMessage': () => this.handleChatAction(data.targetPlayerId),
+            });
+            this.show();
+        })
+        // events.on("MENU_OPEN", this, () => {
+        //     this.baseMenu = new TiledUIMenu({
+        //         canvas: this.canvas,
+        //         menuData: baseMenuData,
+        //         active: true,
+        //         position: new Vector2(0, 0),
+        //         scale: 1,
+        //         zIndex: 2,
+        //     });
+        // this.baseMenu.show();
+        // })
+        this.isReady = true;
+        
+    }
+
     step(delta, root) {
         if (!this.isVisible) {
             // Handle menu opening
-            if (root.input?.getActionJustPressed("Enter")) {
+            if (root.input?.getActionJustPressed("Enter") && !this.isTabActive('interactiveMenu')) {
                 this.show();
             }
             return;
@@ -492,8 +536,8 @@ export class TabManager extends GameObject {
             return;
         }
         this.idList = [];
-        return;
         events.emit("PLAYERS_REFRESH_REQUESTED");
+        return;
     }
 
     // Event handlers
@@ -527,7 +571,7 @@ export class TabManager extends GameObject {
             const startTime = Date.now();
 
             const checkReady = () => {
-                if (menu.isReady && menu.isReady()) {
+                if (this.isReady && menu.isReady()) {
                     resolve(menu);
                 } else if (Date.now() - startTime > timeout) {
                     console.warn("Menu initialization timeout, continuing anyway");

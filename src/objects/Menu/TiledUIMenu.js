@@ -7,7 +7,7 @@ import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { resources } from "../../Resource.js";
 
 export class TiledUIMenu extends GameObject {
-    constructor({ canvas, menuData, active = true, scale = 1, zIndex = 1, position }) { // <- Accept menuData as parameter
+    constructor({ canvas, menuData, active = true, scale = 1, zIndex = 1, position, autoHandleEscape }) { // <- Accept menuData as parameter
         super({
             position: position ?? new Vector2(0, 0)
         });
@@ -27,6 +27,7 @@ export class TiledUIMenu extends GameObject {
         this.hoveredButtonId = null;
         this.pressedButtonId = null;
         this.active = active; // ← Store active state
+        this.autoHandleEscape = autoHandleEscape;
 
         // Make action handlers configurable (will be set by TabManager)
         this.actionHandlers = {
@@ -41,7 +42,6 @@ export class TiledUIMenu extends GameObject {
         this.childMenus = []; // Array to maintain order (most recent = last)
         this.activeChildIndex = -1; // -1 means parent is active, 0+ means child at index is active
         this.parentMenu = null; // Reference to parent if this is a child
-        this.autoHandleEscape = null;
 
         this.init();
 

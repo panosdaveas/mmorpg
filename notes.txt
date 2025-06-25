@@ -20,3 +20,41 @@ Use CAPTCHAs for suspicious connections
 Implement progressive penalties
 
 // CHAT Message max length = 390 chars!!!
+
+
+if (tabName === 'players') {
+            // const players = this.parent?.multiplayerManager.players;
+            this.handlePlayersRefresh();
+            // this.idList = Object.keys(players);
+            const playerId = this.parent?.multiplayerManager?.mySocketId;
+            tabMenu.setText("PlayerId", playerId);
+            // tabMenu.setID(playerId);
+            this.renderPage();
+            if (this.idList.length <= this.pageSize) {
+                const paginateForwardButton = tabMenu.findObjectByName('Button_Paginate_Forward')
+                const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
+                tabMenu.setButtonEnabled(paginateForwardButton, false);
+                tabMenu.setButtonEnabled(paginateBackwardButton, false);
+            }
+        } else if (tabName === 'messages') {
+            // Initialize messages display
+            const messages = this.parent?.level?.localPlayer?.messages;
+            if (!messages || messages.length === 0) {
+                this.currentMessage = 0;
+            } else {
+                // Ensure currentMessage is within bounds
+                if (this.currentMessage >= messages.length) {
+                    this.currentMessage = messages.length - 1;
+                }
+            }
+            this.updateMessageDisplay();
+            const nextMessageButton = tabMenu.findObjectByName('Button_Item_Next');
+            const previousMessageButton = tabMenu.findObjectByName('Button_Item_Previous');
+            if (messages.length < 2) {
+                tabMenu.setButtonEnabled(nextMessageButton, false);
+                tabMenu.setButtonEnabled(previousMessageButton, false);
+            } else {
+                tabMenu.setButtonEnabled(nextMessageButton, true);
+                tabMenu.setButtonEnabled(previousMessageButton, true); 
+            }
+        }

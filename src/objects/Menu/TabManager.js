@@ -1,4 +1,4 @@
-// TabManager.js - Clean, simplified version with active parameter
+// TabManager.js - Enhanced version with separate main and interactive menus
 import { GameObject } from "../../GameObject.js";
 import { Vector2 } from "../../Vector2.js";
 import { TiledUIMenu } from "./TiledUIMenu.js";
@@ -23,9 +23,13 @@ export class TabManager extends GameObject {
         this.isVisible = false;
         this.drawLayer = "UI";
 
-        // Store menu instances
-        this.baseMenu = null;
+        // Store menu instances - SEPARATE MENUS
+        this.baseMenu = null;           // Main menu (with tabs)
+        this.interactiveMenu = null;    // Interactive menu for remote players
         this.tabMenus = new Map();
+
+        // Track which menu type is currently active
+        this.currentMenuType = null; // 'main' or 'interactive'
 
         // Define available tab data
         this.tabDataMap = new Map([
@@ -42,25 +46,20 @@ export class TabManager extends GameObject {
 
         this.currentPage = 0;
         this.pageSize = 8;
-
         this.idList = null;
-
         this.currentMessage = 0;
-
         this.isReady = false;
-
-        // this.currentPage = 0;
-        // this.pageSize = 8;
-    
+        this.scale = 1;
     }
 
     async initializeMenus() {
-        console.log("TabManager: Initializing menus...");
+        console.log("TabManager: Initializing main menu...");
 
         try {
-
             const menuScale = this.calculateMenuScale();
-            // Create base menu (starts active - keyboard enabled)
+            this.scale = menuScale;
+
+            // Create base menu (main menu with tabs)
             this.baseMenu = new TiledUIMenu({
                 canvas: this.canvas,
                 menuData: baseMenuData,
@@ -86,18 +85,246 @@ export class TabManager extends GameObject {
             // Wait for base menu to be ready
             await this.waitForMenuReady(this.baseMenu);
 
-            console.log("TabManager: Base menu initialized successfully");
+            console.log("TabManager: Main menu initialized successfully");
 
         } catch (error) {
-            console.error("TabManager: Failed to initialize base menu:", error);
+            console.error("TabManager: Failed to initialize main menu:", error);
         }
+    }
+
+    worldToScreenPosition(worldPosition) {
+        // Get camera and zoom from the main scene
+        const mainScene = this.parent; // Assuming TabManager is added to main scene
+        const camera = mainScene?.camera;
+        const zoom = mainScene?.level?.scale ?? 1;
+
+        // Default screen position if no camera
+        let screenX = worldPosition.x;
+        let screenY = worldPosition.y;
+
+        if (camera) {
+            // Apply camera transformation: screen = (world + camera) * zoom
+            screenX = (worldPosition.x + camera.position.x) * zoom;
+            screenY = (worldPosition.y + camera.position.y) * zoom;
+        } else {
+            // If no camera, just apply zoom
+            screenX = worldPosition.x * zoom;
+            screenY = worldPosition.y * zoom;
+        }
+
+        // Optional: Offset the menu slightly above the hero
+        screenY -= 50; // Move menu 50 pixels above the hero
+
+        // Ensure the menu stays within screen bounds
+        const menuWidth = tabInteractiveMenu.width * TILE_SIZE; // Estimate menu width
+        const menuHeight = tabInteractiveMenu.height * TILE_SIZE; // Estimate menu height
+
+        // Keep menu within canvas bounds
+        screenX = Math.max(0, Math.min(screenX, this.canvas.width - menuWidth));
+        screenY = Math.max(0, Math.min(screenY, this.canvas.height - menuHeight));
+
+        console.log(`TabManager: Converted world pos (${worldPosition.x}, ${worldPosition.y}) to screen pos (${screenX}, ${screenY})`);
+
+        return new Vector2(screenX, screenY);
+    }
+
+    ready() {
+        // Handle interactive menu for remote player interactions
+        events.on("INTERACTIVE_MENU", this, (data) => {
+            console.log("TabManager: Creating interactive menu for remote player");
+
+            // Hide any currently visible menu
+            this.hide();
+            const adjustedPosition = new Vector2(data.position.x + 8, data.position.y - 64)
+            const screenPosition = this.worldToScreenPosition(adjustedPosition);
+
+            // Create interactive menu separately (don't overwrite baseMenu)
+            this.interactiveMenu = new TiledUIMenu({
+                canvas: this.canvas,
+                menuData: tabInteractiveMenu,
+                active: true,
+                // position: new Vector2(data.position.x, data.position.y),
+                position: screenPosition,
+                scale: 1,
+                zIndex: 2,
+            });
+
+            this.interactiveMenu.setActionHandlers({
+                'sendChatMessage': () => this.handleChatAction(data.targetPlayerId),
+                'closeMenu': () => this.hideInteractiveMenu(),
+            });
+
+            // Show interactive menu
+            this.showInteractiveMenu();
+        });
+
+        this.isReady = true;
+    }
+
+    step(delta, root) {
+        if (!this.isVisible) {
+            // Handle menu opening with Enter key
+            if (root.input?.getActionJustPressed("Enter")) {
+                // Only show main menu if no interactive menu is active
+                if (!this.interactiveMenu?.isVisible) {
+                    this.showMainMenu();
+                }
+            }
+            return;
+        }
+
+        // Handle menu closing and navigation
+        if (root.input?.getActionJustPressed("Escape")) {
+            if (this.currentMenuType === 'interactive') {
+                // Close interactive menu
+                this.hideInteractiveMenu();
+            } else if (this.currentActiveTab) {
+                // Close current tab first
+                this.hideCurrentTab();
+            } else {
+                // Close entire main menu
+                this.hideMainMenu();
+            }
+            return;
+        }
+
+        // Step the appropriate menu based on current type
+        if (this.currentMenuType === 'interactive' && this.interactiveMenu) {
+            this.interactiveMenu.step(delta, root);
+        } else if (this.currentMenuType === 'main') {
+            // Step base menu (active state automatically controls keyboard input)
+            if (this.baseMenu) {
+                this.baseMenu.step(delta, root);
+            }
+
+            // Step current tab menu if active
+            if (this.currentActiveTab) {
+                const currentMenu = this.tabMenus.get(this.currentActiveTab);
+                if (currentMenu && currentMenu.isVisible) {
+                    currentMenu.step(delta, root);
+                }
+            }
+        }
+    }
+
+    draw(ctx) {
+        if (!this.isVisible) return;
+
+        ctx.save();
+        // Fill canvas with shadow
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        if (this.currentMenuType === 'interactive' && this.interactiveMenu) {
+            // Draw interactive menu
+            this.interactiveMenu.draw(ctx);
+        } else if (this.currentMenuType === 'main') {
+            // Draw main menu system
+            // Always draw base menu first (background and navigation)
+            if (this.baseMenu) {
+                this.baseMenu.draw(ctx);
+            }
+
+            // Draw current tab menu on top
+            if (this.currentActiveTab) {
+                const currentMenu = this.tabMenus.get(this.currentActiveTab);
+                if (currentMenu && currentMenu.isVisible) {
+                    currentMenu.draw(ctx);
+                }
+            }
+        }
+
+        ctx.restore();
+    }
+
+    // Main menu methods
+    showMainMenu() {
+        console.log("TabManager: Showing main menu");
+        this.currentMenuType = 'main';
+        this.isVisible = true;
+
+        if (this.baseMenu) {
+            this.baseMenu.show();
+        }
+
+        events.emit("MENU_OPEN");
+    }
+
+    hideMainMenu() {
+        console.log("TabManager: Hiding main menu");
+
+        if (this.baseMenu) {
+            this.baseMenu.hide();
+        }
+
+        this.hideCurrentTab();
+
+        // Only set invisible if no interactive menu is showing
+        if (this.currentMenuType === 'main') {
+            this.isVisible = false;
+            this.currentMenuType = null;
+            events.emit("MENU_CLOSE");
+        }
+    }
+
+    // Interactive menu methods
+    showInteractiveMenu() {
+        console.log("TabManager: Showing interactive menu");
+        this.currentMenuType = 'interactive';
+        this.isVisible = true;
+
+        if (this.interactiveMenu) {
+            this.interactiveMenu.show();
+        }
+
+        events.emit("MENU_OPEN");
+    }
+
+    hideInteractiveMenu() {
+        console.log("TabManager: Hiding interactive menu");
+
+        if (this.interactiveMenu) {
+            this.interactiveMenu.hide();
+            // Clean up interactive menu instance
+            this.interactiveMenu = null;
+        }
+
+        // Only set invisible if no main menu is showing
+        if (this.currentMenuType === 'interactive') {
+            this.isVisible = false;
+            this.currentMenuType = null;
+            events.emit("MENU_CLOSE");
+        }
+    }
+
+    // Generic show/hide methods for backwards compatibility
+    show() {
+        // Default to showing main menu
+        this.showMainMenu();
+    }
+
+    hide() {
+        // Hide whatever menu is currently active
+        if (this.currentMenuType === 'interactive') {
+            this.hideInteractiveMenu();
+        } else if (this.currentMenuType === 'main') {
+            this.hideMainMenu();
+        }
+    }
+
+    // Helper method to check if interactive menu is active
+    isTabActive(tabName) {
+        if (tabName === 'interactiveMenu') {
+            return this.currentMenuType === 'interactive';
+        }
+        return this.currentActiveTab === tabName;
     }
 
     calculateMenuScale() {
         if (!this.canvas || !baseMenuData) return 1;
 
         // Get the original menu dimensions from the map data
-        const originalWidth = baseMenuData.width * TILE_SIZE;  // Assuming TILE_SIZE from constants
+        const originalWidth = baseMenuData.width * TILE_SIZE;
         const originalHeight = baseMenuData.height * TILE_SIZE;
 
         // Calculate scale to fit canvas height
@@ -120,55 +347,22 @@ export class TabManager extends GameObject {
         const tabMenu = await this.loadTabMenu(tabName);
 
         if (tabMenu) {
-            // Disable keyboard input on base menu
+            // Disable keyboard input on base menu while tab is active
             if (this.baseMenu) {
                 this.baseMenu.setActive(false);
             }
 
-            // Show and activate the tab
+            // Show and activate the tab menu
             tabMenu.show();
-            this.currentActiveTab = tabName;
-            events.emit("TAB_CHANGED", { tab: tabName });
-            console.log(`TabManager: Tab '${tabName}' active, base menu keyboard disabled`);
-        } else {
-            console.error(`TabManager: Failed to show tab '${tabName}'`);
-        }
+            tabMenu.setActive(true);
 
-        if (tabName === 'players') {
-            // const players = this.parent?.multiplayerManager.players;
-            this.handlePlayersRefresh();
-            // this.idList = Object.keys(players);
-            const playerId = this.parent?.multiplayerManager?.mySocketId;
-            tabMenu.setText("PlayerId", playerId);
-            // tabMenu.setID(playerId);
-            this.renderPage();
-            if (this.idList.length <= this.pageSize) {
-                const paginateForwardButton = tabMenu.findObjectByName('Button_Paginate_Forward')
-                const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
-                tabMenu.setButtonEnabled(paginateForwardButton, false);
-                tabMenu.setButtonEnabled(paginateBackwardButton, false);
-            }
-        } else if (tabName === 'messages') {
-            // Initialize messages display
-            const messages = this.parent?.level?.localPlayer?.messages;
-            if (!messages || messages.length === 0) {
-                this.currentMessage = 0;
-            } else {
-                // Ensure currentMessage is within bounds
-                if (this.currentMessage >= messages.length) {
-                    this.currentMessage = messages.length - 1;
-                }
-            }
-            this.updateMessageDisplay();
-            const nextMessageButton = tabMenu.findObjectByName('Button_Item_Next');
-            const previousMessageButton = tabMenu.findObjectByName('Button_Item_Previous');
-            if (messages.length < 2) {
-                tabMenu.setButtonEnabled(nextMessageButton, false);
-                tabMenu.setButtonEnabled(previousMessageButton, false);
-            } else {
-                tabMenu.setButtonEnabled(nextMessageButton, true);
-                tabMenu.setButtonEnabled(previousMessageButton, true); 
-            }
+            this.currentActiveTab = tabName;
+            events.emit("TAB_CHANGED", { tab: tabName, previous: null });
+
+            console.log(`TabManager: Tab '${tabName}' opened, base menu keyboard disabled`);
+
+            // Handle tab-specific setup
+            this.handleTabSpecificSetup(tabName, tabMenu);
         }
     }
 
@@ -229,17 +423,114 @@ export class TabManager extends GameObject {
             // Store the menu
             this.tabMenus.set(tabName, tabMenu);
 
-            // Initially hide the tab menu
-            tabMenu.hide();
-
-            console.log(`TabManager: Tab menu '${tabName}' loaded successfully`);
-            
+            console.log(`TabManager: Tab menu '${tabName}' created and ready`);
             return tabMenu;
 
         } catch (error) {
-            console.error(`TabManager: Error creating tab menu '${tabName}':`, error);
+            console.error(`TabManager: Failed to create tab menu '${tabName}':`, error);
             return null;
         }
+    }
+
+    setTabActionHandlers(tabMenu, tabName) {
+        const commonHandlers = {
+            'closeMenu': () => this.hide(),
+            'closeTab': () => this.hideCurrentTab(),
+        };
+
+        const tabSpecificHandlers = {
+            'profile': {
+                'profileUpdate': () => this.handleProfileUpdate(),
+                'profileSave': () => this.handleProfileSave(),
+            },
+            'players': {
+                'playerInvite': () => this.handlePlayerInvite(),
+                'playerKick': () => this.handlePlayerKick(),
+                'refreshPlayers': () => this.handlePlayersRefresh(),
+                'paginateForward': () => this.paginateForward(),
+                'paginateBackward': () => this.paginateBackward(),
+            },
+            'messages': {
+                'nextItem': () => this.nextMessage(),
+                'previousItem': () => this.previousMessage(),
+            }
+        };
+
+        const handlers = {
+            ...commonHandlers,
+            ...(tabSpecificHandlers[tabName] || {})
+        };
+
+        tabMenu.setActionHandlers(handlers);
+    }
+
+    async waitForMenuReady(menu, timeout = 5000) {
+        const start = Date.now();
+        while (!menu.isReady() && (Date.now() - start) < timeout) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        if (!menu.isReady()) {
+            throw new Error("Menu failed to initialize within timeout");
+        }
+    }
+
+    handleTabSpecificSetup(tabName, tabMenu) {
+        // Handle tab-specific setup logic here
+        if (tabName === 'players') {
+            this.updatePlayersTab(tabMenu);
+        } else if (tabName === 'messages') {
+            this.updateMessagesTab(tabMenu);
+        }
+    }
+
+    updatePlayersTab(tabMenu) {
+        // Update players tab logic
+        console.log("TabManager: Updating players tab");
+        // const players = this.parent?.multiplayerManager.players;
+        this.handlePlayersRefresh();
+        // this.idList = Object.keys(players);
+        const playerId = this.parent?.multiplayerManager?.mySocketId;
+        tabMenu.setText("PlayerId", playerId);
+        // tabMenu.setID(playerId);
+        this.renderPage();
+        if (this.idList.length <= this.pageSize) {
+            const paginateForwardButton = tabMenu.findObjectByName('Button_Paginate_Forward')
+            const paginateBackwardButton = tabMenu.findObjectByName('Button_Paginate_Backward')
+            tabMenu.setButtonEnabled(paginateForwardButton, false);
+            tabMenu.setButtonEnabled(paginateBackwardButton, false);
+        }
+    }
+
+    updateMessagesTab(tabMenu) {
+        // Update messages tab logic
+        console.log("TabManager: Updating messages tab");
+        // Initialize messages display
+        const messages = this.parent?.level?.localPlayer?.messages;
+        if (!messages || messages.length === 0) {
+            this.currentMessage = 0;
+        } else {
+            // Ensure currentMessage is within bounds
+            if (this.currentMessage >= messages.length) {
+                this.currentMessage = messages.length - 1;
+            }
+        }
+        this.updateMessageDisplay();
+        const nextMessageButton = tabMenu.findObjectByName('Button_Item_Next');
+        const previousMessageButton = tabMenu.findObjectByName('Button_Item_Previous');
+        if (messages.length < 2) {
+            tabMenu.setButtonEnabled(nextMessageButton, false);
+            tabMenu.setButtonEnabled(previousMessageButton, false);
+        } else {
+            tabMenu.setButtonEnabled(nextMessageButton, true);
+            tabMenu.setButtonEnabled(previousMessageButton, true);
+        }
+    }
+
+    setupEventListeners() {
+        // Listen for external events
+        events.on(this, "PLAYER_DATA_UPDATED", this.handlePlayerDataUpdate.bind(this));
+        events.on(this, "MULTIPLAYER_UPDATE", this.handleMultiplayerUpdate.bind(this));
     }
 
     getPage(array, page, size) {
@@ -253,6 +544,48 @@ export class TabManager extends GameObject {
         const displayString = ids.join(' ');
         const currentMenu = this.tabMenus.get(this.currentActiveTab || 'players');
         currentMenu.setText('RemotePlayers', displayString);
+    }
+
+    // Action handlers
+    handleChatAction(targetPlayerId) {
+        const multiplayerManager = this.parent?.multiplayerManager;
+        if (multiplayerManager) {
+            multiplayerManager.sendChatMessage(targetPlayerId,
+                'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.'
+            );
+        }
+    }
+
+    handleProfileUpdate() {
+        console.log("TabManager: Handling profile update");
+        events.emit("PROFILE_UPDATE_REQUESTED");
+    }
+
+    handleProfileSave() {
+        console.log("TabManager: Handling profile save");
+        events.emit("PROFILE_SAVE_REQUESTED");
+    }
+
+    handlePlayerInvite() {
+        console.log("TabManager: Handling player invite");
+        events.emit("PLAYER_INVITE_REQUESTED");
+    }
+
+    handlePlayerKick() {
+        console.log("TabManager: Handling player kick");
+        events.emit("PLAYER_KICK_REQUESTED");
+    }
+
+    handlePlayersRefresh() {
+        console.log("TabManager: Refreshing players list");
+        if (this.parent?.multiplayerManager.isSocketConnected()) {
+            const players = this.parent?.multiplayerManager.players;
+            this.idList = Object.keys(players);
+            return;
+        }
+        this.idList = [];
+        events.emit("PLAYERS_REFRESH_REQUESTED");
+        return;
     }
 
     paginateForward() {
@@ -345,266 +678,12 @@ export class TabManager extends GameObject {
         tabMenu.setText("FromPlayerId", currentMessage.from?.toString() || "");
         tabMenu.setText("Message", currentMessage.message || "");
     }
-    
 
-    setTabActionHandlers(tabMenu, tabName) {
-        const commonHandlers = {
-            'closeTab': () => this.hideCurrentTab(),
-            'backToMain': () => this.hideCurrentTab(),
-        };
-
-        const tabSpecificHandlers = {
-            'profile': {
-                'updateProfile': () => this.handleProfileUpdate(),
-                'saveProfile': () => this.handleProfileSave(),
-            },
-            'players': {
-                'invitePlayer': () => this.handlePlayerInvite(),
-                'kickPlayer': () => this.handlePlayerKick(),
-                'refreshPlayers': () => this.handlePlayersRefresh(),
-                'paginateForward': () => this.paginateForward(),
-                'paginateBackward': () => this.paginateBackward(),
-            },
-            'messages': {
-                'nextItem': () => this.nextMessage(),
-                'previousItem': () => this.previousMessage(),
-            }
-        };
-
-        const handlers = {
-            ...commonHandlers,
-            ...(tabSpecificHandlers[tabName] || {})
-        };
-
-        tabMenu.setActionHandlers(handlers);
-    }
-
-    show() {
-        console.log("TabManager: Showing menu");
-        this.isVisible = true;
-        if (this.baseMenu) {
-            this.baseMenu.show();
-        }
-        events.emit("MENU_OPEN");
-    }
-
-    hide() {
-        console.log("TabManager: Hiding menu");
-        this.isVisible = false;
-
-        if (this.baseMenu) {
-            this.baseMenu.hide();
-        }
-
-        this.hideCurrentTab();
-        events.emit("MENU_CLOSE");
-    }
-
-    
-
-    handleChatAction(targetPlayerId) {
-        const multiplayerManager = this.parent?.multiplayerManager;
-        if (multiplayerManager) {
-            multiplayerManager.sendChatMessage(targetPlayerId,
-                'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.'
-            );
-        }
-      }
-
-    ready() {
-        events.on("INTERACTIVE_MENU", this, (data) => {
-            this.baseMenu = new TiledUIMenu({
-                canvas: this.canvas,
-                menuData: tabInteractiveMenu,
-                active: true,
-                // position: new Vector2(0, 0),
-                position: new Vector2(data.position.x, data.position.y),
-                scale: 1,
-                zIndex: 2,
-            });
-            this.baseMenu.setActionHandlers({
-                'sendChatMessage': () => this.handleChatAction(data.targetPlayerId),
-            });
-            this.show();
-        })
-        // events.on("MENU_OPEN", this, () => {
-        //     this.baseMenu = new TiledUIMenu({
-        //         canvas: this.canvas,
-        //         menuData: baseMenuData,
-        //         active: true,
-        //         position: new Vector2(0, 0),
-        //         scale: 1,
-        //         zIndex: 2,
-        //     });
-        // this.baseMenu.show();
-        // })
-        this.isReady = true;
-        
-    }
-
-    step(delta, root) {
-        if (!this.isVisible) {
-            // Handle menu opening
-            if (root.input?.getActionJustPressed("Enter") && !this.isTabActive('interactiveMenu')) {
-                this.show();
-            }
-            return;
-        }
-
-        // Handle menu closing and navigation
-        if (root.input?.getActionJustPressed("Escape")) {
-            if (this.currentActiveTab) {
-                // Close current tab first
-                this.hideCurrentTab();
-            } else {
-                // Close entire menu
-                this.hide();
-            }
-            return;
-        }
-
-        // Step base menu (active state automatically controls keyboard input)
-        if (this.baseMenu) {
-            this.baseMenu.step(delta, root);
-        }
-
-        // Step current tab menu if active
-        if (this.currentActiveTab) {
-            const currentMenu = this.tabMenus.get(this.currentActiveTab);
-            if (currentMenu && currentMenu.isVisible) {
-                currentMenu.step(delta, root);
-            }
-        }
-    }
-
-    draw(ctx) {
-        if (!this.isVisible) return;
-
-        ctx.save();
-        // fill canvas with shadow
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-        // Always draw base menu first (background and navigation)
-        if (this.baseMenu) {
-            this.baseMenu.draw(ctx);
-        }
-
-        // Draw current tab menu on top
-        if (this.currentActiveTab) {
-            const currentMenu = this.tabMenus.get(this.currentActiveTab);
-            if (currentMenu && currentMenu.isVisible) {
-                currentMenu.draw(ctx);
-            }
-        }
-
-        ctx.restore();
-    }
-
-    setupEventListeners() {
-        // Listen for external events
-        events.on(this, "PLAYER_DATA_UPDATED", this.handlePlayerDataUpdate.bind(this));
-        events.on(this, "MULTIPLAYER_UPDATE", this.handleMultiplayerUpdate.bind(this));
-    }
-
-    // Tab-specific action handlers
-    handleProfileUpdate() {
-        console.log("TabManager: Handling profile update");
-        events.emit("PROFILE_UPDATE_REQUESTED");
-    }
-
-    handleProfileSave() {
-        console.log("TabManager: Handling profile save");
-        events.emit("PROFILE_SAVE_REQUESTED");
-    }
-
-    handlePlayerInvite() {
-        console.log("TabManager: Handling player invite");
-        events.emit("PLAYER_INVITE_REQUESTED");
-    }
-
-    handlePlayerKick() {
-        console.log("TabManager: Handling player kick");
-        events.emit("PLAYER_KICK_REQUESTED");
-    }
-
-    handlePlayersRefresh() {
-        console.log("TabManager: Refreshing players list");
-        if (this.parent?.multiplayerManager.isSocketConnected()) {
-            const players = this.parent?.multiplayerManager.players;
-            this.idList = Object.keys(players);
-            return;
-        }
-        this.idList = [];
-        events.emit("PLAYERS_REFRESH_REQUESTED");
-        return;
-    }
-
-    // Event handlers
     handlePlayerDataUpdate(data) {
-        console.log("TabManager: Player data updated");
+        console.log("TabManager: Player data updated", data);
     }
 
     handleMultiplayerUpdate(data) {
-        console.log("TabManager: Multiplayer data updated");
+        console.log("TabManager: Multiplayer update", data);
     }
-
-    // Utility methods
-    getCurrentTab() {
-        return this.currentActiveTab;
-    }
-
-    isTabActive(tabName) {
-        return this.currentActiveTab === tabName;
-    }
-
-    getAvailableTabs() {
-        return Array.from(this.tabDataMap.keys());
-    }
-
-    isTabLoaded(tabName) {
-        return this.tabMenus.has(tabName);
-    }
-
-    async waitForMenuReady(menu, timeout = 5000) {
-        return new Promise((resolve, reject) => {
-            const startTime = Date.now();
-
-            const checkReady = () => {
-                if (this.isReady && menu.isReady()) {
-                    resolve(menu);
-                } else if (Date.now() - startTime > timeout) {
-                    console.warn("Menu initialization timeout, continuing anyway");
-                    resolve(menu);
-                } else {
-                    setTimeout(checkReady, 100);
-                }
-            };
-
-            checkReady();
-        });
-    }
-
-    // Debug methods
-    getDebugInfo() {
-        return {
-            isVisible: this.isVisible,
-            currentActiveTab: this.currentActiveTab,
-            loadedTabs: Array.from(this.tabMenus.keys()),
-            availableTabs: Array.from(this.tabDataMap.keys()),
-            baseMenuLoaded: !!this.baseMenu,
-            baseMenuActive: this.baseMenu ? this.baseMenu.active : false,
-            baseMenuVisible: this.baseMenu ? this.baseMenu.isVisible : false,
-        };
-    }
-
-    testActionHandler(actionName) {
-        console.log(`TabManager: Testing action handler '${actionName}'`);
-        if (this.baseMenu && this.baseMenu.actionHandlers[actionName]) {
-            this.baseMenu.actionHandlers[actionName]();
-        } else {
-            console.log(`TabManager: No handler found for '${actionName}'`);
-        }
-    }
-
 }

@@ -88,6 +88,7 @@ export class TiledUIMenu extends GameObject {
 
             // Setup event listeners
             this.setupEventListeners();
+            this.preselectFirstItem();
 
             console.log("TiledUIMenu: Initialization complete");
 
@@ -1233,7 +1234,7 @@ export class TiledUIMenu extends GameObject {
         this.isVisible = true;
         this.selectedTileIndex = 0;
         this.preselectFirstItem();
-        // events.emit("MENU_OPEN");
+        events.emit("MENU_OPEN");
     }
 
     hide() {

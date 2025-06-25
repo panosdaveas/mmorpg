@@ -147,10 +147,12 @@ export class TabManager extends GameObject {
                 position: screenPosition,
                 scale: 1,
                 zIndex: 2,
+                autoHandleEscape: true,
             });
 
             this.interactiveMenu.setActionHandlers({
                 'sendChatMessage': () => this.handleChatAction(data.targetPlayerId),
+                'tradeRequest': () => this.openTradeSubmenu(),
                 'closeMenu': () => this.hideInteractiveMenu(),
             });
 
@@ -159,6 +161,23 @@ export class TabManager extends GameObject {
         });
 
         this.isReady = true;
+    }
+
+    openTradeSubmenu() {
+        this.tradeSubmenu = new TiledUIMenu({
+            canvas: this.canvas,
+            menuData: tabInteractiveMenu,
+            active: true,
+            // position: new Vector2(data.position.x, data.position.y),
+            position: new Vector2(0, 0),
+            scale: 1,
+            zIndex: 3,
+            autoHandleEscape: true,
+        });
+
+        // this.interactiveMenu.addChildMenu(tradeSubmenu);
+        const activeMenu = this.interactiveMenu.getActiveMenu();
+        activeMenu.addChildMenu(this.tradeSubmenu);
     }
 
     step(delta, root) {
@@ -173,31 +192,41 @@ export class TabManager extends GameObject {
             return;
         }
 
-        // Handle menu closing and navigation
+        // Check if interactive menu closed itself (important for cleanup)
+        if (this.currentMenuType === 'interactive' && this.interactiveMenu && !this.interactiveMenu.isVisible) {
+            console.log("TabManager: Detected interactive menu closed itself, cleaning up");
+            this.hideInteractiveMenu();
+            return;
+        }
+
+        // Handle Escape key at TabManager level for proper tab navigation
         if (root.input?.getActionJustPressed("Escape")) {
             if (this.currentMenuType === 'interactive') {
-                // Close interactive menu
-                this.hideInteractiveMenu();
-            } else if (this.currentActiveTab) {
-                // Close current tab first
-                this.hideCurrentTab();
-            } else {
-                // Close entire main menu
-                this.hideMainMenu();
+                // Let interactive menu handle its own hierarchical closing
+                // (This will be handled by the menu's step method)
+            } else if (this.currentMenuType === 'main') {
+                if (this.currentActiveTab) {
+                    // Close current tab first, return to base menu
+                    this.hideCurrentTab();
+                    return; // Don't let other menus process this Escape
+                } else {
+                    // Close entire main menu
+                    this.hideMainMenu();
+                    return;
+                }
             }
-            return;
         }
 
         // Step the appropriate menu based on current type
         if (this.currentMenuType === 'interactive' && this.interactiveMenu) {
             this.interactiveMenu.step(delta, root);
         } else if (this.currentMenuType === 'main') {
-            // Step base menu (active state automatically controls keyboard input)
+            // Step base menu (but it won't handle Escape since we handled it above)
             if (this.baseMenu) {
                 this.baseMenu.step(delta, root);
             }
 
-            // Step current tab menu if active
+            // Step current tab menu if active (but it won't handle Escape)
             if (this.currentActiveTab) {
                 const currentMenu = this.tabMenus.get(this.currentActiveTab);
                 if (currentMenu && currentMenu.isVisible) {
@@ -206,6 +235,10 @@ export class TabManager extends GameObject {
             }
         }
     }
+    
+
+
+
 
     draw(ctx) {
         if (!this.isVisible) return;
@@ -216,11 +249,10 @@ export class TabManager extends GameObject {
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
         if (this.currentMenuType === 'interactive' && this.interactiveMenu) {
-            // Draw interactive menu
+            // Draw interactive menu (will automatically draw its children)
             this.interactiveMenu.draw(ctx);
         } else if (this.currentMenuType === 'main') {
             // Draw main menu system
-            // Always draw base menu first (background and navigation)
             if (this.baseMenu) {
                 this.baseMenu.draw(ctx);
             }
@@ -259,13 +291,13 @@ export class TabManager extends GameObject {
 
         this.hideCurrentTab();
 
-        // Only set invisible if no interactive menu is showing
         if (this.currentMenuType === 'main') {
             this.isVisible = false;
             this.currentMenuType = null;
             events.emit("MENU_CLOSE");
         }
     }
+
 
     // Interactive menu methods
     showInteractiveMenu() {
@@ -280,16 +312,15 @@ export class TabManager extends GameObject {
         events.emit("MENU_OPEN");
     }
 
+
     hideInteractiveMenu() {
         console.log("TabManager: Hiding interactive menu");
 
         if (this.interactiveMenu) {
-            this.interactiveMenu.hide();
-            // Clean up interactive menu instance
+            this.interactiveMenu.hide(); // This will also hide all child menus
             this.interactiveMenu = null;
         }
 
-        // Only set invisible if no main menu is showing
         if (this.currentMenuType === 'interactive') {
             this.isVisible = false;
             this.currentMenuType = null;
@@ -339,29 +370,16 @@ export class TabManager extends GameObject {
 
     async showTab(tabName) {
         console.log(`TabManager: Switching to tab '${tabName}'`);
-
-        // Hide current tab first
         this.hideCurrentTab();
-
-        // Load tab menu if not already loaded
         const tabMenu = await this.loadTabMenu(tabName);
-
         if (tabMenu) {
-            // Disable keyboard input on base menu while tab is active
             if (this.baseMenu) {
                 this.baseMenu.setActive(false);
             }
-
-            // Show and activate the tab menu
             tabMenu.show();
             tabMenu.setActive(true);
-
             this.currentActiveTab = tabName;
             events.emit("TAB_CHANGED", { tab: tabName, previous: null });
-
-            console.log(`TabManager: Tab '${tabName}' opened, base menu keyboard disabled`);
-
-            // Handle tab-specific setup
             this.handleTabSpecificSetup(tabName, tabMenu);
         }
     }
@@ -372,16 +390,12 @@ export class TabManager extends GameObject {
             if (currentMenu) {
                 currentMenu.hide();
             }
-
-            // Re-enable keyboard input on base menu
             if (this.baseMenu) {
                 this.baseMenu.setActive(true);
             }
-
             const previousTab = this.currentActiveTab;
             this.currentActiveTab = null;
             events.emit("TAB_CHANGED", { tab: null, previous: previousTab });
-            console.log(`TabManager: Tab closed, base menu keyboard re-enabled`);
         }
     }
 
@@ -412,6 +426,7 @@ export class TabManager extends GameObject {
                 active: true,
                 scale: menuScale,
                 zIndex: 1,
+                autoHandleEscape: false,
             });
 
             // Set tab-specific action handlers

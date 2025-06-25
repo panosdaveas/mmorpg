@@ -38,6 +38,11 @@ export class TiledUIMenu extends GameObject {
             // 'openProfile': () => this.actionHandlers()
         };
 
+        this.childMenus = []; // Array to maintain order (most recent = last)
+        this.activeChildIndex = -1; // -1 means parent is active, 0+ means child at index is active
+        this.parentMenu = null; // Reference to parent if this is a child
+        this.autoHandleEscape = null;
+
         this.init();
 
         this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -61,6 +66,58 @@ export class TiledUIMenu extends GameObject {
         this.actionHandlers = { ...this.actionHandlers, ...handlers };
         console.log(`TiledUIMenu: Set ${Object.keys(handlers).length} action handlers`);
     }
+
+    addChildMenu(childMenu, offsetX = 100, offsetY = 0) {
+        // Set up parent-child relationship
+        childMenu.parentMenu = this;
+        childMenu.position.x = this.position.x + offsetX;
+        childMenu.position.y = this.position.y + offsetY;
+
+        // Keep child within screen bounds
+        // this.constrainChildToScreen(childMenu);
+
+        // Add to children array and make it active
+        this.childMenus.push(childMenu);
+        this.activeChildIndex = this.childMenus.length - 1;
+
+        // Deactivate parent, activate child
+        this.setActive(false);
+        childMenu.setActive(true);
+        childMenu.show();
+
+        console.log(`TiledUIMenu: Added child menu, now active child index: ${this.activeChildIndex}`);
+        return childMenu;
+    }
+
+    removeLastChildMenu() {
+        if (this.childMenus.length === 0) return null;
+
+        const removedChild = this.childMenus.pop();
+        removedChild.hide();
+        removedChild.parentMenu = null;
+
+        // Update active child index
+        this.activeChildIndex = this.childMenus.length - 1;
+
+        // Activate the new "most recent" menu (either previous child or parent)
+        if (this.activeChildIndex >= 0) {
+            // There's still a child menu active
+            this.childMenus[this.activeChildIndex].setActive(true);
+        } else {
+            // No more children, activate parent
+            this.setActive(true);
+        }
+
+        console.log(`TiledUIMenu: Removed child menu, now active child index: ${this.activeChildIndex}`);
+        return removedChild;
+    }
+
+    removeAllChildMenus() {
+        while (this.childMenus.length > 0) {
+            this.removeLastChildMenu();
+        }
+    }
+
 
     
 
@@ -122,21 +179,35 @@ export class TiledUIMenu extends GameObject {
     }
 
     step(delta, root) {
-
         this.updateAnimatedTiles(delta);
 
-        // if (!this.visible) {
-            if (root.input.getActionJustPressed("Enter")) {
-                this.show();
-            }
-            // return;
-        // }
-        // if (this.visible) {
-            if (root.input.getActionJustPressed("Escape")) {
+        // Handle Escape key for hierarchical closing (only if auto-handling is enabled)
+        if (this.autoHandleEscape && root.input?.getActionJustPressed("Escape")) {
+            if (this.childMenus.length > 0) {
+                // Close the most recent child menu
+                this.removeLastChildMenu();
+                return; // Don't process other input
+            } else if (this.parentMenu) {
+                // This menu is a child, close it
+                this.parentMenu.removeLastChildMenu();
+                return;
+            } else {
+                // This is a root menu, close it
                 this.hide();
+                return;
             }
-            // return;
-        // }
+        }
+
+        // Only process other input if this menu is active
+        if (!this.active) return;
+
+        // Handle Enter key to show menu (existing logic)
+        if (!this.isVisible && root.input?.getActionJustPressed("Enter")) {
+            this.show();
+        }
+
+    // Additional step logic would go here (button navigation, etc.)
+    // ... existing TiledUIMenu step logic ...
     }
 
     // Add animation update method
@@ -1239,7 +1310,22 @@ export class TiledUIMenu extends GameObject {
 
     hide() {
         this.isVisible = false;
+        this.removeAllChildMenus(); // Hide all children when parent hides
         events.emit("MENU_CLOSE");
+    }
+
+    // ADD: Method to get the currently active menu (for external reference)
+    getActiveMenu() {
+        if (this.activeChildIndex >= 0 && this.childMenus[this.activeChildIndex]) {
+            // Recursively get the active menu from the active child
+            return this.childMenus[this.activeChildIndex].getActiveMenu();
+        }
+        return this; // This menu is active
+    }
+
+    // ADD: Method to check if this menu has active children
+    hasActiveChildren() {
+        return this.activeChildIndex >= 0;
     }
 
     preselectFirstItem() {
@@ -1279,29 +1365,36 @@ export class TiledUIMenu extends GameObject {
         if (!this.isVisible) return;
 
         ctx.save();
-        
+
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.mozImageSmoothingEnabled = false;
         ctx.msImageSmoothingEnabled = false;
+
         // Apply position and scale transforms
         ctx.translate(this.position.x, this.position.y);
-        ctx.scale(this.scale, this.scale);  // Apply scaling
+        ctx.scale(this.scale, this.scale);
 
-        // Draw background tiles
+        // Draw this menu's content
         this.drawBackground(ctx);
-
-        // Draw button components
         this.drawButtonComponents(ctx);
-
-        // Draw regular objects
         this.drawRegularObjects(ctx);
 
-        // Draw selection highlight
-        this.drawSelection(ctx);
+        // Only draw selection if this menu is active (no active children)
+        if (this.activeChildIndex === -1) {
+            this.drawSelection(ctx);
+        }
 
         ctx.restore();
+
+        // Draw child menus on top
+        this.childMenus.forEach(childMenu => {
+            if (childMenu.isVisible) {
+                childMenu.draw(ctx);
+            }
+        });
     }
+
 
     drawBackground(ctx) {
         if (!this.menuData || !this.tilesetImages) return;

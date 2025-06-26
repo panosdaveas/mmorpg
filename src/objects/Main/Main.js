@@ -161,6 +161,7 @@ export class Main extends GameObject {
       if (this.level.cleanup) {
         this.level.cleanup();
       }
+      this.level.destroy();
 
       // Remove old level from scene
       this.removeChild(this.level);

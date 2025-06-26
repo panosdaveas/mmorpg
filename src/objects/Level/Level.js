@@ -229,24 +229,26 @@ export class Level extends GameObject {
     console.log(`Cleaning up level: ${this.levelName}`);
     this.isReady = false;
 
-    // Remove all event listeners for this level
-    events.off("HERO_POSITION", this);
-    events.off("HERO_ATTRIBUTES_CHANGED", this);
-    events.off("CHANGE_LEVEL", this);
-    events.off("HERO_EXITS", this);
+    // 🚨 FIX: Use unsubscribe instead of off with event names
+    events.unsubscribe(this);
 
-    // Call parent cleanup
+    // Call parent cleanup  
     super.cleanup && super.cleanup();
   }
 
   destroy() {
+    console.log(`🗑️ Destroying level: ${this.levelName}`);
+
     // 🚨 CRITICAL: Remove player before destroying level to prevent destruction
     if (this.localPlayer) {
       console.log(`Protecting ${this.levelName} player from destruction`);
       this.removeChild(this.localPlayer);
     }
 
-    // Call parent destroy (this will destroy remaining children)
+    // Call cleanup to remove event listeners
+    this.cleanup();
+
+    // Call parent destroy (this will destroy remaining children including Exit objects)
     super.destroy();
   }
 

@@ -1,5 +1,5 @@
 { "compressionlevel":-1,
- "height":7,
+ "height":6,
  "infinite":false,
  "layers":[
         {
@@ -7,10 +7,9 @@
             225, 232, 232, 232, 232, 227,
             225, 232, 232, 232, 232, 227,
             225, 232, 232, 232, 232, 227,
-            225, 232, 232, 232, 232, 227,
             761, 232, 232, 232, 232, 227,
             281, 282, 282, 282, 282, 283],
-         "height":7,
+         "height":6,
          "id":1,
          "name":"Background",
          "opacity":1,
@@ -46,7 +45,7 @@
                  "visible":true,
                  "width":64,
                  "x":16,
-                 "y":80
+                 "y":64
                 }, 
                 {
                  "height":16,
@@ -71,7 +70,7 @@
                  "visible":true,
                  "width":48,
                  "x":32,
-                 "y":80
+                 "y":64
                 }, 
                 {
                  "gid":250,
@@ -83,7 +82,7 @@
                  "visible":true,
                  "width":16,
                  "x":16,
-                 "y":96
+                 "y":80
                 }, 
                 {
                  "gid":140,
@@ -95,7 +94,7 @@
                  "visible":true,
                  "width":16,
                  "x":16,
-                 "y":96
+                 "y":80
                 }, 
                 {
                  "gid":139,
@@ -107,7 +106,7 @@
                  "visible":true,
                  "width":16,
                  "x":16,
-                 "y":96
+                 "y":80
                 }],
          "opacity":1,
          "properties":[
@@ -152,7 +151,7 @@
                  "visible":true,
                  "width":64,
                  "x":16,
-                 "y":48
+                 "y":40
                 }, 
                 {
                  "height":16,
@@ -177,7 +176,7 @@
                  "visible":true,
                  "width":48,
                  "x":32,
-                 "y":48
+                 "y":40
                 }, 
                 {
                  "gid":250,
@@ -189,7 +188,7 @@
                  "visible":true,
                  "width":16,
                  "x":16,
-                 "y":64
+                 "y":56
                 }, 
                 {
                  "gid":140,
@@ -201,7 +200,7 @@
                  "visible":true,
                  "width":16,
                  "x":16,
-                 "y":64
+                 "y":56
                 }, 
                 {
                  "gid":139,
@@ -213,7 +212,7 @@
                  "visible":true,
                  "width":16,
                  "x":16,
-                 "y":64
+                 "y":56
                 }],
          "opacity":1,
          "properties":[

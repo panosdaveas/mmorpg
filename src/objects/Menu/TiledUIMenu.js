@@ -825,7 +825,7 @@ export class TiledUIMenu extends GameObject {
     }
 
     isValidNavigationDirection(from, to, direction) {
-        const threshold = 8;
+        const threshold = 2;
 
         switch (direction) {
             case 'up':

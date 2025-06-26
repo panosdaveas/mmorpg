@@ -135,7 +135,7 @@ export class TabManager extends GameObject {
 
             // Hide any currently visible menu
             this.hide();
-            const adjustedPosition = new Vector2(data.position.x + 8, data.position.y - 64)
+            const adjustedPosition = new Vector2(data.position.x + 8, data.position.y - 58)
             const screenPosition = this.worldToScreenPosition(adjustedPosition);
 
             // Create interactive menu separately (don't overwrite baseMenu)

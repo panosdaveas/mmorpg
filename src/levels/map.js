@@ -149,7 +149,7 @@ export class MainMap extends Level {
     // this.localPlayer.addAttribute("id", debugInfo.socketId);
 
     // FIXED: Clean event binding to prevent conflicts
-    events.unsubscribe(this);
+    // events.unsubscribe(this);
     events.off("HERO_EXITS", this); // Remove any existing listeners
     events.on("HERO_EXITS", this, () => {
       console.log('MainMap - HERO_EXITS triggered');

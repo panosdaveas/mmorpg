@@ -114,7 +114,7 @@ export class Room1 extends Level {
     this.setPlayerPosition();
 
     // FIXED: Clean event binding
-    events.unsubscribe(this); 
+    // events.unsubscribe(this); 
     events.off("HERO_EXITS", this); // Remove any existing listeners
     events.on("HERO_EXITS", this, () => {
       console.log('Room1 - HERO_EXITS triggered');

@@ -121,7 +121,7 @@ export class Room1 extends Level {
       this.cleanup();
 
       const newLevel = new MainMap({
-        heroPosition: new Vector2(gridCells(23), gridCells(17)),
+        heroPosition: new Vector2(gridCells(19), gridCells(23)),
         multiplayerManager: this.multiplayerManager,
         hero: this.localPlayer
       });

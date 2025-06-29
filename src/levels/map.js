@@ -6,7 +6,8 @@ import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
 import { Room1 } from "./room1.js";
 import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
-import mapData from './json/map.json';
+// import mapData from './json/map.json';
+import mapData from './json/main_map_16x16.json';
 import { Npc } from "../objects/Npc/Npc.js";
 
 
@@ -37,7 +38,7 @@ export class MainMap extends Level {
     }
 
     // FIXED: Create exit with different coordinates to avoid conflicts
-    const exit = new Exit(gridCells(23), gridCells(16))
+    const exit = new Exit(gridCells(19), gridCells(22))
     this.addChild(exit);
 
     // Setup debug text and multiplayer

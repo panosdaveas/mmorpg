@@ -22,8 +22,6 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { WalletConnector } from "../../web3/Wallet.js";
-import { TiledUIMenu } from "../Menu/TiledUIMenu.js";
-import tabData from "../../levels/json/interactiveMenu.json";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -56,14 +54,14 @@ export class Hero extends GameObject {
     this.addChild(shadow);
 
     this.body = new Sprite({
-      resource: resources.images.hero,
+      resource: resources.images.hero24x32,
       // resource: !this.isRemote ? resources.images.hero : resources.images.remoteHero,
-      frameSize: new Vector2(32, 32),
+      frameSize: new Vector2(24, 32),
       hFrames: 3,
       vFrames: 8,
       frame: 1,
       scale: 1,
-      position: new Vector2(-8, -20),
+      position: new Vector2(-4, -20), // width = sprite-32
       animations: new Animations({
         walkDown: new FrameIndexPattern(WALK_DOWN),
         walkUp: new FrameIndexPattern(WALK_UP),

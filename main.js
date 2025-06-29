@@ -54,7 +54,7 @@ const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
 
 // Create instance of Hero
-const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+const DEFAULT_HERO_POSITION = new Vector2((MAP_WIDTH / 2) + 32, (MAP_HEIGHT / 2) + 32);
 const hero = new Hero(DEFAULT_HERO_POSITION.x, DEFAULT_HERO_POSITION.y);
 
 // Create multiplayer manager instance

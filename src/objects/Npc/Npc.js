@@ -28,11 +28,11 @@ export class Npc extends GameObject {
 
     // Body sprite
     const body = new Sprite({
-      resource: resources.images.knight,
-      frameSize: new Vector2(32, 32),
+      resource: resources.images.female,
+      frameSize: new Vector2(24, 32),
       hFrames: 2,
       vFrames: 1,
-      position: new Vector2(-8, -20),
+      position: new Vector2(-4, -20),
     })
     this.addChild(body)
   }

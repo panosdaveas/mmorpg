@@ -176,32 +176,65 @@ export class Level extends GameObject {
         const rawTileId = tileId & 0x1FFFFFFF;
         if (rawTileId === 0) return;
 
-        const drawTileId = this.getAnimatedTileId(rawTileId);
+        // Skip collide: false tiles - they'll be drawn in middle layer
+        const tileProps = this.propertyHandler.tilePropertiesMap.get(rawTileId);
+        if (tileProps?.collide === false) {
+          return;
+        }
 
-        const tilesetEntry = [...this.tilesetImages.entries()]
-          .reverse()
-          .find(([firstgid]) => drawTileId >= firstgid);
-
-        if (!tilesetEntry) return;
-
-        const [firstgid, { image, tileset }] = tilesetEntry;
-        const localId = drawTileId - firstgid;
-        const columns = tileset.columns;
-
-        const sx = Math.floor((localId % columns) * TILE_SIZE);
-        const sy = Math.floor(Math.floor(localId / columns) * TILE_SIZE);
-        const dx = (index % width) * TILE_SIZE;
-        const dy = Math.floor(index / width) * TILE_SIZE;
-
-        if (!image.complete || image.naturalWidth === 0) return;
-
-        ctx.drawImage(
-          image,
-          sx, sy, TILE_SIZE, TILE_SIZE,
-          dx, dy, TILE_SIZE, TILE_SIZE
-        );
+        // Draw background tiles (collide: true or no collide property)
+        this.drawTile(ctx, rawTileId, index, width);
       });
     });
+  }
+
+  drawMiddleLayer(ctx) {
+    if (!this.mapData || !this.tilesetImages) return;
+
+    this.mapData.layers.forEach(layer => {
+      if (layer.type !== "tilelayer") return;
+
+      const width = layer.width;
+
+      layer.data.forEach((tileId, index) => {
+        const rawTileId = tileId & 0x1FFFFFFF;
+        if (rawTileId === 0) return;
+
+        // Only draw collide: false tiles in middle layer
+        const tileProps = this.propertyHandler.tilePropertiesMap.get(rawTileId);
+        if (tileProps?.collide === false) {
+          this.drawTile(ctx, rawTileId, index, width);
+        }
+      });
+    });
+  }
+
+  // Extract the tile drawing logic
+  drawTile(ctx, rawTileId, index, width) {
+    const drawTileId = this.getAnimatedTileId(rawTileId);
+
+    const tilesetEntry = [...this.tilesetImages.entries()]
+      .reverse()
+      .find(([firstgid]) => drawTileId >= firstgid);
+
+    if (!tilesetEntry) return;
+
+    const [firstgid, { image, tileset }] = tilesetEntry;
+    const localId = drawTileId - firstgid;
+    const columns = tileset.columns;
+
+    const sx = Math.floor((localId % columns) * TILE_SIZE);
+    const sy = Math.floor(Math.floor(localId / columns) * TILE_SIZE);
+    const dx = (index % width) * TILE_SIZE;
+    const dy = Math.floor(index / width) * TILE_SIZE;
+
+    if (!image.complete || image.naturalWidth === 0) return;
+
+    ctx.drawImage(
+      image,
+      sx, sy, TILE_SIZE, TILE_SIZE,
+      dx, dy, TILE_SIZE, TILE_SIZE
+    );
   }
 
   getAnimatedTileId(originalTileId) {

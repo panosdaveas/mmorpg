@@ -132,6 +132,8 @@ const draw = () => {
   // 4. Draw objects (hero, NPCs, etc.)
   mainScene.drawBackground(ctx);
   mainScene.drawObjects(ctx);
+  mainScene.drawMiddleLayer(ctx);
+
   ctx.restore();
 
   // 5. Draw HUD/UI

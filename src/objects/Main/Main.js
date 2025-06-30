@@ -279,6 +279,12 @@ export class Main extends GameObject {
     })
   }
 
+  drawMiddleLayer(ctx) {
+    if (this.level?.drawMiddleLayer) {
+      this.level.drawMiddleLayer(ctx);
+    }
+  }
+
   drawForeground(ctx) {
     // First pass: Draw HUD layer
     this.children.forEach(child => {

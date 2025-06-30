@@ -5,7 +5,7 @@ import {Sprite} from "../../Sprite.js";
 import {storyFlags} from "../../StoryFlags.js";
 
 export class Npc extends GameObject {
-  constructor(x, y, textConfig={}) {
+  constructor(x, y, character, textConfig={}) {
     super({
       position: new Vector2(x, y)
     });
@@ -13,6 +13,7 @@ export class Npc extends GameObject {
     // Opt into being solid
     this.isSolid = true;
     this.isInteractive = true;
+    this.character = resources.images[character ?? "female"];
 
     // Say something when talking
     this.textContent = textConfig.content;
@@ -28,7 +29,7 @@ export class Npc extends GameObject {
 
     // Body sprite
     const body = new Sprite({
-      resource: resources.images.female,
+      resource: this.character,
       frameSize: new Vector2(24, 32),
       hFrames: 2,
       vFrames: 1,

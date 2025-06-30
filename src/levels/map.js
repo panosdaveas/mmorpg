@@ -24,7 +24,7 @@ export class MainMap extends Level {
       mapData: mapData,
     });
 
-    const rod = new Rod(gridCells(29), gridCells(24))
+    const rod = new Rod(gridCells(37), gridCells(19))
     this.addChild(rod);
 
     // Store player setup info (don't set position here)
@@ -57,7 +57,10 @@ export class MainMap extends Level {
       this.setupMultiplayerEvents();
     }
 
-    const npc2 = new Npc(gridCells(31), gridCells(20), {
+    const npc1 = new Npc(gridCells(52), gridCells(32), "oldWomanLeft");
+    this.addChild(npc1);
+
+    const npc2 = new Npc(gridCells(32), gridCells(23), "female", {
       content: [
         {
           string: "What a wonderful day at work in the block! I'm very pleased to meet you! this text should take a while to show up, taking up more than 3 lines!",

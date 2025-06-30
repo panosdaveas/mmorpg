@@ -47,7 +47,7 @@ export class Room1 extends Level {
     const rod = new Rod(gridCells(9), gridCells(6))
     // this.addChild(rod)
 
-    const npc1 = new Npc(gridCells(35), gridCells(19), {
+    const npc1 = new Npc(gridCells(35), gridCells(19), "female", {
       //content: "I am the first NPC!",
       content: [
         {
@@ -69,7 +69,7 @@ export class Room1 extends Level {
     })
     this.addChild(npc1);
 
-    const npc2 = new Npc(gridCells(33), gridCells(18), {
+    const npc2 = new Npc(gridCells(35), gridCells(17), "youngWomanBack", {
       content: [
         {
           string: "What a wonderful day at work in the cave!",

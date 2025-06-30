@@ -11,7 +11,7 @@ import { MainMap } from "./map.js";
 import { Npc } from "../objects/Npc/Npc.js";
 import { TALKED_TO_A, TALKED_TO_B } from "../StoryFlags.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } from "../constants/worldConstants.js";
-import mapData from './json/room1.json';
+import mapData from './json/interior.json';
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(36), gridCells(21))
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -27,7 +27,7 @@ export class Room1 extends Level {
       scale: 2,
     });
 
-    const exit = new Exit(gridCells(36), gridCells(22))
+    const exit = new Exit(gridCells(38), gridCells(24))
     this.addChild(exit);
 
     // Store player setup info (don't set position here)
@@ -47,7 +47,7 @@ export class Room1 extends Level {
     const rod = new Rod(gridCells(9), gridCells(6))
     // this.addChild(rod)
 
-    const npc1 = new Npc(gridCells(33), gridCells(20), {
+    const npc1 = new Npc(gridCells(35), gridCells(19), {
       //content: "I am the first NPC!",
       content: [
         {
@@ -69,7 +69,7 @@ export class Room1 extends Level {
     })
     this.addChild(npc1);
 
-    const npc2 = new Npc(gridCells(32), gridCells(18), {
+    const npc2 = new Npc(gridCells(33), gridCells(18), {
       content: [
         {
           string: "What a wonderful day at work in the cave!",

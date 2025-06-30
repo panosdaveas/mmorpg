@@ -158,7 +158,7 @@ export class MainMap extends Level {
 
       // Create new level with specific spawn position
       const newLevel = new Room1({
-        heroPosition: new Vector2(gridCells(36), gridCells(21)),
+        heroPosition: new Vector2(gridCells(38), gridCells(23)),
         multiplayerManager: this.multiplayerManager,
         hero: this.localPlayer,
       });

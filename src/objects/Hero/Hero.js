@@ -43,6 +43,7 @@ export class Hero extends GameObject {
     this.eventSubscriptions = [];
     this.messages = [];
     this.targetPlayerId = null;
+    this.targetPlayer = null;
     // this.textContent = textConfig.content;
     // this.textPortraitFrame = textConfig.portraitFrame;
 
@@ -417,6 +418,8 @@ export class Hero extends GameObject {
         console.log(interactiveObject.getAttribute("chainId"));
 
         const remotePlayer = interactiveObject;
+        console.log(remotePlayer.attributes);
+        this.targetPlayer = remotePlayer;
         this.targetPlayerId = remotePlayer.getAttribute("id");
 
         // this.interactiveMenu = new TiledUIMenu({
@@ -434,6 +437,7 @@ export class Hero extends GameObject {
         const data = {
           position: this.position,
           targetPlayerId: this.targetPlayerId,
+          targetPlayer: this.targetPlayer, 
         }
         events.emit("INTERACTIVE_MENU", data);
 

@@ -70,7 +70,7 @@ export class TiledPropertyHandler {
                 processedPositions.add(posKey);
 
                 // Add collision if this tile has collide property
-                if (tileProps?.collide) {
+                if (tileProps?.collide || tileProps?.door) {
                     walls.add(posKey);
                 }
 

@@ -140,6 +140,28 @@ export class Main extends GameObject {
           events.off(endingSub);
         });
       }
+      if (withObject?.content) {
+        const content = withObject.content;
+
+        if (!content) {
+          return;
+        }
+
+        console.log(content);
+
+        // Show the textbox
+        const textbox = new SpriteTextString({
+          string: content
+        });
+        this.addChild(textbox);
+        events.emit("START_TEXT_BOX");
+
+        // Unsubscribe from this text box after it's destroyed
+        const endingSub = events.on("END_TEXT_BOX", this, () => {
+          textbox.destroy();
+          events.off(endingSub);
+        });
+      }
     });
   }
 

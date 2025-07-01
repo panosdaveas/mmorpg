@@ -512,6 +512,10 @@ export class Hero extends GameObject {
       });
     }
 
+    if (properties?.action === 'label') {
+      events.emit("HERO_REQUESTS_ACTION", properties);
+    }
+
     // Handle action-1 (custom action type 1)
     if (properties?.action === "connectWallet") {
       if (this.getAttribute("address")) {

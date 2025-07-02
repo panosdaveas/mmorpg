@@ -168,7 +168,7 @@ export class TabManager extends GameObject {
 
             this.interactiveMenu.setActionHandlers({
                 'sendChatMessage': () => this.handleChatAction(targetPlayerId),
-                'tradeRequest': () => this.openTradeSubmenu(),
+                'tradeRequest': () => this.openTradeSubmenu(targetPlayerAddress, targetPlayerChainId),
                 'closeMenu': () => this.hideInteractiveMenu(),
             });
 
@@ -179,7 +179,7 @@ export class TabManager extends GameObject {
         this.isReady = true;
     }
 
-    openTradeSubmenu() {
+    openTradeSubmenu(address, chainId) {
         this.tradeSubmenu = new TiledUIMenu({
             canvas: this.canvas,
             menuData: tabInteractiveMenu,

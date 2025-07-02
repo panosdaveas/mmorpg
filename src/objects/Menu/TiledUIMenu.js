@@ -1794,8 +1794,9 @@ export class TiledUIMenu extends GameObject {
         ctx.fillRect(x, y, width, height);
 
         // Draw selection border
-        ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(243, 229, 194, 1)";
+        // ctx.strokeStyle = "rgba(232, 207, 166, 1)";
+        ctx.lineWidth = 1;
         ctx.strokeRect(x, y, width, height);
 
         ctx.restore();

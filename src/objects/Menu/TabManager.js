@@ -130,7 +130,7 @@ export class TabManager extends GameObject {
 
     ready() {
         // Handle interactive menu for remote player interactions
-        events.on("INTERACTIVE_MENU", this, (data) => {
+        events.on("INTERACTIVE_MENU", this, async (data) => {
             console.log("TabManager: Creating interactive menu for remote player");
 
             // Hide any currently visible menu
@@ -143,15 +143,31 @@ export class TabManager extends GameObject {
                 canvas: this.canvas,
                 menuData: tabInteractiveMenu,
                 active: true,
-                // position: new Vector2(data.position.x, data.position.y),
                 position: screenPosition,
                 scale: 1,
                 zIndex: 2,
                 autoHandleEscape: true,
             });
 
+            // console.log(this.interactiveMenu); // this prints the object correctly
+            // console.log(this.interactiveMenu.buttonComponents); // this returns empty map
+
+            while (!this.interactiveMenu.isReady()) {
+                await new Promise(resolve => setTimeout(resolve, 10)); // Wait 10ms
+            }
+
+            const tradeButtonId = this.interactiveMenu.findObjectByName("tradeRequest");
+            const targetPlayerAddress = data.targetPlayer.getAttribute("address");
+            const targetPlayerChainId = data.targetPlayer.getAttribute("chainId");
+            const targetPlayerId = data.targetPlayer.getAttribute("id");
+
+
+            if (!targetPlayerAddress) {
+                this.interactiveMenu.setButtonEnabled(tradeButtonId, false);
+            }
+
             this.interactiveMenu.setActionHandlers({
-                'sendChatMessage': () => this.handleChatAction(data.targetPlayerId),
+                'sendChatMessage': () => this.handleChatAction(targetPlayerId),
                 'tradeRequest': () => this.openTradeSubmenu(),
                 'closeMenu': () => this.hideInteractiveMenu(),
             });

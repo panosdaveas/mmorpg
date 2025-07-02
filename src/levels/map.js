@@ -24,7 +24,7 @@ export class MainMap extends Level {
       mapData: mapData,
     });
 
-    const rod = new Rod(gridCells(37), gridCells(19))
+    const rod = new Rod(gridCells(45), gridCells(23))
     this.addChild(rod);
 
     // Store player setup info (don't set position here)

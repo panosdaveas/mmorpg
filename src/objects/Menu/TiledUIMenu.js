@@ -1011,11 +1011,7 @@ export class TiledUIMenu extends GameObject {
         component.enabled = enabled;
 
         if (enabled && !wasEnabled) {
-            // Button was disabled, now enabled - reset to normal state
-            component.currentState = 'normal';
-            this.setButtonState(buttonId, 'normal');
-
-            // Add back to interactive tiles if it has navigable property
+            // Button was disabled, now enabled - add back to interactive tiles if navigable
             if (component.bounds && component.properties.navigable) {
                 const existingIndex = this.interactiveTiles.findIndex(tile =>
                     tile.type === 'button_component' && tile.buttonId === buttonId
@@ -1046,13 +1042,8 @@ export class TiledUIMenu extends GameObject {
                     });
                 }
             }
-
         } else if (!enabled && wasEnabled) {
-            // Button was enabled, now disabled - set to hover state and remove from navigation
-            component.currentState = 'hover';
-            this.setButtonState(buttonId, 'hover');
-
-            // Remove from interactive tiles
+            // Button was enabled, now disabled - remove from navigation
             const index = this.interactiveTiles.findIndex(tile =>
                 tile.type === 'button_component' && tile.buttonId === buttonId
             );
@@ -1074,7 +1065,7 @@ export class TiledUIMenu extends GameObject {
                 }
             }
 
-            // Clear any hover/press states for this button
+            // Clear any hover/press states for this disabled button
             if (this.hoveredButtonId === buttonId) {
                 this.hoveredButtonId = null;
             }
@@ -1086,6 +1077,7 @@ export class TiledUIMenu extends GameObject {
         console.log(`Button ${buttonId} enabled state changed to: ${enabled}`);
         return true;
     }
+    
 
     // Action handler methods
     // openProfile() {
@@ -1148,7 +1140,6 @@ export class TiledUIMenu extends GameObject {
         return updatedCount;
     }
 
-
     findButtonByText(searchText) {
         for (const [buttonId, component] of this.buttonComponents) {
             for (const obj of component.states.normal) {
@@ -1163,7 +1154,8 @@ export class TiledUIMenu extends GameObject {
 
     findObjectByName(searchText) {
         for (const [buttonId, component] of this.buttonComponents) {
-            if (component.layerName === searchText) {
+            // console.log(component.properties?.onclick);
+            if (component.layerName === searchText || component.properties?.onclick === searchText) {
                 return buttonId;
             }
         }
@@ -1443,22 +1435,34 @@ export class TiledUIMenu extends GameObject {
     }
 
     drawButtonComponent(ctx, component) {
+        // Save the current global alpha
+        const originalAlpha = ctx.globalAlpha;
+
+        // Set opacity based on enabled state
+        if (!component.enabled) {
+            ctx.globalAlpha = originalAlpha * 0.5; // 40% opacity for disabled buttons
+        }
+
         // Only draw objects for the current state
         const stateObjects = component.states[component.currentState];
 
         if (stateObjects && stateObjects.length > 0) {
             stateObjects.forEach(obj => {
-                this.drawStateObject(ctx, obj, component); // ← ADDED component parameter
+                this.drawStateObject(ctx, obj, component);
             });
         } else {
             // Fallback to normal state if current state has no objects
             component.states.normal.forEach(obj => {
                 if (obj.visible) {
-                    this.drawStateObject(ctx, obj, component); // ← ADDED component parameter
+                    this.drawStateObject(ctx, obj, component);
                 }
             });
         }
+
+        // Restore the original global alpha
+        ctx.globalAlpha = originalAlpha;
     }
+    
 
     drawStateObject(ctx, obj) {
         // Draw tile if it has gid

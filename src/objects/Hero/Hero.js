@@ -420,28 +420,13 @@ export class Hero extends GameObject {
         const remotePlayer = interactiveObject;
         console.log(remotePlayer.attributes);
         this.targetPlayer = remotePlayer;
-        this.targetPlayerId = remotePlayer.getAttribute("id");
 
-        // this.interactiveMenu = new TiledUIMenu({
-        //   menuData: tabData,
-        //   position: new Vector2(this.position.x, this.position.y - 118),
-        //   active: true,
-        //   scale: 1,
-        //   zIndex: 10,
-        // });
-        // this.interactiveMenu.setActionHandlers({
-        //   'sendChatMessage': () => this.handleChatAction(),
-        // });
-        // this.addChild(this.interactiveMenu);
-        // this.interactiveMenu.show();
         const data = {
           position: this.position,
-          targetPlayerId: this.targetPlayerId,
           targetPlayer: this.targetPlayer, 
         }
         events.emit("INTERACTIVE_MENU", data);
 
-        // Trigger trade to remote player
       }
       return true;
     }

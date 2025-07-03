@@ -230,7 +230,7 @@ export class Hero extends GameObject {
         this.isLocked = true;
       }),
       this.parent?.multiplayerManager.on('onChatMessage', (messageData) => {
-        console.log(`Chat from ${messageData.senderName}: ${messageData.message}`);
+        // console.log(`Chat from ${messageData.senderName}: ${messageData.message}`);
         this.messages.push(messageData);
         // Show chat bubble or add to chat log
       }),
@@ -587,15 +587,6 @@ export class Hero extends GameObject {
     // Remove the item being held overhead
     if (this.itemPickupTime <= 0) {
       this.itemPickupShell.destroy();
-    }
-  }
-
-  handleChatAction() {
-    const multiplayerManager = this.parent?.multiplayerManager;
-    if (multiplayerManager) {
-      multiplayerManager.sendChatMessage(this.targetPlayerId,
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.'
-      );
     }
   }
 

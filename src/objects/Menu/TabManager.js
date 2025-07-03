@@ -252,10 +252,6 @@ export class TabManager extends GameObject {
         }
     }
     
-
-
-
-
     draw(ctx) {
         if (!this.isVisible) return;
 

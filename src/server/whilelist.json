@@ -1,5 +1,5 @@
 {
-  "trustedIPs": ["127.0.0.1", "::1", "192.168.1.100", "10.0.0.5"],
+  "trustedIPs": ["127.0.0.1", "::1", "192.168.1.100", "10.0.0.5", "192.168.1.28"],
   "maxConnectionsPerIP": 3,
   "maxConnectionsWhitelisted": 10
 }

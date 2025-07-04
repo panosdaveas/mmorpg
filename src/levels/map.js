@@ -6,10 +6,8 @@ import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
 import { Room1 } from "./room1.js";
 import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
-// import mapData from './json/map.json';
 import mapData from './json/main_map_16x16.json';
 import { Npc } from "../objects/Npc/Npc.js";
-
 
 // const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -71,7 +69,6 @@ export class MainMap extends Level {
       portraitFrame: 0
     })
     this.addChild(npc2);
-
   }
 
   setupMultiplayerEvents() {
@@ -109,7 +106,6 @@ export class MainMap extends Level {
       // Player movement is already handled in MultiplayerManager
       this.updateDebugText();
     });
-
   }
 
   updateDebugText() {

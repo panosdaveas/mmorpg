@@ -124,19 +124,71 @@ export class TiledPropertyHandler {
             return new Promise((resolve, reject) => {
                 const imagePath = basePath + tileset.image.replace(/\\/g, "/");
                 const img = new Image();
+
+                // ✅ Enhanced loading with multiple event listeners
+                const cleanup = () => {
+                    img.onload = null;
+                    img.onerror = null;
+                    img.onabort = null;
+                };
+
                 img.onload = () => {
-                    images.set(tileset.firstgid, { image: img, tileset });
-                    resolve();
+                    // ✅ Double-check the image is actually ready
+                    if (img.complete && img.naturalWidth > 0) {
+                        images.set(tileset.firstgid, { image: img, tileset });
+                        cleanup();
+                        resolve();
+                    } else {
+                        // ✅ Image loaded but not properly - retry once
+                        setTimeout(() => {
+                            if (img.complete && img.naturalWidth > 0) {
+                                images.set(tileset.firstgid, { image: img, tileset });
+                                cleanup();
+                                resolve();
+                            } else {
+                                console.error("Image loaded but not ready:", imagePath);
+                                cleanup();
+                                reject(new Error(`Image not ready: ${imagePath}`));
+                            }
+                        }, 100);
+                    }
                 };
-                img.onerror = () => {
-                    console.error("Failed to load", imagePath);
-                    reject();
+
+                img.onerror = (error) => {
+                    console.error("Failed to load", imagePath, error);
+                    cleanup();
+                    reject(new Error(`Failed to load: ${imagePath}`));
                 };
+
+                img.onabort = () => {
+                    console.warn("Image loading aborted:", imagePath);
+                    cleanup();
+                    reject(new Error(`Loading aborted: ${imagePath}`));
+                };
+
+                // ✅ Add crossOrigin if needed and start loading
+                img.crossOrigin = "anonymous";
                 img.src = imagePath;
+
+                // ✅ Timeout fallback
+                setTimeout(() => {
+                    if (!img.complete) {
+                        console.warn("Image loading timeout:", imagePath);
+                        cleanup();
+                        reject(new Error(`Loading timeout: ${imagePath}`));
+                    }
+                }, 10000); // 10 second timeout
             });
         });
 
-        await Promise.all(loaders);
-        return images; // Map of firstgid -> { image, tileset }
+        try {
+            await Promise.all(loaders);
+            console.log(`✅ All ${images.size} tilesets loaded successfully`);
+            return images;
+        } catch (error) {
+            console.error("Failed to load some tileset images:", error);
+            // ✅ Return what we have instead of failing completely
+            return images;
+        }
     }
 }

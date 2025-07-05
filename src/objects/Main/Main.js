@@ -93,9 +93,9 @@ export class Main extends GameObject {
     const inventory = new Inventory();
     this.addChild(inventory);
 
-    // Change Level handler
-    events.on("CHANGE_LEVEL", this, newLevelInstance => {
-      this.setLevel(newLevelInstance);
+    // ✅ Make the CHANGE_LEVEL handler async
+    events.on("CHANGE_LEVEL", this, async (newLevelInstance) => {
+      await this.setLevel(newLevelInstance);
     });
 
     // Connect To Multiplayer
@@ -176,16 +176,13 @@ export class Main extends GameObject {
     }
   }
 
-  setLevel(newLevelInstance) {
+  async setLevel(newLevelInstance) {
     // Clean up old level
     if (this.level) {
-      // Cleanup the old level properly
       if (this.level.cleanup) {
         this.level.cleanup();
       }
       this.level.destroy();
-
-      // Remove old level from scene
       this.removeChild(this.level);
     }
 
@@ -193,7 +190,10 @@ export class Main extends GameObject {
     this.level = newLevelInstance;
     this.addChild(this.level);
 
-    // Pass multiplayer manager to the new level
+    // ✅ WAIT for the level to be ready before continuing
+    await this.level.ready();
+
+    // Pass multiplayer manager to the new level (after ready)
     if (this.level && this.multiplayerManager) {
       // Set multiplayer manager on the level
       this.level.multiplayerManager = this.multiplayerManager;
@@ -214,16 +214,6 @@ export class Main extends GameObject {
         width: width * tilewidth,
         height: height * tileheight,
       });
-    }
-  }
-
-  // Method to disconnect multiplayer (useful for testing or settings)
-  disconnectMultiplayer() {
-    if (this.multiplayerManager) {
-      removeTestPlayers(this.multiplayerManager);
-      this.multiplayerManager.disconnect();
-      this.multiplayerEnabled = false;
-      console.log('Multiplayer disconnected manually');
     }
   }
 

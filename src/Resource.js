@@ -28,7 +28,7 @@ class Resources {
       font: "/sprites/font.png",
       portraits: "/sprites/portraits-sheet.png",
       water: "/sprites/Water.png",
-      dialogBox: "/sprites/dialogBox.png",
+      dialogBox: "/sprites/dialog.png",
       menuBox: "/sprites/menu-dark.png",
       interfaceBox: "/sprites/menu.png",
       interface: "/sprites/interface.png",

@@ -9,7 +9,7 @@ export class SpriteTextString extends GameObject {
   constructor(config = {}) {
     super({
       // 🚨 FIXED: Use original constants instead of dynamic positioning
-      position: new Vector2(CANVAS_WIDTH / 2 - 160, CANVAS_HEIGHT - 96)
+      position: new Vector2(0, CANVAS_HEIGHT - 112)
     });
 
     this.drawLayer = "HUD";
@@ -32,8 +32,10 @@ export class SpriteTextString extends GameObject {
     this.isAllPagesComplete = false;
 
     // Dialog styling - FIXED VALUES
-    this.dialogWidth = 320;
-    this.dialogHeight = 80;
+    const canvas = document.querySelector("#game-canvas");
+    console.log("WIDHT", canvas.width)
+    this.dialogWidth = canvas.width;
+    this.dialogHeight = canvas.height;
     this.textStartX = 66;
     this.textStartY = 18;
     this.maxTextWidth = 240; // Fixed max width
@@ -155,7 +157,7 @@ export class SpriteTextString extends GameObject {
     this.backdrop.drawImage(ctx, drawPosX, drawPosY);
 
     // Draw portrait
-    this.portrait.drawImage(ctx, drawPosX + 16, drawPosY + 16);
+    // this.portrait.drawImage(ctx, drawPosX + 16, drawPosY + 16);
 
     // Draw current page text
     this.drawText(ctx, drawPosX, drawPosY);

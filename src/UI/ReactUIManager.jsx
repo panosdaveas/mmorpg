@@ -122,7 +122,7 @@ export class ReactUIManager {
 
             this.isInitialized = true;
             console.log("✅ ReactUIManager: Successfully initialized!");
-            console.log("   Press 'M' key in game to open React menu");
+            console.log("   Press 'Enter' key in game to open React menu");
 
         } catch (error) {
             console.error("❌ ReactUIManager: Failed to initialize:", error);

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import GridLayout from '../GridLayout';
 import MenuItem from '../Components/MenuItem';
+import MenuButton from '../Components/MenuButton';
+import MenuToggle from '../Components/MenuToggle';
 
 // Submenu Placeholder Component
 const SubmenuPlaceholder = ({ title, visible, onBack }) => {
@@ -125,6 +127,7 @@ const MainMenu = ({
 
     return (
         <div className="main-menu-container">
+            
             <h2>Game Menu</h2>
 
             {/* Main Menu Grid */}
@@ -140,6 +143,7 @@ const MainMenu = ({
                 onEscape={() => {
                     if (onClose) onClose();
                 }}
+                
             >
                 {menuOptions.map((option, index) => (
                     <MenuItem
@@ -152,8 +156,19 @@ const MainMenu = ({
                         tabIndex={index + 1}
                     />
                 ))}
+                
             </GridLayout>
-
+            <GridLayout
+                rows={1}
+                cols={2}
+                >
+                    <MenuToggle 
+                        position={{ row: 1, col: 1 }}
+                    />
+                    <MenuButton
+                        position={{ row: 1, col: 2 }}
+                    />
+                </GridLayout>
             {/* Submenu Placeholder with hierarchy support */}
             {currentSubmenu && (
                 <GridLayout

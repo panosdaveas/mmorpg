@@ -422,7 +422,7 @@ export class Hero extends GameObject {
           position: this.position,
           targetPlayer: this.targetPlayer, 
         }
-        events.emit("INTERACTIVE_MENU", data);
+        // events.emit("INTERACTIVE_MENU", data);
 
       }
       return true;

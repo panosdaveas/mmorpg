@@ -21,23 +21,23 @@
 /* Base App Container */
 .game-ui-app {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--game-bg-primary), var(--game-bg-secondary));
-    color: var(--game-text-primary);
-    font-family: 'fontRetroGaming';
+    /* background: linear-gradient(135deg, var(--game-bg-primary), var(--game-bg-secondary)); */
+    /* color: var(--game-text-primary); */
+    /* font-family: 'fontRetroGaming'; */
     /* font-size: 6px; */
     padding: 16px;
     box-sizing: border-box;
-    cursor: url('/sprites/mousePointer.png'), auto;
+    /* cursor: url('/sprites/mousePointer.png'), auto; */
 }
 
 /* Base GameUIComponent Styles */
 .game-ui-component {
     position: relative;
-    cursor: url('/sprites/mousePointer.png'), auto;
+    /* cursor: url('/sprites/mousePointer.png'), auto; */
     /* cursor: pointer; */
-    transition: all 0.2s ease;
-    border: 2px solid var(--game-border);
-    background-color: var(--game-accent);
+    /* transition: all 0.2s ease; */
+    /* border: 2px solid var(--game-border); */
+    /* background-color: var(--game-accent); */
     border-radius: 4px;
     padding: 16px;
     user-select: none;
@@ -45,7 +45,7 @@
 }
 
 /* Component States */
-.game-ui-component--normal {
+/* .game-ui-component--normal {
     background-color: var(--game-accent);
     border-color: var(--game-border);
     opacity: 1;
@@ -68,7 +68,7 @@
     border-color: var(--game-border);
     opacity: 0.5;
     cursor: not-allowed;
-}
+} */
 
 /* Text Styling */
 .game-ui-text {
@@ -84,6 +84,7 @@
     display: grid;
     padding: 16px;
     box-sizing: border-box;
+    /* align-items: start; */
 }
 
 /* Menu Item Styles */
@@ -131,12 +132,12 @@
     border-radius: 4px;
     padding: 16px;
     margin-top: 16px;
-    cursor: url('/sprites/mousePointer.png'), auto;
+    /* cursor: url('/sprites/mousePointer.png'), auto; */
     /* cursor: pointer; */
     /* font-family: 'fontRetroGaming'; */
     /* font-size: 16px; */
     /* letter-spacing: 2px; */
-    transition: all 0.2s ease;
+    /* transition: all 0.2s ease; */
 }
 
 .back-button:hover {

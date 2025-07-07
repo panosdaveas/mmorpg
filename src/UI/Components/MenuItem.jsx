@@ -1,6 +1,7 @@
 // MenuItem.jsx - Specialized GameUIComponent for menu options
 import React from 'react';
-import GameUIComponent from '../GameUIComponent';
+import MenuPointer from './MenuPointer';
+import MenuText from './MenuText';
 
 const MenuItem = ({
     text,
@@ -8,7 +9,7 @@ const MenuItem = ({
     onSelect,
     tabIndex,
     sprites = {
-        // normal: "public/sprites/text-box.png"
+        normal: "public/sprites/text-box.png"
     },
     alpha = {
         normal: 0.8,
@@ -17,18 +18,45 @@ const MenuItem = ({
     ...props
 }) => {
     return (
-        <GameUIComponent
-            text={text}
-            state={isSelected ? 'hover' : 'normal'}
+        <div
+            className="menu-item-container"
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0px',
+                gridRow: props.position?.row,
+                gridColumn: props.position?.col,
+            }}
             onClick={onSelect}
             tabIndex={tabIndex}
-            className="menu-item"
-            sprites={sprites}
-            alpha={alpha}
-            {...props}
         >
-            {isSelected && <span className="menu-pointer">▶</span>}
-        </GameUIComponent>
+            {/* Icon Component */}
+            <MenuPointer         
+                className="menu-item-icon"
+                state={isSelected ? 'hover' : 'normal'}
+                alpha={alpha}
+                // style={{
+                //     width: '24px',
+                //     height: '24px',
+                //     minWidth: '24px',
+                //     padding: '4px'
+                // }}
+            />
+
+            {/* Text Component */}
+            <MenuText
+                text={text}
+                className="menu-item-text"
+                state={isSelected ? 'hover' : 'normal'}
+                alpha={alpha}
+                // style={{
+                //     flex: 1,
+                //     padding: '8px 16px',
+                //     textAlign: 'left'
+                // }}
+                {...props}
+            />
+        </div>
     );
 };
 

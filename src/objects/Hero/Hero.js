@@ -22,7 +22,6 @@ import { events } from "../../Events.js";
 import { Attribute } from "../../Attributes.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { WalletConnector } from "../../web3/Wallet.js";
-import { TradeCenter } from "../Menu/TradeCenter.js";
 
 export class Hero extends GameObject {
   constructor(x, y, options = {}) {
@@ -514,8 +513,8 @@ export class Hero extends GameObject {
     }    
 
     if (properties?.action === "connectWallet") {
-      this.tradeCenter = new TradeCenter(this, this.parent?.multiplayerManager);
-      this.tradeCenter.show();
+      // this.tradeCenter = new TradeCenter(this, this.parent?.multiplayerManager);
+      // this.tradeCenter.show();
       
       console.log("action!")
 

@@ -1,0 +1,166 @@
+/* GameUI.css - Unified styles for all game UI components */
+@font-face {
+    font-family: 'fontRetroGaming';
+    src: local('fontRetroGaming'), url('/fonts/pixelFont-7-8x14-sproutLands.ttf'), format('truetype');
+}
+/* CSS Variables for consistent theming */
+:root {
+    --game-bg-primary: #1a1a2e;
+    --game-bg-secondary: #16213e;
+    --game-text-primary: #eee;
+    --game-text-secondary: #aaa;
+    --game-accent: #0f3460;
+    --game-highlight: #e94560;
+    --game-border: #333;
+    cursor: url('/sprites/mousePointer.png'), auto;
+    font-family: 'fontRetroGaming';
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+/* Base App Container */
+.game-ui-app {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--game-bg-primary), var(--game-bg-secondary));
+    color: var(--game-text-primary);
+    font-family: 'fontRetroGaming';
+    /* font-size: 6px; */
+    padding: 16px;
+    box-sizing: border-box;
+    cursor: url('/sprites/mousePointer.png'), auto;
+}
+
+/* Base GameUIComponent Styles */
+.game-ui-component {
+    position: relative;
+    cursor: url('/sprites/mousePointer.png'), auto;
+    /* cursor: pointer; */
+    transition: all 0.2s ease;
+    border: 2px solid var(--game-border);
+    background-color: var(--game-accent);
+    border-radius: 4px;
+    padding: 16px;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+/* Component States */
+.game-ui-component--normal {
+    background-color: var(--game-accent);
+    border-color: var(--game-border);
+    opacity: 1;
+}
+
+.game-ui-component--hover {
+    background-color: var(--game-highlight);
+    border-color: var(--game-text-primary);
+    opacity: 1;
+}
+
+.game-ui-component--pressed {
+    background-color: var(--game-bg-primary);
+    border-color: var(--game-text-primary);
+    opacity: 0.9;
+}
+
+.game-ui-component--disabled {
+    background-color: var(--game-bg-secondary);
+    border-color: var(--game-border);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Text Styling */
+.game-ui-text {
+    /* font-family: 'fontRetroGaming'; */
+    /* font-size: 16px; */
+    /* letter-spacing: 2px; */
+    /* font-weight: normal; */
+    color: var(--game-text-primary);
+}
+
+/* Grid Layout Styles */
+.game-grid-layout {
+    display: grid;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+/* Menu Item Styles */
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 48px;
+}
+
+.menu-pointer {
+    position: absolute;
+    left: 0;
+    color: var(--game-text-primary);
+    /* font-size: 16px; */
+    /* animation: pointer-pulse 1s ease-in-out infinite alternate; */
+}
+
+@keyframes pointer-pulse {
+    from {
+        opacity: 0.7;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(4px);
+    }
+}
+
+/* Submenu Placeholder */
+.submenu-placeholder {
+    background-color: var(--game-bg-secondary);
+    border: 2px solid var(--game-border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    text-align: center;
+}
+
+.back-button {
+    background-color: var(--game-accent);
+    color: var(--game-text-primary);
+    border: 2px solid var(--game-border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-top: 16px;
+    cursor: url('/sprites/mousePointer.png'), auto;
+    /* cursor: pointer; */
+    /* font-family: 'fontRetroGaming'; */
+    /* font-size: 16px; */
+    /* letter-spacing: 2px; */
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: var(--game-highlight);
+    border-color: var(--game-text-primary);
+}
+
+/* Main Menu Container */
+.main-menu-container {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 16px;
+}
+
+.main-menu-container h2 {
+    color: var(--game-text-primary);
+    /* margin-bottom: 32px; */
+    /* font-family: 'fontRetroGaming'; */
+    /* font-size: 16px; */
+    /* font-weight: normal; */
+    text-transform: uppercase;
+    /* letter-spacing: 2px; */
+}
+
+.main-menu-grid {
+    margin: 0 auto; }

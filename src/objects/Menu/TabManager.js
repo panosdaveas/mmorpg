@@ -291,7 +291,7 @@ export class TabManager extends GameObject {
             this.baseMenu.show();
         }
 
-        events.emit("MENU_OPEN");
+        // events.emit("MENU_OPEN");
     }
 
     hideMainMenu() {
@@ -306,7 +306,7 @@ export class TabManager extends GameObject {
         if (this.currentMenuType === 'main') {
             this.isVisible = false;
             this.currentMenuType = null;
-            events.emit("MENU_CLOSE");
+            // events.emit("MENU_CLOSE");
         }
     }
 
@@ -321,7 +321,7 @@ export class TabManager extends GameObject {
             this.interactiveMenu.show();
         }
 
-        events.emit("MENU_OPEN");
+        // events.emit("MENU_OPEN");
     }
 
 
@@ -336,7 +336,7 @@ export class TabManager extends GameObject {
         if (this.currentMenuType === 'interactive') {
             this.isVisible = false;
             this.currentMenuType = null;
-            events.emit("MENU_CLOSE");
+            // events.emit("MENU_CLOSE");
         }
     }
 

@@ -25,12 +25,12 @@ export class MenuInterface extends GameObject {
 
     open() {
         this.isOpen = true;
-        events.emit("MENU_OPEN");
+        // events.emit("MENU_OPEN");
     }
 
     close() {
         this.isOpen = false;
-        events.emit("MENU_CLOSE");
+        // events.emit("MENU_CLOSE");
     }
 
     step(delta, root) {

@@ -37,7 +37,7 @@ canvas {
 }
 
 @font-face {
-  font-family: fontRetroGaming;
+  font-family: 'fontRetroGaming';
   /* src: url("/fonts/Retro Gaming.ttf") format("truetype"); */
   src: url("/fonts/pixelFont-7-8x14-sproutLands.ttf")
   /* src: url("/fonts/PressStart2P-Regular.ttf") format("truetype"); */

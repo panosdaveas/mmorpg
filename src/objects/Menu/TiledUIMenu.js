@@ -55,7 +55,7 @@ export class TiledUIMenu extends GameObject {
     setActive(active) {
         this.active = active;
         console.log(`TiledUIMenu: Set active to ${active}`);
-        events.emit('MENU_OPEN');
+        // events.emit('MENU_OPEN');
 
         // Re-setup event listeners based on new active state
         this.setupEventListeners();
@@ -1297,13 +1297,13 @@ export class TiledUIMenu extends GameObject {
         this.isVisible = true;
         this.selectedTileIndex = 0;
         this.preselectFirstItem();
-        events.emit("MENU_OPEN");
+        // events.emit("MENU_OPEN");
     }
 
     hide() {
         this.isVisible = false;
         this.removeAllChildMenus(); // Hide all children when parent hides
-        events.emit("MENU_CLOSE");
+        // events.emit("MENU_CLOSE");
     }
 
     // ADD: Method to get the currently active menu (for external reference)

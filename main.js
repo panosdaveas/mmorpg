@@ -8,6 +8,7 @@ import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
 import { TabManager } from "./src/objects/Menu/TabManager.js";
 import { createTestRemotePlayers, removeTestPlayers } from './src/helpers/createTestRemotePlayers.js'
+import { ReactUIManager } from './src/UI/ReactUIManager.jsx';
 
 
 // Add this to main.js for pixel-perfect scaling
@@ -79,8 +80,9 @@ mainScene.setLevel(mainMap);
 // Set the current level in multiplayer manager
 // mainScene.multiplayerManager.setLevel(mainMap);
 
-const tabManager = new TabManager({ canvas });
-mainScene.addChild(tabManager);
+// const tabManager = new TabManager({ canvas });
+// mainScene.addChild(tabManager);
+const reactUIManager = new ReactUIManager(mainScene);
 // createTestRemotePlayers(mainScene.multiplayerManager);
 
 // Establish update and draw loops
@@ -97,6 +99,7 @@ const update = (delta) => {
 
   // Update remote players through multiplayer manager
   // mainScene.multiplayerManager.updateRemotePlayers(delta);
+  
 
 };
 
@@ -143,6 +146,7 @@ const draw = () => {
 // Handle cleanup on page unload
 window.addEventListener('beforeunload', () => {
   // multiplayerManager.disconnect();
+  reactUIManager.cleanup();
   mainScene.cleanup();
 });
 

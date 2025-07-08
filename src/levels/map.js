@@ -47,7 +47,9 @@ export class MainMap extends Level {
     this.debugText.style.background = 'rgba(0,0,0,0.3)';
     this.debugText.style.color = 'white';
     this.debugText.style.padding = '10px';
+    this.debugText.style.fontSize = '12px';
     this.debugText.style.fontFamily = 'monospace';
+    this.debugText.style.letterSpacing = '0px';
     this.debugText.style.zIndex = '1000';
     document.body.appendChild(this.debugText);
 

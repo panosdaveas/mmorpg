@@ -160,13 +160,12 @@ const MainMenu = ({
             </GridLayout>
             <GridLayout
                 rows={1}
-                cols={2}
+                cols={1}
                 >
                     <MenuToggle 
+                        initialState={true}
+                        onToggle={(value) => console.log("Toggle is now:", value)}
                         position={{ row: 1, col: 1 }}
-                    />
-                    <MenuButton
-                        position={{ row: 1, col: 2 }}
                     />
                 </GridLayout>
             {/* Submenu Placeholder with hierarchy support */}

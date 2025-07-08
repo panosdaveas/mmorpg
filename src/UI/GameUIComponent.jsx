@@ -17,6 +17,7 @@ const GameUIComponent = ({
     },
     text = '',
     state = 'normal', // normal, hover, pressed, disabled
+    controlledState = false,
     tabIndex = 0,
     onClick = null,
     onSelect = null,
@@ -31,8 +32,12 @@ const GameUIComponent = ({
 
     // Update state when prop changes
     useEffect(() => {
-        setCurrentState(enabled ? state : 'disabled');
-    }, [state, enabled]);
+        if (controlledState) {
+            setCurrentState(state);
+        } else {
+            setCurrentState(enabled ? state : 'disabled');
+        }
+    }, [state, enabled, controlledState]);
 
     const handleClick = (e) => {
         if (!enabled) return;
@@ -41,22 +46,22 @@ const GameUIComponent = ({
     };
 
     const handleMouseEnter = () => {
-        if (!enabled) return;
+        if (!enabled || controlledState) return;
         setCurrentState('hover');
     };
 
     const handleMouseLeave = () => {
-        if (!enabled) return;
+        if (!enabled || controlledState) return;
         setCurrentState('normal');
     };
 
     const handleMouseDown = () => {
-        if (!enabled) return;
+        if (!enabled || controlledState) return;
         setCurrentState('pressed');
     };
 
     const handleMouseUp = () => {
-        if (!enabled) return;
+        if (!enabled || controlledState) return;
         setCurrentState('hover');
     };
 

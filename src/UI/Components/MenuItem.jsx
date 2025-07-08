@@ -37,7 +37,7 @@ const MenuItem = ({
         normal: '/sprites/text-box.png',   // whole menu item background
     },
     iconSprites = {
-        normal: iconSpriteSheet?.sprites[0][0],     // icon sprites (pointer, etc.)
+        normal: iconSpriteSheet?.sprites[4][3],     // icon sprites (pointer, etc.)
         hover: iconSpriteSheet?.sprites[0][1],
         pressed: iconSpriteSheet?.sprites[0][2],
         disabled: iconSpriteSheet?.sprites[0][3]

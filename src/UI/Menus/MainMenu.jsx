@@ -36,7 +36,6 @@ const MainMenu = ({
     const [selectedOption, setSelectedOption] = useState(0);
     const [currentSubmenu, setCurrentSubmenu] = useState(null);
     const [menuStack, setMenuStack] = useState([]); // Track menu hierarchy
-    const [multiplayerToggle, setMultiplayerToggle] = useState(true);
 
     const menuOptions = [
         { id: 'trading', text: 'TRADING CENTER' },
@@ -169,9 +168,9 @@ const MainMenu = ({
                         initialState={true}
                         onToggle={(value) => console.log("Toggle is now:", value)}
                         position={{ row: 1, col: 1 }}
-                        toggled={toggleStates.soundEnabled}
+                        toggled={toggleStates.multiplayerToggle}
                         setToggled={(newVal) =>
-                            setToggleStates(prev => ({ ...prev, soundEnabled: newVal }))
+                            setToggleStates(prev => ({ ...prev, multiplayerToggle: newVal }))
                           }
                     />
                 </GridLayout>

@@ -13,14 +13,42 @@ const GameUIOverlay = ({ gameScene }) => {
         multiplayerToggle: true,
         musicEnabled: false,
         darkMode: false
-      });
+    });
+
+    const handleMultiplayerToggle = () => {
+        if (!toggleStates.multiplayerToggle) {
+            // stop multiplayer
+            console.log("Stopping Multiplayer")
+            events.emit('TOGGLE_MULTIPLAYER_OFF');
+            return;
+        } else {
+            // start multiplayer
+            console.log("Starting Multiplayer")
+            events.emit('TOGGLE_MULTIPLAYER_ON');
+            return;
+        }
+    }
+
+    useEffect(() => {
+        handleMultiplayerToggle();
+    }, [toggleStates]);
+
+    useEffect(() => {
+        const saved = localStorage.getItem("uiToggles");
+        if (saved) {
+            setToggleStates(JSON.parse(saved));
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("uiToggles", JSON.stringify(toggleStates));
+    }, [toggleStates]);
 
     // This is where we connect to your game's input system
     useEffect(() => {
         if (!gameScene) return;
 
         const checkGameInput = () => {
-            // Press 'M' key to open React main menu
             // You can change this to any key you want
             if (gameScene.input?.getActionJustPressed("Enter")) {
                 console.log("Opening React menu!");
@@ -29,7 +57,7 @@ const GameUIOverlay = ({ gameScene }) => {
                 events.emit("MENU_OPEN");
             }
 
-            // You can add more keys for different menus:
+            // Add more keys for different menus:
             // if (gameScene.input?.getActionJustPressed("KeyT")) {
             //   setShowReactMenu(true);
             //   setMenuType('trading');

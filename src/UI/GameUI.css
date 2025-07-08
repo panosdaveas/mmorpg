@@ -18,6 +18,12 @@
     letter-spacing: 2px;
 }
 
+body {
+    font-family: 'fontRetroGaming';
+    font-size: 16px;
+    letter-spacing: 2px; 
+}
+
 /* Base App Container */
 .game-ui-app {
     min-height: 100vh;
@@ -125,14 +131,25 @@
     text-align: center;
 }
 
+.button {
+    font-family: 'fontRetroGaming';
+        font-size: 16px;
+        letter-spacing: 2px;
+}
+
 .back-button {
-    background-color: var(--game-accent);
+    /* background-color: var(--game-accent); */
+    /* color: var(--game-text-primary); */
     color: var(--game-text-primary);
+    background-color: transparent;
     border: 2px solid var(--game-border);
     border-radius: 4px;
     padding: 16px;
     margin-top: 16px;
-    /* cursor: url('/sprites/mousePointer.png'), auto; */
+    font-family: 'fontRetroGaming';
+    font-size: 16px;
+    letter-spacing: 2px;
+    cursor: url('/sprites/mousePointer.png'), auto;
     /* cursor: pointer; */
     /* font-family: 'fontRetroGaming'; */
     /* font-size: 16px; */

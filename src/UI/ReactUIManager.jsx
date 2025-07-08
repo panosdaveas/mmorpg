@@ -9,6 +9,11 @@ import { events } from '../Events';
 const GameUIOverlay = ({ gameScene }) => {
     const [showReactMenu, setShowReactMenu] = useState(false);
     const [menuType, setMenuType] = useState(null);
+    const [toggleStates, setToggleStates] = useState({
+        multiplayerToggle: true,
+        musicEnabled: false,
+        darkMode: false
+      });
 
     // This is where we connect to your game's input system
     useEffect(() => {
@@ -32,7 +37,7 @@ const GameUIOverlay = ({ gameScene }) => {
         };
 
         // Check input every frame (same as your game loop)
-        const inputInterval = setInterval(checkGameInput, 16); // ~60fps
+        const inputInterval = setInterval(checkGameInput, 12); // ~60fps
         return () => clearInterval(inputInterval);
     }, [gameScene]);
 
@@ -68,6 +73,8 @@ const GameUIOverlay = ({ gameScene }) => {
                     root={gameScene}          // Pass your game scene
                     visible={showReactMenu}   // Control visibility
                     onClose={handleCloseMenu} // Handle closing
+                    toggleStates={toggleStates}
+                    setToggleStates={setToggleStates}
                 />
             )}
 

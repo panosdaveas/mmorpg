@@ -17,34 +17,34 @@ const GridLayout = ({
     ...props
 }) => {
     // Handle game input system integration
-    useEffect(() => {
-        if (!root || !visible || !isActive) return;
+    // useEffect(() => {
+    //     if (!root || !visible || !isActive) return;
 
-        const handleGameInput = () => {
-            // Check for Enter key press
-            if (root.input?.getActionJustPressed("Enter")) {
-                if (onEnter) {
-                    onEnter();
-                }
-            }
+    //     const handleGameInput = () => {
+    //         // Check for Enter key press
+    //         if (root.input?.getActionJustPressed("Enter")) {
+    //             if (onEnter) {
+    //                 onEnter();
+    //             }
+    //         }
 
-            // Check for Escape key press
-            if (root.input?.getActionJustPressed("Escape")) {
-                if (onEscape) {
-                    onEscape();
-                } else if (parentMenu) {
-                    // Go back to parent menu if no custom escape handler
-                    parentMenu.show();
-                }
-            }
-        };
+    //         // Check for Escape key press
+    //         if (root.input?.getActionJustPressed("Escape")) {
+    //             if (onEscape) {
+    //                 onEscape();
+    //             } else if (parentMenu) {
+    //                 // Go back to parent menu if no custom escape handler
+    //                 parentMenu.show();
+    //             }
+    //         }
+    //     };
 
-        // Set up the input check in the game loop
-        // This would typically be called in your game's update loop
-        const inputCheckInterval = setInterval(handleGameInput, 16); // ~60fps
+    //     // Set up the input check in the game loop
+    //     // This would typically be called in your game's update loop
+    //     const inputCheckInterval = setInterval(handleGameInput, 16); // ~60fps
 
-        return () => clearInterval(inputCheckInterval);
-    }, [root, visible, isActive, onEnter, onEscape, parentMenu]);
+    //     return () => clearInterval(inputCheckInterval);
+    // }, [root, visible, isActive, onEnter, onEscape, parentMenu]);
 
     if (!visible) return null;
 

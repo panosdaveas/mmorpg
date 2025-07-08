@@ -27,6 +27,8 @@ const MenuToggle = ({
     initialState = false,
     onToggle = () => { },
     tabIndex,
+    toggled,
+    setToggled,
     sprites = {
         normal: buttonSpriteSheet?.sprites[0][0],
         pressed: buttonSpriteSheet?.sprites[1][0],
@@ -38,16 +40,18 @@ const MenuToggle = ({
     },
     ...props
 }) => {
-    const [toggled, setToggled] = useState(initialState);
+    // const [toggled, setToggled] = useState(initialState);
 
     // Optional: let parent know when toggled
-    useEffect(() => {
-        onToggle(toggled);
-    }, [toggled]);
+    // useEffect(() => {
+    //     onToggle(toggled);
+    // }, [toggled]);
 
     const handleClick = () => {
-        setToggled(prev => !prev);
-    };
+        const newState = !toggled;
+        setToggled(newState);
+        onToggle(newState);
+      };
 
     return (
         <GameUIComponent

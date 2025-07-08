@@ -29,11 +29,14 @@ const SubmenuPlaceholder = ({ title, visible, onBack, root }) => {
 const MainMenu = ({
     root = null, // Game root object
     onClose = null, // Callback when menu is completely closed
-    visible = true
+    visible = true,
+    toggleStates,
+    setToggleStates,
 }) => {
     const [selectedOption, setSelectedOption] = useState(0);
     const [currentSubmenu, setCurrentSubmenu] = useState(null);
     const [menuStack, setMenuStack] = useState([]); // Track menu hierarchy
+    const [multiplayerToggle, setMultiplayerToggle] = useState(true);
 
     const menuOptions = [
         { id: 'trading', text: 'TRADING CENTER' },
@@ -80,7 +83,7 @@ const MainMenu = ({
         };
 
         // Set up the input check in the game loop
-        const inputCheckInterval = setInterval(handleGameInput, 16); // ~60fps
+        const inputCheckInterval = setInterval(handleGameInput, 12); // ~60fps
 
         return () => clearInterval(inputCheckInterval);
     }, [root, visible, currentSubmenu, selectedOption, menuOptions.length, onClose]);
@@ -166,6 +169,10 @@ const MainMenu = ({
                         initialState={true}
                         onToggle={(value) => console.log("Toggle is now:", value)}
                         position={{ row: 1, col: 1 }}
+                        toggled={toggleStates.soundEnabled}
+                        setToggled={(newVal) =>
+                            setToggleStates(prev => ({ ...prev, soundEnabled: newVal }))
+                          }
                     />
                 </GridLayout>
             </GridLayout>

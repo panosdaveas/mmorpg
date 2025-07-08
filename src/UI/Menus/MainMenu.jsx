@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import GridLayout from '../GridLayout';
 import MenuItem from '../Components/MenuItem';
-import MenuButton from '../Components/MenuButton';
 import MenuToggle from '../Components/MenuToggle';
 
 // Submenu Placeholder Component
-const SubmenuPlaceholder = ({ title, visible, onBack }) => {
+const SubmenuPlaceholder = ({ title, visible, onBack, root }) => {
     if (!visible) return null;
+    if (title === 'players') {
+        console.log(root?.multiplayerManager.getRemotePlayers());
+    }
 
     return (
         <div className="submenu-placeholder">
@@ -58,7 +60,7 @@ const MainMenu = ({
                 }
 
                 // Enter - select current option
-                if (root.input?.getActionJustPressed("Enter")) {
+                if (root.input?.getActionJustPressed("Space")) {
                     handleOptionSelect(selectedOption);
                 }
             }
@@ -156,18 +158,18 @@ const MainMenu = ({
                         tabIndex={index + 1}
                     />
                 ))}
-                
-            </GridLayout>
-            <GridLayout
-                rows={1}
-                cols={1}
+                <GridLayout
+                    rows={1}
+                    cols={1}
                 >
-                    <MenuToggle 
+                    <MenuToggle
                         initialState={true}
                         onToggle={(value) => console.log("Toggle is now:", value)}
                         position={{ row: 1, col: 1 }}
                     />
                 </GridLayout>
+            </GridLayout>
+            
             {/* Submenu Placeholder with hierarchy support */}
             {currentSubmenu && (
                 <GridLayout
@@ -182,6 +184,7 @@ const MainMenu = ({
                         title={currentSubmenu}
                         visible={!!currentSubmenu}
                         onBack={goBackToMainMenu}
+                        root={root}
                     />
                 </GridLayout>
             )}

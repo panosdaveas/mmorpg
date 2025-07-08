@@ -117,8 +117,8 @@
 
 /* Submenu Placeholder */
 .submenu-placeholder {
-    background-color: var(--game-bg-secondary);
-    border: 2px solid var(--game-border);
+    /* background-color: var(--game-bg-secondary); */
+    /* border: 2px solid var(--game-border); */
     border-radius: 8px;
     padding: 16px;
     margin-top: 16px;

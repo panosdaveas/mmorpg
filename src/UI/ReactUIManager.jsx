@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import MainMenu from './Menus/MainMenu';
+import InteractiveMenu from './Menus/InteractiveMenu';
 import './GameUI.css';
 import { events } from '../Events';
 
@@ -63,11 +64,33 @@ const GameUIOverlay = ({ gameScene }) => {
             //   setMenuType('trading');
             // }
         };
-
         // Check input every frame (same as your game loop)
         const inputInterval = setInterval(checkGameInput, 12); // ~60fps
         return () => clearInterval(inputInterval);
     }, [gameScene]);
+
+    // Listen for game events to open interactive menu
+    useEffect(() => {
+        const handleInteractiveMenu = (data) => {
+            console.log("UIManager: Creating interactive menu for remote player", data);
+            setShowReactMenu(true);
+            setMenuType('interactiveMenu');
+            // setInteractiveMenuData(data); // Store the data for the interactive menu
+            // events.emit("INTERACTIVE_MENU_OPENED", data);
+        };
+
+        // Add event listener
+        // events.on("INTERACTIVE_MENU", handleInteractiveMenu);
+        events.on("INTERACTIVE_MENU", null, async (data) => {
+            handleInteractiveMenu(data);
+            // this.isLocked = true;
+          });
+
+        // Cleanup on unmount
+        return () => {
+            events.off("INTERACTIVE_MENU", handleInteractiveMenu);
+        };
+    }, []);
 
     const handleCloseMenu = () => {
         console.log("Closing React menu!");
@@ -103,6 +126,17 @@ const GameUIOverlay = ({ gameScene }) => {
                     onClose={handleCloseMenu} // Handle closing
                     toggleStates={toggleStates}
                     setToggleStates={setToggleStates}
+                />
+            )}
+
+            {/* Interactive Menu */}
+            {menuType === 'interactiveMenu' && (
+                <InteractiveMenu
+                    root={gameScene}          // Pass your game scene
+                    visible={showReactMenu}   // Control visibility
+                    onClose={handleCloseMenu} // Handle closing
+                    // toggleStates={toggleStates}
+                    // setToggleStates={setToggleStates}
                 />
             )}
 

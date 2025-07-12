@@ -94,8 +94,8 @@ export class Main extends GameObject {
     this.addChild(inventory);
 
     // Change Level handler
-    events.on("CHANGE_LEVEL", this, newLevelInstance => {
-      this.setLevel(newLevelInstance);
+    events.on("CHANGE_LEVEL", this, async newLevelInstance => {
+      await this.setLevel(newLevelInstance);
     });
 
     // Connect To Multiplayer
@@ -176,7 +176,7 @@ export class Main extends GameObject {
     }
   }
 
-  setLevel(newLevelInstance) {
+  async setLevel(newLevelInstance) {
     // Clean up old level
     if (this.level) {
       // Cleanup the old level properly
@@ -191,7 +191,7 @@ export class Main extends GameObject {
 
     // Set the new level
     this.level = newLevelInstance;
-    this.addChild(this.level);
+    
 
     // Pass multiplayer manager to the new level
     if (this.level && this.multiplayerManager) {
@@ -207,6 +207,8 @@ export class Main extends GameObject {
       }
     }
 
+    await this.level.ready();
+
     // Trigger camera bounds update for new level
     if (this.level.mapData) {
       const { width, height, tilewidth, tileheight } = this.level.mapData;
@@ -215,6 +217,8 @@ export class Main extends GameObject {
         height: height * tileheight,
       });
     }
+
+    this.addChild(this.level);
   }
 
   // Method to disconnect multiplayer (useful for testing or settings)

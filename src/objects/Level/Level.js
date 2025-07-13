@@ -366,6 +366,16 @@ export class Level extends GameObject {
 
     // 🚨 FIX: Use unsubscribe instead of off with event names
     events.unsubscribe(this);
+    // this.children.forEach(child => child.destroy());
+
+    // Clear image caches if needed
+    Object.keys(this.tilesetImages).forEach(key => {
+      delete this.tilesetImages[key];
+    });
+
+    Object.keys(this.animatedTiles).forEach(key => {
+      delete this.animatedTiles[key];
+    });
 
     // Call parent cleanup  
     super.cleanup && super.cleanup();

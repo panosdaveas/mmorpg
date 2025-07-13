@@ -105,6 +105,13 @@ io.on('connection', socket => {
             id: socket.id,
             ...players[socket.id]
         });
+
+        const chainId = data.attributes?.chainId;
+        if (chainId) {
+            const room = `chain-${chainId}`;
+            socket.join(room);
+            console.log(`Player ${socket.id} joined room ${room}`);
+        }
     });
 
     socket.on('move', data => {
@@ -211,6 +218,19 @@ io.on('connection', socket => {
             console.warn(`[Server] Could not find socket for ${to}`);
         }
     });
+
+    socket.on('chat:public', (msg) => {
+        io.emit('chat:message', msg);
+    });
+
+    socket.on('chat:private', ({ from, to, text }) => {
+        io.to(to).emit('chat:message', { from, text, private: true });
+    });
+
+    socket.on('chat:room', ({ from, room, text }) => {
+        io.to(room).emit('chat:message', { from, text, room });
+    });
+
 });
 
 // Simple admin endpoint to check current connections

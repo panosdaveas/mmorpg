@@ -2,12 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import GridLayout from '../GridLayout';
 import MenuItem from '../Components/MenuItem';
+import { MinimalChatBox } from './MinimalChatbox';
 
 // Submenu Placeholder Component
-const SubmenuPlaceholder = ({ title, visible, onBack, root }) => {
+const SubmenuPlaceholder = ({ title, visible, onBack, root, data}) => {
     if (!visible) return null;
-    if (title === 'players') {
-        console.log(root?.multiplayerManager.getRemotePlayers());
+    const mySocketId = root?.multiplayerManager.mySocketId;
+    if (title === 'chat') {
+        console.log("ROOT", root);
+        console.log("DATA", data);
     }
 
     return (
@@ -29,8 +32,7 @@ const InteractiveMenu = ({
     root = null, // Game root object
     onClose = null, // Callback when menu is completely closed
     visible = true,
-    // toggleStates,
-    // setToggleStates,
+    data
 }) => {
     const [selectedOption, setSelectedOption] = useState(0);
     const [currentSubmenu, setCurrentSubmenu] = useState(null);
@@ -173,6 +175,7 @@ const InteractiveMenu = ({
                         visible={!!currentSubmenu}
                         onBack={goBackToMainMenu}
                         root={root}
+                        data={data}
                     />
                 </GridLayout>
             )}

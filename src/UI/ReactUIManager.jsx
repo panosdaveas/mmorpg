@@ -10,6 +10,7 @@ import { events } from '../Events';
 const GameUIOverlay = ({ gameScene }) => {
     const [showReactMenu, setShowReactMenu] = useState(false);
     const [menuType, setMenuType] = useState(null);
+    const [interactiveMenuData, setInteractiveMenuData] = useState(null);
     const [toggleStates, setToggleStates] = useState({
         multiplayerToggle: true,
         musicEnabled: false,
@@ -75,7 +76,7 @@ const GameUIOverlay = ({ gameScene }) => {
             console.log("UIManager: Creating interactive menu for remote player", data);
             setShowReactMenu(true);
             setMenuType('interactiveMenu');
-            // setInteractiveMenuData(data); // Store the data for the interactive menu
+            setInteractiveMenuData(data); // Store the data for the interactive menu
             // events.emit("INTERACTIVE_MENU_OPENED", data);
         };
 
@@ -96,6 +97,7 @@ const GameUIOverlay = ({ gameScene }) => {
         console.log("Closing React menu!");
         setShowReactMenu(false);
         setMenuType(null);
+        setInteractiveMenuData(null);
         events.emit("MENU_CLOSE");
     };
 
@@ -135,6 +137,7 @@ const GameUIOverlay = ({ gameScene }) => {
                     root={gameScene}          // Pass your game scene
                     visible={showReactMenu}   // Control visibility
                     onClose={handleCloseMenu} // Handle closing
+                    data={interactiveMenuData}
                     // toggleStates={toggleStates}
                     // setToggleStates={setToggleStates}
                 />

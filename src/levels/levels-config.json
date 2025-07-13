@@ -1,0 +1,56 @@
+{
+  "levels": {
+    "mainMap": {
+      "className": "MainMap",
+      "spawnPoints": {
+        "default": [20, 21],
+        "fromRoom1": [19, 23],
+        "fromRoom2": [11, 28]
+      },
+      "exits": [
+        {
+          "id": "room1Exit",
+          "position": [19, 22],
+          "targetLevel": "room1",
+          "targetSpawnPoint": "entrance"
+        },
+        {
+          "id": "room2Exit",
+          "position": [11, 27],
+          "targetLevel": "room2",
+          "targetSpawnPoint": "entrance"
+        }
+      ]
+    },
+    "room1": {
+      "className": "Room1",
+      "spawnPoints": {
+        "entrance": [38, 23],
+        "default": [36, 21]
+      },
+      "exits": [
+        {
+          "id": "exitToMain",
+          "position": [38, 24],
+          "targetLevel": "mainMap",
+          "targetSpawnPoint": "fromRoom1"
+        }
+      ]
+    },
+    "room2": {
+      "className": "Room2",
+      "spawnPoints": {
+        "entrance": [37, 24],
+        "default": [8, 8]
+      },
+      "exits": [
+        {
+          "id": "exitToMain",
+          "position": [37, 25],
+          "targetLevel": "mainMap",
+          "targetSpawnPoint": "fromRoom2"
+        }
+      ]
+    }
+  }
+}

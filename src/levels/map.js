@@ -35,9 +35,13 @@ export class MainMap extends Level {
       this.addChild(this.localPlayer);
     }
 
+    // Store level ID for transition handling
+    this.levelId = params.levelId || "mainMap";
+    this.cameraEnabled = true;
+
     // FIXED: Create exit with different coordinates to avoid conflicts
-    const exit = new Exit(gridCells(19), gridCells(22))
-    this.addChild(exit);
+    // const exit = new Exit(gridCells(19), gridCells(22))
+    // this.addChild(exit);
 
     // Setup debug text and multiplayer
     this.debugText = document.createElement('div');
@@ -56,6 +60,7 @@ export class MainMap extends Level {
     if (this.multiplayerManager) {
       this.setupMultiplayerEvents();
     }
+    
 
     const npc1 = new Npc(gridCells(52), gridCells(32), "oldWomanLeft");
     this.addChild(npc1);
@@ -79,35 +84,7 @@ export class MainMap extends Level {
 
     // Add MainMap-specific multiplayer event handlers
     if (!this.multiplayerManager) return;
-    this.multiplayerManager.on('onConnect', (data) => {
-      console.log('Connected to multiplayer server');
-      this.updateDebugText();
-    });
-
-    this.multiplayerManager.on('onDisconnect', (data) => {
-      console.log('Disconnected from multiplayer server:', data.reason);
-      this.updateDebugText();
-    });
-
-    this.multiplayerManager.on('onError', (data) => {
-      console.error('Multiplayer error:', data.error);
-      this.updateDebugText();
-    });
-
-    this.multiplayerManager.on('onPlayerJoin', (data) => {
-      console.log('Player(s) joined:', data);
-      this.updateDebugText();
-    });
-
-    this.multiplayerManager.on('onPlayerLeave', (data) => {
-      console.log('Player left:', data.playerId);
-      this.updateDebugText();
-    });
-
-    this.multiplayerManager.on('onPlayerMove', (data) => {
-      // Player movement is already handled in MultiplayerManager
-      this.updateDebugText();
-    });
+    
   }
 
   updateDebugText() {
@@ -153,24 +130,30 @@ export class MainMap extends Level {
     // FIXED: Clean event binding to prevent conflicts
     // events.unsubscribe(this);
     events.off("HERO_EXITS", this); // Remove any existing listeners
-    events.on("HERO_EXITS", this, () => {
-      console.log('MainMap - HERO_EXITS triggered');
-      this.cleanup(); // Cleanup current level
+    // events.on("HERO_EXITS", this, () => {
+    //   console.log('MainMap - HERO_EXITS triggered');
+    //   this.cleanup(); // Cleanup current level
 
-      // Create new level with specific spawn position
-      const newLevel = new Room1({
-        heroPosition: new Vector2(gridCells(38), gridCells(23)),
-        multiplayerManager: this.multiplayerManager,
-        hero: this.localPlayer,
-      });
+    //   // Create new level with specific spawn position
+    //   const newLevel = new Room1({
+    //     heroPosition: new Vector2(gridCells(38), gridCells(23)),
+    //     multiplayerManager: this.multiplayerManager,
+    //     hero: this.localPlayer,
+    //   });
 
-      events.emit("CHANGE_LEVEL", newLevel);
-    });
+    //   events.emit("CHANGE_LEVEL", newLevel);
+    // });
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
       width: mapData.width * TILE_SIZE,
       height: mapData.height * TILE_SIZE,
     });
+
+    events.emit("SET_CAMERA_OPTIONS", {
+      zoom: this.scale,
+      enabled: this.cameraEnabled,
+    });
+
     this.updateDebugText();
   }
 

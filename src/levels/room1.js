@@ -27,8 +27,9 @@ export class Room1 extends Level {
       scale: 2,
     });
 
-    const exit = new Exit(gridCells(38), gridCells(24))
-    this.addChild(exit);
+    // const exit = new Exit(gridCells(38), gridCells(24))
+    // this.addChild(exit);
+    this.levelId = params.levelId || "room1";
 
     // Store player setup info (don't set position here)
     this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
@@ -116,19 +117,19 @@ export class Room1 extends Level {
     // FIXED: Clean event binding
     // events.unsubscribe(this); 
     events.off("HERO_EXITS", this); // Remove any existing listeners
-    events.on("HERO_EXITS", this, () => {
-      console.log('Room1 - HERO_EXITS triggered');
-      this.cleanup();
+    // events.on("HERO_EXITS", this, () => {
+    //   console.log('Room1 - HERO_EXITS triggered');
+    //   this.cleanup();
 
-      const newLevel = new MainMap({
-        heroPosition: new Vector2(gridCells(19), gridCells(23)),
-        multiplayerManager: this.multiplayerManager,
-        hero: this.localPlayer
-      });
+    //   const newLevel = new MainMap({
+    //     heroPosition: new Vector2(gridCells(19), gridCells(23)),
+    //     multiplayerManager: this.multiplayerManager,
+    //     hero: this.localPlayer
+    //   });
 
-      events.emit("CHANGE_LEVEL", newLevel);
+    //   events.emit("CHANGE_LEVEL", newLevel);
       
-    })
+    // })
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
       width: this.mapData.width * TILE_SIZE,

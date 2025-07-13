@@ -5,14 +5,12 @@ import {resources} from "../../Resource.js";
 import {events} from "../../Events.js";
 
 export class Exit extends GameObject {
-  constructor(x, y) {
+  constructor(x, y, exitId = 'default') {
     super({
       position: new Vector2(x,y)
     });
-    // this.addChild(new Sprite({
-    //   resource: resources.images.exit
-    // }))
 
+    this.exitId = exitId;
     this.drawLayer = "FLOOR";
   }
 
@@ -22,7 +20,10 @@ export class Exit extends GameObject {
       const roundedHeroX = Math.round(pos.x);
       const roundedHeroY = Math.round(pos.y);
       if (roundedHeroX === this.position.x && roundedHeroY === this.position.y) {
-        events.emit("HERO_EXITS")
+        events.emit("HERO_EXITS", {
+          exitId: this.exitId,
+          exitPosition: this.position
+        })
       }
     })
   }

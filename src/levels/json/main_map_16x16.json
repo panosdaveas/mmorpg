@@ -26157,7 +26157,7 @@
                         {
                          "name":"door",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -26491,7 +26491,7 @@
                         {
                          "name":"door",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {

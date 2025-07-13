@@ -6,6 +6,7 @@ import {events} from "../../Events.js";
 import {SpriteTextString} from "../SpriteTextString/SpriteTextString.js";
 import {storyFlags} from "../../StoryFlags.js";
 import { MultiplayerManager } from "../../client/multiplayerManager.js";
+import { LevelManager } from "../Level/LevelManager.js";
 import { createTestRemotePlayers, removeTestPlayers } from "../../helpers/createTestRemotePlayers.js";
 
 export class Main extends GameObject {
@@ -18,6 +19,10 @@ export class Main extends GameObject {
     this.camera = new Camera();
     this.menu = null;
     this.uiManager = null;
+
+    // Initialize the level manager
+    this.levelManager = new LevelManager();
+    this.currentLevelId = null;
 
     // Initialize multiplayer manager
     this.multiplayerManager = new MultiplayerManager();
@@ -89,13 +94,24 @@ export class Main extends GameObject {
     return this.multiplayerManager && this.multiplayerManager.isSocketConnected();
   }
 
-  ready() {
+  async ready() {
+    await this.levelManager.loadConfig();
+
     const inventory = new Inventory();
     this.addChild(inventory);
 
-    // Change Level handler
-    events.on("CHANGE_LEVEL", this, async (newLevelInstance) => {
-      await this.setLevel(newLevelInstance);
+    events.on("CHANGE_LEVEL", this, newLevelInstance => {
+      this.setLevel(newLevelInstance);
+    });
+
+    // NEW: Enhanced level change handler via exits
+    events.on("CHANGE_LEVEL_VIA_EXIT", this, (transitionData) => {
+      this.handleLevelTransition(transitionData);
+    });
+
+    // NEW: Direct level change by ID
+    events.on("CHANGE_LEVEL_BY_ID", this, (levelChangeData) => {
+      this.changeLevelById(levelChangeData);
     });
 
     // Connect To Multiplayer
@@ -173,6 +189,45 @@ export class Main extends GameObject {
     // Update multiplayer if enabled
     if (this.multiplayerEnabled && this.multiplayerManager) {
       this.multiplayerManager.updateRemotePlayers(delta);
+    }
+  }
+
+  handleLevelTransition(transitionData) {
+    const { currentLevelId, exitData, multiplayerManager, hero } = transitionData;
+
+    console.log(`Main: Handling level transition from ${currentLevelId} via exit ${exitData.exitId}`);
+
+    try {
+      const newLevel = this.levelManager.handleLevelTransition(
+        currentLevelId,
+        exitData,
+        {
+          multiplayerManager,
+          hero
+        }
+      );
+
+      if (newLevel) {
+        // Update current level ID
+        this.currentLevelId = newLevel.levelId;
+        this.setLevel(newLevel);
+      } else {
+        console.error("Failed to create new level from transition");
+      }
+    } catch (error) {
+      console.error("Error during level transition:", error);
+    }
+  }
+
+  changeLevelById({ levelId, spawnPoint = "default", ...params }) {
+    console.log(`Main: Changing to level ${levelId} at spawn ${spawnPoint}`);
+
+    try {
+      const newLevel = this.levelManager.createLevel(levelId, spawnPoint, params);
+      this.currentLevelId = levelId;
+      this.setLevel(newLevel);
+    } catch (error) {
+      console.error("Error changing level by ID:", error);
     }
   }
 

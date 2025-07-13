@@ -2,6 +2,8 @@ import { GameObject } from "../../GameObject.js";
 import { TILE_SIZE } from "../../constants/worldConstants.js";
 import { TiledPropertyHandler } from "../../helpers/propertyHandler.js";
 import { events } from "../../Events.js";
+import { Exit } from "../Exit/Exit.js";
+import { gridCells } from "../../helpers/grid.js";
 
 export class Level extends GameObject {
   constructor(params = {}) {
@@ -26,11 +28,102 @@ export class Level extends GameObject {
     // Level state
     this.isReady = false;
     this.levelName = params.levelName || "Unknown Level";
+    this.levelId = params.levelId || null;
+    this.levelConfig = null;
     this.heroStartPosition = params.heroPosition || null;
 
     // Player reference
     this.localPlayer = null;
 
+  }
+
+  setLevelConfig(config) {
+    this.levelConfig = config;
+  }
+
+  // Automatically create exits from JSON configuration
+  async createExitsFromConfig() {
+    if (!this.levelId) {
+      console.warn(`Level ${this.levelName} has no levelId - cannot create exits from config`);
+      return;
+    }
+
+    // If we don't have config, try to load it
+    if (!this.levelConfig) {
+      await this.loadLevelConfig();
+    }
+
+    if (!this.levelConfig || !this.levelConfig.levels) {
+      console.warn(`No level configuration available for ${this.levelId}`);
+      return;
+    }
+
+    const levelData = this.levelConfig.levels[this.levelId];
+    if (!levelData || !levelData.exits) {
+      console.log(`No exits configured for level: ${this.levelId}`);
+      return;
+    }
+
+    console.log(`Creating ${levelData.exits.length} exits for level: ${this.levelId}`);
+
+    // Create each configured exit
+    levelData.exits.forEach(exitConfig => {
+      const exit = new Exit(
+        gridCells(exitConfig.position[0]),
+        gridCells(exitConfig.position[1]),
+        exitConfig.id
+      );
+
+      console.log(`Created exit: ${exitConfig.id} at position [${exitConfig.position[0]}, ${exitConfig.position[1]}]`);
+      this.addChild(exit);
+    });
+  }
+
+  // Load level configuration if not already available
+  async loadLevelConfig() {
+    try {
+      const response = await fetch('./src/levels/levels-config.json');
+      this.levelConfig = await response.json();
+      console.log('Level configuration loaded in Level class');
+    } catch (error) {
+      console.error('Failed to load level configuration in Level class:', error);
+    }
+  }
+
+  // Get spawn position for this level
+  getSpawnPosition(spawnPointId = 'default') {
+    if (!this.levelConfig || !this.levelConfig.levels) {
+      console.warn('No level configuration available for spawn position');
+      return this.heroStartPosition;
+    }
+
+    const levelData = this.levelConfig.levels[this.levelId];
+    if (!levelData || !levelData.spawnPoints) {
+      console.warn(`No spawn points configured for level: ${this.levelId}`);
+      return this.heroStartPosition;
+    }
+
+    const spawnPoint = levelData.spawnPoints[spawnPointId] || levelData.spawnPoints.default;
+    if (!spawnPoint) {
+      console.warn(`Spawn point '${spawnPointId}' not found in level '${this.levelId}'`);
+      return this.heroStartPosition;
+    }
+
+    return new Vector2(gridCells(spawnPoint[0]), gridCells(spawnPoint[1]));
+  }
+
+  // Handle exit events - can be overridden by subclasses for custom behavior
+  handleExit(exitData) {
+    console.log(`${this.levelName} handling exit: ${exitData.exitId}`);
+    this.cleanup();
+
+    // Emit level change request with exit information
+    events.emit("CHANGE_LEVEL_VIA_EXIT", {
+      currentLevelId: this.levelId,
+      exitData: exitData,
+      multiplayerManager: this.multiplayerManager,
+      hero: this.localPlayer
+    });
   }
 
   // Set the local player for this level
@@ -69,7 +162,16 @@ export class Level extends GameObject {
       this.onPlayerLeave(data);
     });
 
-  
+    this.multiplayerManager.on('onError', (data) => {
+      console.error('Multiplayer error:', data.error);
+      this.updateDebugText();
+    });
+
+    this.multiplayerManager.on('onPlayerMove', (data) => {
+      // Player movement is already handled in MultiplayerManager
+      this.updateDebugText();
+    });
+
   }
 
   // Multiplayer event handlers (override in child classes)
@@ -123,6 +225,8 @@ export class Level extends GameObject {
 
   // Called when level becomes active
   async ready() {
+    await this.createExitsFromConfig();
+
     this.tilesetImages = await this.propertyHandler.loadTilesetImages(this.mapData.tilesets, "../assets/maps/");
     const { walls, actions } = this.propertyHandler.parseLayerTiles(this.tilesetImages, this.animatedTiles);
     this.walls = walls;
@@ -153,11 +257,9 @@ export class Level extends GameObject {
       }
     });
 
-    events.on("CHANGE_LEVEL", this, (newLevel) => {
-      if (this.multiplayerManager?.sendLevelChangedUpdate) {
-        this.multiplayerManager.sendLevelChangedUpdate(newLevel.levelName);
-      }
-      this.localPlayer.setAttribute("currentLevel", newLevel.levelName);
+    events.on("HERO_EXITS", this, (exitData) => {
+      console.log(`${this.levelName} - HERO_EXITS triggered:`, exitData);
+      this.handleExit(exitData);
     });
 
     this.isReady = true;

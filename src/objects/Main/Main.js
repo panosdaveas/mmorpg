@@ -94,7 +94,7 @@ export class Main extends GameObject {
     this.addChild(inventory);
 
     // Change Level handler
-    events.on("CHANGE_LEVEL", this, async newLevelInstance => {
+    events.on("CHANGE_LEVEL", this, async (newLevelInstance) => {
       await this.setLevel(newLevelInstance);
     });
 
@@ -191,7 +191,7 @@ export class Main extends GameObject {
 
     // Set the new level
     this.level = newLevelInstance;
-    
+    this.addChild(this.level);
 
     // Pass multiplayer manager to the new level
     if (this.level && this.multiplayerManager) {
@@ -217,8 +217,6 @@ export class Main extends GameObject {
         height: height * tileheight,
       });
     }
-
-    this.addChild(this.level);
   }
 
   // Method to disconnect multiplayer (useful for testing or settings)

@@ -57,9 +57,9 @@ export class MainMap extends Level {
     this.debugText.style.zIndex = '1000';
     document.body.appendChild(this.debugText);
 
-    if (this.multiplayerManager) {
-      this.setupMultiplayerEvents();
-    }
+    // if (this.multiplayerManager) {
+    //   this.setupMultiplayerEvents();
+    // }
     
 
     const npc1 = new Npc(gridCells(52), gridCells(32), "oldWomanLeft");
@@ -78,14 +78,14 @@ export class MainMap extends Level {
     this.addChild(npc2);
   }
 
-  setupMultiplayerEvents() {
-    // Call parent setup first
-    super.setupMultiplayerEvents();
+  // setupMultiplayerEvents() {
+  //   // Call parent setup first
+  //   super.setupMultiplayerEvents();
 
-    // Add MainMap-specific multiplayer event handlers
-    if (!this.multiplayerManager) return;
+  //   // Add MainMap-specific multiplayer event handlers
+  //   if (!this.multiplayerManager) return;
     
-  }
+  // }
 
   updateDebugText() {
     if (!this.multiplayerManager) {

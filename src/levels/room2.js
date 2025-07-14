@@ -1,13 +1,8 @@
-import { Sprite } from "../Sprite.js";
 import { Vector2 } from "../Vector2.js";
-import { resources } from "../Resource.js";
 import { Level } from "../objects/Level/Level.js";
 import { gridCells } from "../helpers/grid.js";
-import { Exit } from "../objects/Exit/Exit.js";
-// import { Hero } from "../objects/Hero/Hero.js";
 import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
-import { MainMap } from "./map.js";
 import { Npc } from "../objects/Npc/Npc.js";
 import { TALKED_TO_A, TALKED_TO_B } from "../StoryFlags.js";
 import { CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE } from "../constants/worldConstants.js";
@@ -27,14 +22,11 @@ export class Room2 extends Level {
             scale: 2,
         });
 
-        // const exit = new Exit(gridCells(38), gridCells(24))
-        // this.addChild(exit);
         this.levelId = params.levelId || "room2";
 
         // Store player setup info (don't set position here)
         this.heroStartPosition = params.heroPosition || DEFAULT_HERO_POSITION;
         this.localPlayer = params.hero;
-        // this.multiplayerManager = params.multiplayerManager;
         this.setLocalPlayer(this.localPlayer);
 
         // Only add player to scene graph in constructor
@@ -43,10 +35,6 @@ export class Room2 extends Level {
         }
 
         this.cameraEnabled = false;
-
-
-        const rod = new Rod(gridCells(9), gridCells(6))
-        // this.addChild(rod)
 
         const npc1 = new Npc(gridCells(35), gridCells(19), "female", {
             //content: "I am the first NPC!",
@@ -83,9 +71,7 @@ export class Room2 extends Level {
         this.addChild(npc2);
 
 
-        // this.walls = new Set();
         // Add debug text display
-        // Debug text setup
         this.debugText = document.createElement('div');
         this.debugText.style.position = 'absolute';
         this.debugText.style.top = '10px';
@@ -98,17 +84,6 @@ export class Room2 extends Level {
         document.body.appendChild(this.debugText);
     }
 
-    // Set the local player for this level
-    setLocalPlayer(player) {
-        this.localPlayer = player;
-        this.localPlayer.currentLevelName === this.levelName;
-
-        // If multiplayer is enabled, notify the manager about the level change
-        if (this.multiplayerManager) {
-            this.multiplayerManager.setLevel(this);
-        }
-    }
-
     async ready() {
         await super.ready();
 
@@ -117,19 +92,6 @@ export class Room2 extends Level {
         // FIXED: Clean event binding
         // events.unsubscribe(this); 
         events.off("HERO_EXITS", this); // Remove any existing listeners
-        // events.on("HERO_EXITS", this, () => {
-        //   console.log('Room1 - HERO_EXITS triggered');
-        //   this.cleanup();
-
-        //   const newLevel = new MainMap({
-        //     heroPosition: new Vector2(gridCells(19), gridCells(23)),
-        //     multiplayerManager: this.multiplayerManager,
-        //     hero: this.localPlayer
-        //   });
-
-        //   events.emit("CHANGE_LEVEL", newLevel);
-
-        // })
 
         events.emit("SET_CAMERA_MAP_BOUNDS", {
             width: this.mapData.width * TILE_SIZE,

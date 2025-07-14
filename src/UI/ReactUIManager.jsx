@@ -59,11 +59,6 @@ const GameUIOverlay = ({ gameScene }) => {
                 events.emit("MENU_OPEN");
             }
 
-            // Add more keys for different menus:
-            // if (gameScene.input?.getActionJustPressed("KeyT")) {
-            //   setShowReactMenu(true);
-            //   setMenuType('trading');
-            // }
         };
         // Check input every frame (same as your game loop)
         const inputInterval = setInterval(checkGameInput, 12); // ~60fps
@@ -138,8 +133,6 @@ const GameUIOverlay = ({ gameScene }) => {
                     visible={showReactMenu}   // Control visibility
                     onClose={handleCloseMenu} // Handle closing
                     data={interactiveMenuData}
-                    // toggleStates={toggleStates}
-                    // setToggleStates={setToggleStates}
                 />
             )}
 

@@ -133,8 +133,6 @@ export class Level extends GameObject {
     this.localPlayer = player;
     this.localPlayer.addAttribute("currentLevel", this.levelName);
 
-  // Note: Multiplayer setup is handled by Main class in setLevel() 
-  // and by Level.ready() method
   }
 
   // Setup multiplayer events (override in child classes)

@@ -56,7 +56,6 @@ export class Hero extends GameObject {
 
     this.body = new Sprite({
       resource: resources.images.hero24x32,
-      // resource: !this.isRemote ? resources.images.hero : resources.images.remoteHero,
       frameSize: new Vector2(24, 32),
       hFrames: 3,
       vFrames: 8,
@@ -169,7 +168,6 @@ export class Hero extends GameObject {
       }
     }
   }
-  
 
   // New method to handle position updates for remote players
   updateRemotePosition(x, y) {
@@ -429,7 +427,6 @@ export class Hero extends GameObject {
     }
 
     // If no interactive object, check for action tiles from the property handler
-    // if (root.level?.propertyHandler) {
     if (root.level?.actions) {
 
       const actionTile = root.level?.getActionsAt(facingPosition.x, facingPosition.y);

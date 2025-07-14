@@ -1,15 +1,12 @@
 import { Level } from "../objects/Level/Level.js";
 import { Vector2 } from "../Vector2.js";
-import { Exit } from "../objects/Exit/Exit.js";
 import { gridCells } from "../helpers/grid.js";
 import { Rod } from "../objects/Rod/Rod.js";
 import { events } from "../Events.js";
-import { Room1 } from "./room1.js";
 import { TILE_SIZE, MAP_WIDTH, MAP_HEIGHT } from "../constants/worldConstants.js";
 import mapData from './json/main_map_16x16.json';
 import { Npc } from "../objects/Npc/Npc.js";
 
-// const DEFAULT_HERO_POSITION = new Vector2(gridCells(20), gridCells(21));
 const DEFAULT_HERO_POSITION = new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
 export class MainMap extends Level {
@@ -39,10 +36,6 @@ export class MainMap extends Level {
     this.levelId = params.levelId || "mainMap";
     this.cameraEnabled = true;
 
-    // FIXED: Create exit with different coordinates to avoid conflicts
-    // const exit = new Exit(gridCells(19), gridCells(22))
-    // this.addChild(exit);
-
     // Setup debug text and multiplayer
     this.debugText = document.createElement('div');
     this.debugText.style.position = 'absolute';
@@ -56,11 +49,6 @@ export class MainMap extends Level {
     this.debugText.style.letterSpacing = '0px';
     this.debugText.style.zIndex = '1000';
     document.body.appendChild(this.debugText);
-
-    // if (this.multiplayerManager) {
-    //   this.setupMultiplayerEvents();
-    // }
-    
 
     const npc1 = new Npc(gridCells(52), gridCells(32), "oldWomanLeft");
     this.addChild(npc1);
@@ -78,15 +66,6 @@ export class MainMap extends Level {
     this.addChild(npc2);
   }
 
-  // setupMultiplayerEvents() {
-  //   // Call parent setup first
-  //   super.setupMultiplayerEvents();
-
-  //   // Add MainMap-specific multiplayer event handlers
-  //   if (!this.multiplayerManager) return;
-    
-  // }
-
   updateDebugText() {
     if (!this.multiplayerManager) {
       this.debugText.innerHTML = `
@@ -100,7 +79,6 @@ export class MainMap extends Level {
     const remoteCount = Object.keys(this.multiplayerManager.getRemotePlayers()).length;
     const tileX = Math.floor(this.localPlayer.position.x / TILE_SIZE);
     const tileY = Math.floor(this.localPlayer.position.y / TILE_SIZE);
-    // const hp = this.localPlayer.getAttributeAsObject("hp");
     const address = this.localPlayer.getAttributeAsObject("address");
 
     this.debugText.innerHTML = `
@@ -118,31 +96,15 @@ export class MainMap extends Level {
     // Call parent update first (handles basic multiplayer updates)
     super.update(delta);
     this.updateDebugText();
-
   }
 
   async ready() {
     await super.ready();
 
     this.setPlayerPosition();
-    // this.localPlayer.addAttribute("id", debugInfo.socketId);
-
     // FIXED: Clean event binding to prevent conflicts
     // events.unsubscribe(this);
     events.off("HERO_EXITS", this); // Remove any existing listeners
-    // events.on("HERO_EXITS", this, () => {
-    //   console.log('MainMap - HERO_EXITS triggered');
-    //   this.cleanup(); // Cleanup current level
-
-    //   // Create new level with specific spawn position
-    //   const newLevel = new Room1({
-    //     heroPosition: new Vector2(gridCells(38), gridCells(23)),
-    //     multiplayerManager: this.multiplayerManager,
-    //     hero: this.localPlayer,
-    //   });
-
-    //   events.emit("CHANGE_LEVEL", newLevel);
-    // });
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
       width: mapData.width * TILE_SIZE,

@@ -3,13 +3,25 @@ import React, { useState, useEffect } from 'react';
 import GridLayout from '../GridLayout';
 import MenuItem from '../Components/MenuItem';
 import MenuToggle from '../Components/MenuToggle';
+import PlayersSubmenu from './PlayersSubmenu';
+import MenuButton from '../Components/MenuButton';
 
 // Submenu Placeholder Component
 const SubmenuPlaceholder = ({ title, visible, onBack, root }) => {
     if (!visible) return null;
-    if (title === 'players') {
-        console.log(root?.multiplayerManager.getRemotePlayers());
-    }
+
+    return (
+        <>
+            {title === 'players' &&
+            <PlayersSubmenu 
+                title={title}
+                visible={visible}
+                onBack={onBack}
+                root={root}
+            />
+            }
+        </>
+    )
 
     return (
         <div className="submenu-placeholder">

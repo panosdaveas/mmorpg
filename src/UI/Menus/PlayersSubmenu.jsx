@@ -4,6 +4,7 @@ import MenuItem from '../Components/MenuItem';
 import MenuToggle from '../Components/MenuToggle';
 import MenuButton from '../Components/MenuButton';
 import { SpriteSheet } from '../SpriteSheet';
+import PaginatedList from '../Components/PaginatedList';
 
 let buttonSpriteSheet = null;
 
@@ -28,42 +29,49 @@ const initSpriteSheet = async () => {
 initSpriteSheet();
 
 const PlayersSubmenu = ({ title, visible, onBack, root }) => {
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const handlePlayerSelect = (player, index) => {
+        setSelectedItem(player);
+        console.log('Selected player:', player, 'at index:', index);
+    };
+
+
     if (!visible) return null;
-    if (title === 'players') {
-        console.log(root?.multiplayerManager.getRemotePlayers());
-    }
+    const remotePlayers = root?.multiplayerManager.getRemotePlayers();
+    // const objList = Object.entries(remotePlayers).map(([key, value]) => ({
+    //     id: key,
+    //     ...value
+    // }));
+    const objList = Object.values(remotePlayers).map(player => ({
+        id: player.getAttribute('id'),
+        name: player.getAttribute('name') || 'Unknown Player',
+        address: player.getAttribute('address'),
+        chainId: player.getAttribute('chainId'),
+        level: player.getAttribute('level'),
+        isOnline: true,
+    }));
+
 
     return (
-        <div className="submenu-placeholder">
-            <div className="game-ui-text">Submenu: {title}</div>
-            <div className="game-ui-text">This is a placeholder for the {title} submenu</div>
-            <div className="game-ui-text">Content will be implemented later...</div>
+        <>
             <GridLayout
                 rows={1}
-                cols={4}
+                cols={1}
                 // gap='32px'
                 // className="main-menu-grid"
             >
-                <span>
-                    <MenuButton
-                        sprites={{
-                            normal: buttonSpriteSheet?.sprites[1][0],   // sprite sheet[0][0] ✅
-                            hover: buttonSpriteSheet?.sprites[1][1],    // sprite sheet[0][1] ✅
-                            pressed: buttonSpriteSheet?.sprites[1][2],  // sprite sheet[0][2] ✅
-                            disabled: buttonSpriteSheet?.sprites[1][3]  // sprite sheet[0][3] ✅
-                        }}
+                <div style={{ gridRow: 1, gridColumn: 1 }}>
+                    <PaginatedList
+                        items={objList || []}
+                        visibleItems={4}
+                        displayKeys={['id']}
+                        onItemSelect={handlePlayerSelect}
+                        title="Connected Players"
+                        emptyMessage="No players connected"
+                        root={root}
                     />
-                    </span>
-                    <span>
-                    <MenuButton
-                        sprites={{
-                            normal: buttonSpriteSheet?.sprites[0][0],   // sprite sheet[0][0] ✅
-                            hover: buttonSpriteSheet?.sprites[0][1],    // sprite sheet[0][1] ✅
-                            pressed: buttonSpriteSheet?.sprites[0][2],  // sprite sheet[0][2] ✅
-                            disabled: buttonSpriteSheet?.sprites[0][3]  // sprite sheet[0][3] ✅
-                        }}
-                    />
-                </span>
+                </div>
             </GridLayout>
             <button
                 className="back-button"
@@ -71,7 +79,7 @@ const PlayersSubmenu = ({ title, visible, onBack, root }) => {
             >
                 ← Back to Main Menu
             </button>
-        </div>
+        </>
     );
 };
 

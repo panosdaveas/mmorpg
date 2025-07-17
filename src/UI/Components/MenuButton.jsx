@@ -1,69 +1,79 @@
-// MenuItem.jsx - Specialized GameUIComponent for menu options
+// MenuButton.jsx - Fixed version with better size control
 import React from 'react';
 import GameUIComponent from '../GameUIComponent';
 import { SpriteSheet } from '../SpriteSheet';
 
-// Load sprite sheet at module level
 let buttonSpriteSheet = null;
 
-// Initialize sprite sheet immediately
 const initSpriteSheet = async () => {
     try {
         const sheet = new SpriteSheet({
-            resource: '/sprites/pointers.png', // Your 1x4 sprite sheet
-            frameSize: [16, 16],                   // Adjust to your sprite size
-            hFrames: 4,                            // normal, hover, pressed, disabled
-            vFrames: 5                             // 1 row
+            resource: '/sprites/pointers.png',
+            frameSize: [16, 16],
+            hFrames: 4,
+            vFrames: 5
         });
 
         await sheet.init();
         buttonSpriteSheet = sheet;
-        console.log('MenuItem: Sprite sheet loaded');
+        console.log('MenuButton: Sprite sheet loaded');
     } catch (error) {
-        console.warn('MenuItem: Failed to load sprite sheet:', error);
+        console.warn('MenuButton: Failed to load sprite sheet:', error);
     }
 };
 
-// Load sprites immediately when module loads
 initSpriteSheet();
 
 const MenuButton = ({
-    // text,
     isSelected = false,
     onSelect,
     tabIndex,
+    enabled = true,
     sprites = {
-        normal: buttonSpriteSheet?.sprites[4][0],   // sprite sheet[0][0] ✅
-        hover: buttonSpriteSheet?.sprites[4][1],    // sprite sheet[0][1] ✅
-        pressed: buttonSpriteSheet?.sprites[4][2],  // sprite sheet[0][2] ✅
-        disabled: buttonSpriteSheet?.sprites[4][3]  // sprite sheet[0][3] ✅
+        normal: buttonSpriteSheet?.sprites[4][0],
+        hover: buttonSpriteSheet?.sprites[4][1],
+        pressed: buttonSpriteSheet?.sprites[4][2],
+        disabled: buttonSpriteSheet?.sprites[4][3]
     },
     alpha = {
         normal: 0.8,
         hover: 1,
     },
+    size = 24, // Allow customizable size
+    padding = 0, // Allow customizable padding
+    style = {}, // Allow style overrides
     ...props
 }) => {
+    const handleClick = () => {
+        if (enabled && onSelect) {
+            onSelect();
+        }
+    };
+
     return (
         <GameUIComponent
-            // text={text}
             state={isSelected ? 'hover' : 'normal'}
-            onClick={onSelect}
-            tabIndex={tabIndex}
-            // className="menu-item"
+            controlledState={!enabled}
+            onClick={handleClick}
+            tabIndex={enabled ? tabIndex : -1}
             sprites={sprites}
             alpha={alpha}
+            enabled={enabled}
             style={{
-                // position: 'relative',
                 zIndex: 1,
-                width: '16px',
-                height: '16px',
-                minWidth: '16px',
-                padding: '8px',
+                width: `${size}px`,
+                height: `${size}px`,
+                minWidth: `${size}px`,
+                padding: `${padding}px`,
+                opacity: enabled ? (alpha.normal || 1) : 0.5,
+                imageRendering: 'pixelated',
+                WebkitImageRendering: 'pixelated',
+                MozImageRendering: 'crisp-edges',
+                msImageRendering: 'crisp-edges',
+                ...style // Allow style overrides
             }}
             {...props}
-        >
-        </GameUIComponent>
+        />
     );
 };
 

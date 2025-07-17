@@ -86,6 +86,10 @@ const GameUIComponent = ({
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
         opacity: currentAlpha,
+        imageRendering: 'pixelated',
+        WebkitImageRendering: 'pixelated',
+        MozImageRendering: 'crisp-edges',
+        msImageRendering: 'crisp-edges',
         ...style
     };
 

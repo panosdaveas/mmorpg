@@ -174,7 +174,7 @@ const MainMenu = ({
                 ))}
                 <GridLayout
                     rows={1}
-                    cols={1}
+                    cols={2}
                 >
                     <MenuToggle
                         initialState={true}

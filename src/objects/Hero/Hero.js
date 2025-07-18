@@ -235,6 +235,16 @@ export class Hero extends GameObject {
         showTradeRequestDialog(tradeData);
       }),
     ];
+    this.messages.push({
+      from: "System",
+      message: "Welcome to the game!",
+      timestamp: new Date().toLocaleString()
+    });
+    this.messages.push({
+      from: "System 2",
+      message: "Welcome again!",
+      timestamp: new Date().toLocaleString()
+    });
   }
 
   update(delta) {

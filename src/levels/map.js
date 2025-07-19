@@ -36,7 +36,7 @@ export class MainMap extends Level {
     this.levelId = params.levelId || "mainMap";
     this.cameraEnabled = true;
 
-    // Setup debug text and multiplayer
+    // Setup debug text
     this.debugText = document.createElement('div');
     this.debugText.style.position = 'absolute';
     this.debugText.style.top = '10px';
@@ -57,7 +57,6 @@ export class MainMap extends Level {
       content: [
         {
           string: "What a wonderful day at work in the block! I'm very pleased to meet you! this text should take a while to show up, taking up more than 3 lines!",
-          // string: "WHAT A WONDERFUL DAY AT WORK IN THE CAVE!",
           requires: [],
         }
       ],
@@ -91,20 +90,20 @@ export class MainMap extends Level {
     `;
   }
 
-  // Called on each game tick from main.js
+  // Simplified update - just update debug text
   update(delta) {
-    // Call parent update first (handles basic multiplayer updates)
+    // Parent update handles animations and local player update
     super.update(delta);
+
+    // Just update our debug display
     this.updateDebugText();
   }
 
   async ready() {
+    // Call parent ready (sets up level-specific events)
     await super.ready();
 
     this.setPlayerPosition();
-    // FIXED: Clean event binding to prevent conflicts
-    // events.unsubscribe(this);
-    events.off("HERO_EXITS", this); // Remove any existing listeners
 
     events.emit("SET_CAMERA_MAP_BOUNDS", {
       width: mapData.width * TILE_SIZE,

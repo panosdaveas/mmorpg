@@ -29,8 +29,11 @@ export class MultiplayerManager {
             onTradeRequest: [],
             onTradeAccepted: [],
             onPrivateMessage: [],
-            onChatMessage: [], 
+            onChatMessage: [],
         };
+
+        // Track if socket events are already set up
+        this.socketEventsSetup = false;
     }
 
     // Initialize socket connection
@@ -46,11 +49,15 @@ export class MultiplayerManager {
             timeout: 5000
         });
 
-        this.setupSocketEvents();
+        // Only setup socket events once
+        if (!this.socketEventsSetup) {
+            this.setupSocketEvents();
+            this.socketEventsSetup = true;
+        }
     }
 
     disconnect() {
-        // ✅ Clean up all remote players from the scene before disconnecting
+        // Clean up all remote players from the scene before disconnecting
         if (this.currentLevel) {
             for (const id in this.players) {
                 if (id !== this.mySocketId && this.players[id]) {
@@ -69,24 +76,43 @@ export class MultiplayerManager {
         // Reset state
         this.isConnected = false;
         this.mySocketId = null;
-        this.players = {}; // Now safe to clear since players are removed from scene
+        this.players = {};
         this.currentLevel = null;
+        this.socketEventsSetup = false; // Reset this flag
 
         console.log('Multiplayer disconnected and all remote players cleaned up');
     }
 
     // Set the current level (for adding/removing players)
     setLevel(level) {
+        const previousLevel = this.currentLevel;
         this.currentLevel = level;
 
-        // ✅ Send level info to server
+        // Remove all remote players from the previous level
+        if (previousLevel) {
+            for (const id in this.players) {
+                if (id !== this.mySocketId) {
+                    previousLevel.removeChild(this.players[id]);
+                }
+            }
+        }
+
+        // Send level info to server
         if (this.socket && this.socket.connected && level?.levelName) {
             this.sendLevelChangedUpdate(level.levelName);
         }
 
-        // if (this.isConnected && level?.localPlayer) {
-        //     this.sendInitialPlayerData(level.localPlayer);
-        // }
+        // Add remote players to the new level (only those in the same level)
+        if (this.currentLevel) {
+            for (const id in this.players) {
+                if (id !== this.mySocketId) {
+                    const player = this.players[id];
+                    if (player.currentLevelName === this.currentLevel.levelName) {
+                        this.currentLevel.addChild(player);
+                    }
+                }
+            }
+        }
     }
 
     // Subscribe to multiplayer events
@@ -95,8 +121,6 @@ export class MultiplayerManager {
             this.callbacks[event].push(callback);
         }
     }
-
-    
 
     // Unsubscribe from multiplayer events
     off(event, callback) {
@@ -115,7 +139,7 @@ export class MultiplayerManager {
         }
     }
 
-    // Setup socket event listeners
+    // Setup socket event listeners (only called once)
     setupSocketEvents() {
         const socket = this.socket;
 
@@ -126,12 +150,6 @@ export class MultiplayerManager {
             this.debugInfo.socketConnectionStatus = "Connected";
 
             this.emit('onConnect', { socketId: socket.id });
-
-            // Send initial data if we have a level and player ready
-            if (this.currentLevel && this.currentLevel.localPlayer) {
-                this.currentLevel.localPlayer.addAttribute("id", this.mySocketId);
-                this.sendInitialPlayerData(this.currentLevel.localPlayer);
-            }
         });
 
         socket.on('connect_error', (err) => {
@@ -194,10 +212,10 @@ export class MultiplayerManager {
             const player = this.players[id];
             if (player) {
                 player.currentLevelName = levelName;
-                // ✅ Remove from current level
+                // Remove from current level
                 this.currentLevel?.removeChild?.(player);
 
-                // ✅ If they now belong in this level, add them back
+                // If they now belong in this level, add them back
                 if (this.currentLevel?.levelName === levelName) {
                     this.currentLevel.addChild(player);
                 }
@@ -205,17 +223,18 @@ export class MultiplayerManager {
             }
         });
 
+        // Trade and message events
         socket.on('TRADE_REQUEST', data => {
             console.log("[Client] Received TRADE_REQUEST:", data);
-            this.emit("onTradeRequest", data); // ✅ will call TradeManager
-          });
+            this.emit("onTradeRequest", data);
+        });
 
         socket.on('TRADE_CONFIRMED', data => {
             console.log("[Client] Received TRADE_CONFIRMED:", data);
         });
 
         socket.on('TRADE_ACCEPTED', data => {
-            this.emit("onTradeAccepted", data); // triggers handleTradeAccepted()
+            this.emit("onTradeAccepted", data);
         });
 
         socket.on('PRIVATE_MESSAGE', (data) => {
@@ -224,17 +243,6 @@ export class MultiplayerManager {
                 from: data.from,
                 type: data.type,
                 payload: data,
-                timestamp: data.timestamp
-            });
-        });
-
-        // Handle incoming trade requests  
-        socket.on('TRADE_REQUEST', (data) => {
-            console.log('[Client] Received trade request:', data);
-            this.emit('onTradeRequest', {
-                from: data.from,
-                tradeData: data.tradeData,
-                senderName: data.senderName,
                 timestamp: data.timestamp
             });
         });
@@ -257,7 +265,6 @@ export class MultiplayerManager {
         // Clear existing remote players
         for (const id in this.players) {
             if (id !== this.mySocketId && this.currentLevel) {
-
                 this.currentLevel.removeChild(this.players[id]);
                 delete this.players[id];
             }
@@ -304,17 +311,13 @@ export class MultiplayerManager {
 
         console.log(`Creating remote player for ${id} with data:`, data);
 
-        // Default position if not provided
         const x = data.x || 320;
         const y = data.y || 262;
 
         const remote = new Hero(x, y);
         remote.isRemote = true;
-        // Make remote players act as solid objects
         remote.isSolid = true;
-        // make remote players interactive
         remote.isInteractive = true;
-        // remote.currentLevelName = this.currentLevel.levelName;
         remote.currentLevelName = data.levelName ?? 'Main Map';
 
         // Load attributes if provided
@@ -325,11 +328,11 @@ export class MultiplayerManager {
         }
 
         this.players[id] = remote;
-        // ✅ Only add to the current level if levelName matches
+
+        // Only add to the current level if levelName matches
         if (this.currentLevel?.levelName === remote.currentLevelName) {
             this.currentLevel.addChild(remote);
         }
-        // this.currentLevel.addChild(remote);
     }
 
     // Send initial player data (position + attributes) together
@@ -341,7 +344,6 @@ export class MultiplayerManager {
             y: localPlayer.position.y,
             attributes: localPlayer.getAttributesAsObject(),
             levelName: this.currentLevel?.levelName
-            // levelName: localPlayer.currentLevelName
         };
 
         console.log("Sending initial player data:", initialData);
@@ -382,12 +384,6 @@ export class MultiplayerManager {
         this.socket.emit("changeLevel", { levelName });
     }
 
-    /**
- * Send a private message to another player
- * @param {string} targetPlayerId - Socket ID of the target player
- * @param {string} messageType - Type of message ('CHAT', 'TRADE_REQUEST', 'GAME_INVITE', etc.)
- * @param {object} payload - The message data
- */
     sendPrivateMessage(targetPlayerId, messageType, payload = {}) {
         if (!this.socket || !this.isConnected) {
             console.warn('Cannot send private message: Not connected to server');
@@ -411,11 +407,7 @@ export class MultiplayerManager {
         return true;
     }
 
-    // 3. CONVENIENCE METHODS - Add these helper methods for common message types:
-
-    /**
-     * Send a chat message to another player
-     */
+    // Convenience methods for common message types
     sendChatMessage(targetPlayerId, message) {
         return this.sendPrivateMessage(targetPlayerId, 'CHAT_MESSAGE', {
             message: message,
@@ -423,9 +415,6 @@ export class MultiplayerManager {
         });
     }
 
-    /**
-     * Send a trade request to another player
-     */
     sendTradeRequest(targetPlayerId, tradeData) {
         return this.sendPrivateMessage(targetPlayerId, 'TRADE_REQUEST', {
             tradeData: tradeData,
@@ -433,9 +422,6 @@ export class MultiplayerManager {
         });
     }
 
-    /**
-     * Send a game invite to another player
-     */
     sendGameInvite(targetPlayerId, gameType) {
         return this.sendPrivateMessage(targetPlayerId, 'GAME_INVITE', {
             gameType: gameType,
@@ -448,12 +434,11 @@ export class MultiplayerManager {
         const currentLevelName = this.currentLevel?.levelName;
 
         for (const id in this.players) {
-
             if (id === this.mySocketId) continue;
 
             const player = this.players[id];
 
-            // ✅ ⛔ SKIP players not on the same level
+            // Skip players not on the same level
             if (player.currentLevelName !== currentLevelName) {
                 continue;
             }

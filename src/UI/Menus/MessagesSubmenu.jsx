@@ -4,7 +4,7 @@ import MenuItem from '../Components/MenuItem';
 import MenuToggle from '../Components/MenuToggle';
 import MenuButton from '../Components/MenuButton';
 import { SpriteSheet } from '../SpriteSheet';
-import PaginatedList from '../Components/PaginatedList';
+import SingleItemViewer from '../Components/SingleItemViewer';
 
 let buttonSpriteSheet = null;
 
@@ -28,8 +28,9 @@ const initSpriteSheet = async () => {
 
 initSpriteSheet();
 
-const PlayersSubmenu = ({ title, visible, onBack, root }) => {
+const MessagesSubmenu = ({ title, visible, onBack, root }) => {
     const [selectedItem, setSelectedItem] = useState(null);
+    const messages = root?.level.localPlayer.messages || [];
 
     const handlePlayerSelect = (player, index) => {
         setSelectedItem(player);
@@ -55,23 +56,21 @@ const PlayersSubmenu = ({ title, visible, onBack, root }) => {
 
     return (
         <>
+ 
             <GridLayout
                 rows={1}
                 cols={1}
-                // gap='32px'
-                // className="main-menu-grid"
+            // gap='32px'
+            // className="main-menu-grid"
             >
-                <div style={{ gridRow: 1, gridColumn: 1 }}>
-                    <PaginatedList
-                        items={objList || []}
-                        visibleItems={4}
-                        displayKeys={['id']}
+                
+                    <SingleItemViewer
+                        items={messages || []}
                         onItemSelect={handlePlayerSelect}
-                        title="Connected Players"
                         emptyMessage="No players connected"
                         root={root}
                     />
-                </div>
+        
             </GridLayout>
             <button
                 className="back-button"
@@ -83,4 +82,4 @@ const PlayersSubmenu = ({ title, visible, onBack, root }) => {
     );
 };
 
-export default PlayersSubmenu;
+export default MessagesSubmenu;

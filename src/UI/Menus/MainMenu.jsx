@@ -4,6 +4,7 @@ import GridLayout from '../GridLayout';
 import MenuItem from '../Components/MenuItem';
 import MenuToggle from '../Components/MenuToggle';
 import PlayersSubmenu from './PlayersSubmenu';
+import MessagesSubmenu from './MessagesSubmenu';
 import MenuButton from '../Components/MenuButton';
 
 // Submenu Placeholder Component
@@ -19,6 +20,15 @@ const SubmenuPlaceholder = ({ title, visible, onBack, root }) => {
                 onBack={onBack}
                 root={root}
             />
+            }
+            {title === 'messages' &&
+                <MessagesSubmenu
+                    title={title}
+                    visible={visible}
+                    onBack={onBack}
+                    root={root}
+                    areaHeight={4}
+                />
             }
         </>
     )
@@ -48,12 +58,13 @@ const MainMenu = ({
     const [selectedOption, setSelectedOption] = useState(0);
     const [currentSubmenu, setCurrentSubmenu] = useState(null);
     const [menuStack, setMenuStack] = useState([]); // Track menu hierarchy
+    const [title, setTitle] = useState('Main Menu');
 
     const menuOptions = [
         { id: 'trading', text: 'TRADING CENTER' },
         { id: 'wallet', text: 'WALLET  ASSETS' },
         { id: 'players', text: 'CONNECTED PLAYERS' },
-        { id: 'settings', text: 'SETTINGS' }
+        { id: 'messages', text: 'MESSAGES' }
     ];
 
     // Handle game input for navigation
@@ -76,6 +87,7 @@ const MainMenu = ({
                 // Enter - select current option
                 if (root.input?.getActionJustPressed("Space")) {
                     handleOptionSelect(selectedOption);
+                    
                 }
             }
 
@@ -101,6 +113,9 @@ const MainMenu = ({
 
     const handleOptionSelect = (index) => {
         const option = menuOptions[index];
+        // useEffect(() => {
+        setTitle(option.text);
+        // }, [option.text]);
 
         // Add current menu state to stack before opening submenu
         setMenuStack(prev => [...prev, {
@@ -127,6 +142,7 @@ const MainMenu = ({
             setSelectedOption(previousState.selectedOption);
             setMenuStack(prev => prev.slice(0, -1)); // Remove last item from stack
         }
+        setTitle('Main Menu'); // Reset title on mount
     };
 
     const openSubmenu = (submenuId) => {
@@ -144,7 +160,7 @@ const MainMenu = ({
     return (
         <div className="main-menu-container">
             
-            <h2>Game Menu</h2>
+            <h2>{title}</h2>
 
             {/* Main Menu Grid */}
             <GridLayout
@@ -174,7 +190,7 @@ const MainMenu = ({
                 ))}
                 <GridLayout
                     rows={1}
-                    cols={1}
+                    cols={2}
                 >
                     <MenuToggle
                         initialState={true}

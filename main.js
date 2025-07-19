@@ -3,11 +3,8 @@ import { Vector2 } from "./src/Vector2.js";
 import { GameLoop } from "./src/GameLoop.js";
 import { Main } from "./src/objects/Main/Main.js";
 import { MainMap } from './src/levels/map.js';
-import { MultiplayerManager } from './src/client/multiplayerManager.js';
 import { Hero } from './src/objects/Hero/Hero';
 import { MAP_HEIGHT, MAP_WIDTH } from './src/constants/worldConstants';
-import { TabManager } from "./src/objects/Menu/TabManager.js";
-import { createTestRemotePlayers, removeTestPlayers } from './src/helpers/createTestRemotePlayers.js'
 import { ReactUIManager } from './src/UI/ReactUIManager.jsx';
 
 
@@ -37,13 +34,11 @@ function setupGame16x9Cover() {
     canvas.style.width = canvasWidth + 'px';
     canvas.style.height = canvasHeight + 'px';
 
-    // console.log(`Canvas: ${canvasWidth}x${canvasHeight} in ${windowWidth}x${windowHeight} window`);
   }
 
   window.addEventListener('resize', resize);
   resize();
 }
-
 
 
 // Grabbing the canvas to draw to
@@ -58,12 +53,6 @@ const ctx = canvas.getContext("2d");
 const DEFAULT_HERO_POSITION = new Vector2((MAP_WIDTH / 2) + 32, (MAP_HEIGHT / 2) + 32);
 const hero = new Hero(DEFAULT_HERO_POSITION.x, DEFAULT_HERO_POSITION.y);
 
-// Create multiplayer manager instance
-// const multiplayerManager = new MultiplayerManager();
-
-// Connect to multiplayer server
-// multiplayerManager.connect('http://localhost:3000');
-
 // Establish the root scene
 const mainScene = new Main({
   position: new Vector2(0, 0)
@@ -71,17 +60,11 @@ const mainScene = new Main({
 
 // Set up the level with multiplayer support
 const mainMap = new MainMap({
-  // multiplayerManager,
   hero,
   heroPosition: DEFAULT_HERO_POSITION
 });
 mainScene.setLevel(mainMap);
 
-// Set the current level in multiplayer manager
-// mainScene.multiplayerManager.setLevel(mainMap);
-
-// const tabManager = new TabManager({ canvas });
-// mainScene.addChild(tabManager);
 const reactUIManager = new ReactUIManager(mainScene);
 // createTestRemotePlayers(mainScene.multiplayerManager);
 
@@ -99,8 +82,6 @@ const update = (delta) => {
 
   // Update remote players through multiplayer manager
   // mainScene.multiplayerManager.updateRemotePlayers(delta);
-  
-
 };
 
 const draw = () => {

@@ -51,7 +51,8 @@ export class Main extends GameObject {
 
       setTimeout(() => {
         if (this.multiplayerManager?.isSocketConnected()) {
-          createTestRemotePlayers(this.multiplayerManager, 5, {});
+          createTestRemotePlayers(this.multiplayerManager, 1, {
+          });
         }
       }, 1000);
     } catch (error) {

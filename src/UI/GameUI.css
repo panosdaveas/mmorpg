@@ -82,6 +82,8 @@ body {
     /* font-size: 16px; */
     /* letter-spacing: 2px; */
     /* font-weight: normal; */
+    /* padding-left: 16px; */
+    text-align: left;
     color: var(--game-text-primary);
 }
 

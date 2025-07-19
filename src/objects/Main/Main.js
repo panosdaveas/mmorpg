@@ -320,6 +320,8 @@ export class Main extends GameObject {
       this.multiplayerManager.setLevel(this.level);
     }
 
+    // Mark as ready to prevent GameObject from calling ready() again
+    this.level.hasReadyBeenCalled = true;
     await this.level.ready();
 
     // Trigger camera bounds update for new level

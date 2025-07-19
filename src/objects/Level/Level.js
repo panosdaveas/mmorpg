@@ -174,12 +174,6 @@ export class Level extends GameObject {
   }
 
   async ready() {
-    // Prevent multiple ready calls
-    if (this.isReady) {
-      console.warn(`Level ${this.levelName}: ready() called multiple times, skipping`);
-      return;
-    }
-
     await this.createExitsFromConfig();
 
     this.tilesetImages = await this.propertyHandler.loadTilesetImages(this.mapData.tilesets, "../assets/maps/");

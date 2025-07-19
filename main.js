@@ -131,13 +131,10 @@ window.addEventListener('beforeunload', () => {
   mainScene.cleanup();
 });
 
-// ✅ Wait for the map to fully load before starting game loop
+// ✅ Start the game loop immediately - ready() will be called by GameObject lifecycle
 (async () => {
-  const level = mainScene?.level;
-  await level.ready();
-
   const gameLoop = new GameLoop(update, draw);
-  gameLoop.start();                  // Start game only when safe
+  gameLoop.start();                  // Start game immediately
 
   // setTimeout(() => {
   //   if (mainScene.multiplayerManager?.isSocketConnected()) {

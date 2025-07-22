@@ -132,6 +132,9 @@ export class SpriteTextString extends GameObject {
       } else {
         // All pages complete - close dialog
         events.emit("END_TEXT_BOX");
+        if (input.update) {
+          input.update();
+        }
         return;
       }
     }
